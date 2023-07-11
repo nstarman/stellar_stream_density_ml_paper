@@ -1,0 +1,10 @@
+# Anything is game in this folder
+!*
+.DS_Store
+
+gaia.login
+
+# backup files
+brutus/
+dustmaps/
+gd1/
