@@ -1,0 +1,19 @@
+# Snakemake and showyourwork temporaries
+**/.snakemake
+**/.showyourwork*
+
+# Showyourwork output files
+/*.pdf
+report.html
+arxiv.tar.gz
+
+# Figure output
+src/tex/figures/*
+
+# Miscellaneous
+__pycache__
+*.synctex.gz
+.DS_Store
+/src/static/gd13
+/src/static/gd13/joined-GD-1.fits
+/src/scripts/_gd1

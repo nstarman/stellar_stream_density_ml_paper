@@ -1,0 +1,49 @@
+[tool.black]
+line-length = 88
+
+
+[tool.mypy]
+    strict = true
+
+    [[tool.mypy.overrides]]
+    module = ["matplotlib.*"]
+    ignore_missing_imports = true
+
+
+[tool.ruff]
+line-length = 88
+select = ["ALL"]
+ignore = [
+    # flake8-annotations (ANN)
+    "ANN101", "ANN102",
+    "ANN401",  # Dynamically typed expressions are disallowed in `**kwargs`
+    # flake8-bandit (B)
+    "B008", "B011",
+    # flake8-commas (COM)
+    "COM812",
+    # pydocstyle (D)
+    "D105", "D107", "D203", "D213", "D417",
+    # pycodestyle (E)
+    "E402",
+    # eradicate (ERA)
+    "ERA001",  # commented-out-code
+    # pep8-naming (N)
+    "N80",
+    "N812",  # lowercase imported as non lowercase
+    "N815", "N816",  # mixedCase
+    "N999",  # Invalid module name
+    # Refactor (PLR)
+    "PLR0915",  # Too many statements
+    "PLR2004",  # Magic values
+    # RUF
+    "RUF005",
+    # flake8-tidy-imports (TID)
+    "TID252",  # Relative imports from parent modules are banned
+]
+
+[tool.ruff.per-file-ignores]
+"src/scripts/*.py" = ["INP001", "FBT003"]  #  implicit namespace package
+
+[tool.ruff.isort]
+known-first-party = ["stream_mapper", "scripts"]
+known-local-folder = ["paths"]

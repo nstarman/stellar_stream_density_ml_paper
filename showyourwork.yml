@@ -1,0 +1,240 @@
+# Enable rule caching on Zenodo?
+cache_on_zenodo: true
+
+# Workflow graph (DAG) generation
+dag:
+  # Generate `dag.pdf` on each build?
+  render: false
+  # Graphviz layout engine
+  engine: sfdp
+  # Group files by type into plates?
+  group_by_type: false
+  # Custom graph attributes
+  graph_attr:
+    ranksep: "1"
+    nodesep: "0.65"
+  # Custom node attributes
+  node_attr:
+    shape: "box"
+    penwidth: "2"
+    width: "1"
+  # Files and glob patterns to ignore
+  # ignore_files:
+  #  - src/tex/orcid-ID.png
+
+
+# Externally-hosted datasets, e.g. on Zenodo
+datasets:
+  # 10.5281/zenodo.6468327:
+  #   contents:
+  #     TOI640b.json: src/data/TOI640b.json
+
+# Custom file dependencies
+dependencies:
+  # src/tex/ms.tex:
+  #   - src/tex/stylesheet.tex
+  # ==============================
+  # MOCK
+  src/scripts/mock/data/make.py:
+    - src/data/brutus/MIST_1.2_iso_vvcrit0.0.h5
+    - src/data/brutus/nn_c3k.h5
+  src/scripts/mock/data/variable_isochrone_age.py:
+    - src/data/mock/data.asdf
+  src/scripts/mock/data/variable_isochrone_feh.py:
+    - src/data/mock/data.asdf
+  src/scripts/mock/data/variable_nbackground.py:
+    - src/data/mock/data.asdf
+  src/scripts/mock/data/variable_nstream.py:
+    - src/data/mock/data.asdf
+  src/scripts/mock/model.py:
+    - src/data/mock/data.asdf
+  src/scripts/mock/models/1-train_flow.py:
+    - src/data/mock/data.asdf
+    - src/scripts/mock/model.py
+  src/scripts/mock/models/2-train_model.py:
+    - src/data/mock/data.asdf
+    - src/scripts/mock/model.py
+    - src/data/mock/background_photometry_model.pt
+  src/scripts/mock/plot/photometric_background_selection.py:
+    - src/data/mock/data.asdf
+    - src/scripts/mock/model.py
+  src/scripts/mock/plot/results.py:
+    - src/data/mock/data.asdf
+    - src/scripts/mock/model.py
+    - src/data/mock/model.pt
+  src/scripts/mock/stats/variable_ncorrect.py:
+    - src/data/mock/data.asdf
+    - src/scripts/mock/model.py
+    - src/data/mock/model.pt
+  src/scripts/mock/stats/variable_falseident.py:
+    - src/data/mock/data.asdf
+    - src/scripts/mock/model.py
+    - src/data/mock/model.pt
+  # ==============================
+  # GD1
+  src/scripts/gd1/data/2-combine_data.py:
+    - src/data/gd1/gaia_ps1_xm_polygons.asdf
+  src/scripts/gd1/data/2.5-variable_ndata.py:
+    - src/data/gd1/gaia_ps1_xm.asdf
+  src/scripts/gd1/data/4-masks.py:
+    - src/data/gd1/gaia_ps1_xm.asdf
+  # ------
+  src/scripts/gd1/models/0-info.py:
+    - src/data/gd1/gaia_ps1_xm.asdf
+    - src/data/gd1/masks.asdf
+  src/scripts/gd1/datasets.py:
+    - src/data/gd1/gaia_ps1_xm.asdf
+    - src/data/gd1/info.asdf
+  src/scripts/gd1/model.py:
+    - src/data/gd1/info.asdf
+    - src/data/gd1/control_points_stream.ecsv
+    - src/data/gd1/control_points_spur.ecsv
+    - src/data/gd1/control_points_distance.ecsv
+  src/scripts/gd1/models/1-train_background_astrometric_flow:
+    - src/data/gd1/data.done
+    - src/data/gd1/model.done
+  src/scripts/gd1/models/2-train_background_photometry_flow:
+    - src/data/gd1/data.done
+    - src/data/gd1/model.done
+  src/scripts/gd1/models/4-train_model.py:
+    - src/data/gd1/data.done
+    - src/data/gd1/model.done
+    - src/data/gd1/background_photometry_model.pt
+    - src/data/gd1/background_parallax_model.pt
+  src/scripts/gd1/models/5-likelihoods.py:
+    - src/data/gd1/data.done
+    - src/data/gd1/model.pt
+  src/scripts/gd1/models/6-variable_nstream.py:
+    - src/data/gd1/membership_likelhoods.ecsv
+  src/scripts/gd1/models/6-variable_nspur.py:
+    - src/data/gd1/membership_likelhoods.ecsv
+  # ------
+  src/scripts/gd1/plot/data_selection.py:
+    - src/data/gd1/gaia_ps1_xm.asdf
+    - src/data/gd1/pm_edges.ecsv
+    - src/data/gd1/masks.asdf
+  src/scripts/gd1/plot/photometric_background_selection.py:
+    - src/data/gd1/data.done
+  src/scripts/gd1/plot/results_full.py:
+    - src/data/gd1/data.done
+    - src/data/gd1/model.pt
+    - src/data/gd1/membership_likelhoods.ecsv
+  src/scripts/gd1/plot/results_panels.py:
+    - src/data/gd1/data.done
+    - src/data/gd1/model.pt
+    - src/data/gd1/membership_likelhoods.ecsv
+  src/scripts/gd1/plot/smooth_likelihood.py:
+    - src/data/gd1/data.done
+    - src/data/gd1/model.pt
+    - src/data/gd1/membership_likelhoods.ecsv
+  # ==============================
+  # Pal5
+  src/scripts/pal5/data/2-combine_data.py:
+    - src/data/pal5/gaia_ps1_xm_polygons.asdf
+  src/scripts/pal5/data/2.5-variable_ndata.py:
+    - src/data/pal5/gaia_ps1_xm.asdf
+  src/scripts/pal5/data/4-masks.py:
+    - src/data/pal5/gaia_ps1_xm.asdf
+    - src/data/pal5/pm_edges.ecsv
+    - src/data/pal5/footprint.npz
+  src/scripts/pal5/models/0-info.py:
+    - src/data/pal5/gaia_ps1_xm.asdf
+    - src/data/pal5/masks.asdf
+  src/scripts/pal5/datasets.py:
+    - src/data/pal5/gaia_ps1_xm.asdf
+    - src/data/pal5/info.asdf
+  src/scripts/pal5/define_model.py:
+    - src/data/pal5/info.asdf
+    - src/data/pal5/control_points_stream.ecsv
+  src/scripts/pal5/models/2-train_background_pm_flow.py:
+    - src/data/pal5/data.done
+    - src/data/pal5/model.done
+  src/scripts/pal5/models/3-train_model.py:
+    - src/data/pal5/data.done
+    - src/data/pal5/model.done
+    - src/data/gd1/background_photometry_model.pt
+  src/scripts/pal5/models/4-likelihoods.py:
+    - src/data/pal5/data.done
+    - src/data/pal5/model.pt
+  src/scripts/pal5/plot/data_selection.py:
+    - src/data/pal5/gaia_ps1_xm.asdf
+    - src/data/pal5/pm_edges.ecsv
+    - src/data/pal5/masks.asdf
+    - src/data/pal5/info.asdf
+  src/scripts/pal5/plot/photometric_background_selection.py:
+    - src/data/pal5/data.done
+  src/scripts/pal5/plot/results_full.py:
+    - src/data/pal5/data.done
+    - src/data/pal5/model.pt
+    - src/data/pal5/membership_likelhoods.ecsv
+  src/scripts/pal5/plot/results_panels.py:
+    - src/data/pal5/data.done
+    - src/data/pal5/model.pt
+    - src/data/pal5/membership_likelhoods.ecsv
+  src/scripts/pal5/plot/smooth_likelihood.py:
+    - src/data/pal5/data.done
+    - src/data/pal5/model.pt
+    - src/data/pal5/membership_likelhoods.ecsv
+
+
+# Name of the `.tex` manuscript and corresponding `.pdf` article
+ms_name: ms
+
+# Optimize DAG by removing unnecessary jobs upstream of cache hits?
+optimize_caching: false
+
+# Overleaf sync settings
+overleaf:
+  # Overleaf project ID (blank = disabled)
+  id: 6362a1ee8c23472edb13aa5d
+  # Perform sync on GitHub Actions?
+  gh_actions_sync: true
+  # List of files to push to Overleaf
+  push:
+    - src/tex/figures
+    - src/tex/output
+  # List of files to pull from Overleaf
+  pull:
+    - src/tex/ms.tex
+    - src/tex/bib.bib
+
+# Always require all input files to be present on disk for workflow to pass?
+require_inputs: true
+
+# Allow cacheable rules to run on GitHub Actions?
+run_cache_rules_on_ci: false
+
+# Mapping of script file extensions to instructions for executing them
+scripts:
+  py: python {script}
+
+# Display of the `showyourwork` stamp on first page
+stamp:
+  # Show the stamp?
+  enabled: true
+  # Stamp angle in degrees
+  angle: -20.0
+  # Stamp size in inches
+  size: 0.75
+  # Horizontal position in inches from right edge of paper
+  xpos: 0.50
+  # Vertical position in inches from top edge of paper
+  ypos: 0.50
+  # Display of the repo URL in the stamp
+  url:
+    # Show the URL?
+    enabled: true
+    # Maximum URL length to display
+    maxlen: 40
+
+# Enable SyncTeX?
+synctex: True
+
+# Command-line options to be passed to tectonic when building the manuscript
+tectonic_args: []
+
+# Enable verbose output?
+verbose: true
+
+# Version of `showyourwork` used to create this workflow
+version: 0.4.2
