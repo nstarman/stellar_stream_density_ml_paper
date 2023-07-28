@@ -9,12 +9,10 @@ import brutus.seds
 import numpy as np
 import shapely
 
+sys.path.append(Path(__file__).parents[3].as_posix())
 # isort: split
 
-sys.path.append(Path(__file__).parent.parent.parent.as_posix())
-# isort: split
-
-import paths  # noqa: E402
+from scripts import paths
 
 ##############################################################################
 

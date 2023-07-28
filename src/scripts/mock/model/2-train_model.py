@@ -2,6 +2,7 @@
 
 import sys
 from pathlib import Path
+from typing import Any
 
 import asdf
 import matplotlib.pyplot as plt
@@ -12,24 +13,24 @@ from tqdm import tqdm
 
 import stream_ml.pytorch as sml
 
-# isort: split
-import helper
-from define_model import model
-
 # Add the parent directory to the path
-sys.path.append(Path(__file__).parent.parent.parent.as_posix())
+sys.path.append(Path(__file__).parents[3].as_posix())
 # isort: split
 
-import paths  # noqa: E402
+from scripts import helper, paths
+from scripts.mock.define_model import model
+from scripts.mock.model.helper import diagnostic_plot
 
 # =============================================================================
-# Load Data
+# Parameters
 
+snkmk: dict[str, Any]
 try:
     snkmk = dict(snakemake.params)
 except NameError:
     snkmk = {
-        "load_from_static": False,
+        "load_from_static": True,
+        "save_to_static": False,
         "diagnostic_plots": True,
         "init_T": 500,
         "T_0": 500,
@@ -39,6 +40,16 @@ except NameError:
         "lr": 5e-3,
     }
 snkmk["epochs"] = snkmk["init_T"] + snkmk["T_0"] * snkmk["n_T"] + snkmk["final_T"]
+
+
+if snkmk["load_from_static"]:
+    model.load_state_dict(xp.load(paths.static / "mock" / "model.pt"))
+    xp.save(model.state_dict(), paths.data / "mock" / "model.pt")
+
+    sys.exit(0)
+
+# =============================================================================
+# Load Data
 
 with asdf.open(
     paths.data / "mock" / "data.asdf", lazy_load=False, copy_arrays=True
@@ -90,12 +101,6 @@ scheduler = optim.lr_scheduler.SequentialLR(
     ],
 )
 
-if snkmk["load_from_static"]:
-    model.load_state_dict(xp.load(paths.static / "mock" / "model.pt"))
-    xp.save(model.state_dict(), paths.data / "mock" / "model.pt")
-
-    sys.exit(0)
-
 epoch_iterator = tqdm(
     range(snkmk["epochs"]),
     dynamic_ncols=True,
@@ -139,10 +144,13 @@ for epoch in epoch_iterator:
             mpars = model.unpack_params(model(data))
             prob = model.posterior(mpars, data)
 
-        fig = helper.plot(model, data, table)
+        fig = diagnostic_plot(model, data, table)
         fig.savefig(diagnostic_path / f"epoch_{epoch:05}.png")
         plt.close(fig)
 
         helper.manually_set_dropout(model, 0.15)
 
 xp.save(model.state_dict(), paths.data / "mock" / "model.pt")
+
+if snkmk["save_to_static"]:
+    xp.save(model.state_dict(), paths.static / "mock" / "model.pt")

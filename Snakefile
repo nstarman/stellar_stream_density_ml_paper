@@ -8,6 +8,7 @@ rule download_brutus_mist_file:
         "environment.yml"
     params:
         load_from_static=True,  # set to False to train the model
+        save_to_static=False,
     cache:
         True
     script:
@@ -19,6 +20,7 @@ rule download_brutus_nn_file:
         "src/data/brutus/nn_c3k.h5"
     params:
         load_from_static=True,  # set to False to train the model
+        save_to_static=False,
     conda:
         "environment.yml"
     cache:
@@ -54,6 +56,7 @@ rule mock_train_flow:
         "src/data/mock/data.asdf"
     params:
         load_from_static=True,  # set to False to train the model
+        save_to_static=False,
         diagnostic_plots=True,
         epochs=400,
         batch_size=500,
@@ -74,10 +77,10 @@ rule mock_train_model:
         "src/data/mock/flow_model.pt",
     params:
         load_from_static=True,  # set to False to train the model
+        save_to_static=False,
         diagnostic_plots=True,
         # epoch milestones
         init_T=500,
-        kick_T=20,
         T_0=500,
         n_T=3,
         final_T=600,
@@ -98,6 +101,7 @@ rule download_dustmaps:
         "src/data/dustmaps/bayestar/bayestar2019.h5"
     params:
         load_from_static=True,  # set to False to train the model
+        save_to_static=False,
     conda:
         "environment.yml"
     cache:
@@ -114,6 +118,7 @@ rule gd1_query_data:
         protected("src/data/gd1/gaia_ps1_xm_polygons.asdf")
     params:
         load_from_static=True,  # set to False to redownload
+        save_to_static=False,
     conda:
         "environment.yml"
     cache:
@@ -130,6 +135,7 @@ rule gd1_combine_data:
         "src/data/gd1/gaia_ps1_xm_polygons.asdf",
     params:
         load_from_static=True,  # set to False to recompute
+        save_to_static=False,
     conda:
         "environment.yml"
     cache:
@@ -169,6 +175,7 @@ rule gd1_masks:
         "src/data/gd1/isochrone.asdf",
     params:
         load_from_static=True,  # set to False to recompute
+        save_to_static=False,
     conda:
         "environment.yml"
     cache:
@@ -220,7 +227,7 @@ rule gd1_data_script:
     cache:
         False
     script:
-        "src/scripts/gd1/model/data.py"
+        "src/scripts/gd1/datasets.py"
 
 
 # NOTE: this is a hacky way to aggregate the dependencies of the model script
@@ -234,7 +241,7 @@ rule gd1_model_script:
     cache:
         False
     script:
-        "src/scripts/gd1/model/define_model.py"
+        "src/scripts/gd1/define_model.py"
 
 
 rule gd1_train_flow:
@@ -244,7 +251,9 @@ rule gd1_train_flow:
         "src/data/gd1/data.tmp",
         "src/data/gd1/model.tmp",
     params:
-        load_from_static=True,  # set to False to recompute
+        load_from_static=False,  # set to False to recompute
+        save_to_static=True,
+        diagnostic_plots=True,
         epochs=1_000,
     cache:
         True
@@ -258,8 +267,15 @@ rule gd1_train_model:
     input:
         "src/data/gd1/data.tmp",
         "src/data/gd1/model.tmp",
+        "src/data/gd1/flow_model.pt",
     params:
-        load_from_static=True,  # set to False to recompute
+        load_from_static=False,  # set to False to recompute
+        save_to_static=True,
+        diagnostic_plots=True,
+        # epoch milestones
+        epochs=1_250 * 10,
+        lr=1e-3,
+        weight_decay=1e-8,
     cache:
         True
     script:

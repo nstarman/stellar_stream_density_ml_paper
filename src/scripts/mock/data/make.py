@@ -19,21 +19,21 @@ from shapely.ops import triangulate
 
 import stream_ml.pytorch as sml
 
-# Add the parent directory to the path
-sys.path.append(Path(__file__).parents[2].as_posix())
+# Add the scripts directory to the path
+sys.path.append(Path(__file__).parents[3].as_posix())
 # isort: split
 
-import paths  # noqa: E402
+from scripts import paths
 
 ##############################################################################
 # Parameters
 
 try:
-    snkmkp = snakemake.params
+    snkmk = snakemake.params
 except NameError:
-    snkmkp = {"seed": 10, "diagnostic_plots": True}
+    snkmk = {"seed": 10, "diagnostic_plots": True}
 
-seed: int = snkmkp["seed"]
+seed: int = snkmk["seed"]
 rng = np.random.default_rng(seed)
 
 N_BACKGROUND = 13_000
@@ -241,6 +241,6 @@ af.close()
 # ----------
 # Diagnostics
 
-if snkmkp["diagnostic_plots"]:
+if snkmk["diagnostic_plots"]:
     nbpath = (Path(__file__).parent / "diagnostics.ipynb").as_posix()
     os.system(f"jupyter execute {nbpath}")  # noqa: S605

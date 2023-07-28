@@ -4,6 +4,7 @@ import shutil
 import sys
 from itertools import combinations, pairwise
 from pathlib import Path
+from typing import Any
 
 import asdf
 import astropy.coordinates as coords
@@ -14,13 +15,11 @@ from astroquery.gaia import Gaia
 from astroquery.utils.tap.model.job import Job
 from tqdm import tqdm
 
-# isort: split
-from frames import gd1_frame as frame
-
-sys.path.append(Path(__file__).parent.parent.parent.as_posix())
+sys.path.append(Path(__file__).parents[3].as_posix())
 # isort: split
 
-import paths  # noqa: E402
+from scripts import paths
+from scripts.gd1.frames import gd1_frame as frame
 
 ##############################################################################
 # Parameters
@@ -28,13 +27,14 @@ import paths  # noqa: E402
 GAIA_LOGIN = Path(paths.static / "gaia.login").expanduser()
 SAVE_LOC = paths.data / "gd1" / "gaia_ps1_xm_polygons.asdf"
 
+snkmk: dict[str, Any]
 try:
-    snkmkp = snakemake.params
+    snkmk = dict(snakemake.params)
 except NameError:
-    snkmkp = {"load_from_static": True}
+    snkmk = {"load_from_static": True, "save_to_static": False}
 
 
-if snkmkp["load_from_static"]:
+if snkmk["load_from_static"]:
     shutil.copyfile(paths.static / "gd1" / "gaia_ps1_xm_polygons.asdf", SAVE_LOC)
     sys.exit(0)
 
@@ -185,6 +185,10 @@ for i, (query, job) in tqdm(enumerate(jobs.values()), total=len(jobs)):
     af.write_to(SAVE_LOC)
 
 af.close()
+
+
+if snkmk["save_to_static"]:
+    shutil.copyfile(SAVE_LOC, paths.static / "gd1" / "gaia_ps1_xm_polygons.asdf")
 
 
 # -----------------------------------------------------------------------------

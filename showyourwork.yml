@@ -37,21 +37,21 @@ dependencies:
   src/scripts/mock/data/make.py:
     - src/data/brutus/MIST_1.2_iso_vvcrit0.0.h5
     - src/data/brutus/nn_c3k.h5
-  src/scripts/mock/model/define_model.py:
+  src/scripts/mock/define_model.py:
     - src/data/mock/data.asdf
   src/scripts/mock/model/1-train_flow.py:
     - src/data/mock/data.asdf
-    - src/scripts/mock/model/define_model.py
+    - src/scripts/mock/define_model.py
   src/scripts/mock/model/2-train_model.py:
     - src/data/mock/data.asdf
-    - src/scripts/mock/model/define_model.py
+    - src/scripts/mock/define_model.py
     - src/data/mock/flow_model.pt
   src/scripts/mock/plot/photometric_background_selection.py:
     - src/data/mock/data.asdf
-    - src/scripts/mock/model/define_model.py
+    - src/scripts/mock/define_model.py
   src/scripts/mock/plot/results.py:
     - src/data/mock/data.asdf
-    - src/scripts/mock/model/define_model.py
+    - src/scripts/mock/define_model.py
     - src/data/mock/model.pt
   # GD1
   src/scripts/gd1/data/2-combine_data.py:
@@ -61,28 +61,28 @@ dependencies:
   src/scripts/gd1/model/1-info.py:
     - src/data/gd1/gaia_ps1_xm.asdf
     - src/data/gd1/masks.asdf
-  src/scripts/gd1/model/data.py:
+  src/scripts/gd1/datasets.py:
     - src/data/gd1/gaia_ps1_xm.asdf
     - src/data/gd1/info.asdf
-  src/scripts/gd1/model/define_model.py:
+  src/scripts/gd1/define_model.py:
     - src/data/gd1/info.asdf
     - src/data/gd1/stream_control_points.ecsv
     - src/data/gd1/spur_control_points.ecsv
   src/scripts/gd1/model/2-train_flow.py:
-    - src/scripts/gd1/model/data.py
-    - src/scripts/gd1/model/define_model.py
+    - src/data/gd1/data.tmp  # hack
+    - src/data/gd1/model.tmp  # hack
   src/scripts/gd1/model/3-train_model.py:
-    - src/scripts/gd1/model/data.py
-    - src/scripts/gd1/model/define_model.py
+    - src/data/gd1/data.tmp  # hack
+    - src/data/gd1/model.tmp  # hack
     - src/data/gd1/flow_model.pt
   src/scripts/gd1/plot/data_selection.py:
     - src/data/gd1/gaia_ps1_xm.asdf
     - src/data/gd1/pm_edges.ecsv
     - src/data/gd1/masks.asdf
   src/scripts/gd1/plot/results.py:
-    - src/scripts/gd1/model/data.py
+    - src/scripts/gd1/datasets.py
     - src/data/gd1/data.tmp  # hack
-    - src/scripts/gd1/model/define_model.py
+    - src/scripts/gd1/define_model.py
     - src/data/gd1/model.tmp  # hack
     - src/data/gd1/model.pt
 
@@ -96,7 +96,7 @@ optimize_caching: false
 # Overleaf sync settings
 overleaf:
   # Overleaf project ID (blank = disabled)
-  id: 6362a1ee8c23472edb13aa5d
+  id: # 6362a1ee8c23472edb13aa5d
   # Perform sync on GitHub Actions?
   gh_actions_sync: true
   # List of files to push to Overleaf

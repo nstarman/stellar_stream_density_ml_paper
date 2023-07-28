@@ -6,10 +6,10 @@ from pathlib import Path
 import astropy.units as u
 from astropy.table import QTable
 
-sys.path.append(Path(__file__).parent.parent.parent.as_posix())
+sys.path.append(Path(__file__).parents[3].as_posix())
 # isort: split
 
-import paths  # noqa: E402
+from scripts import paths
 
 ##############################################################################
 

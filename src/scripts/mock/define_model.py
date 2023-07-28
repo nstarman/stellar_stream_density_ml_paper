@@ -22,10 +22,10 @@ from stream_ml.pytorch.params.bounds import ClippedBounds, SigmoidBounds
 from stream_ml.pytorch.params.scaler import StandardLnWidth, StandardLocation
 
 # Add the parent directory to the path
-sys.path.append(Path(__file__).parent.parent.parent.as_posix())
+sys.path.append(Path(__file__).parents[3].as_posix())
 # isort: split
 
-import paths  # noqa: E402
+from scripts import paths
 
 # =============================================================================
 # Load Data

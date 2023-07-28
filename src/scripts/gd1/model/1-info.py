@@ -11,14 +11,14 @@ from astropy.table import QTable
 # isort: split
 import stream_ml.pytorch as sml
 
-sys.path.append(Path(__file__).parent.parent.parent.as_posix())
+sys.path.append(Path(__file__).parents[3].as_posix())
 # isort: split
 
-import paths  # noqa: E402
+from scripts import paths
 
 ##############################################################################
 
-snkmkp = snakemake.params  # noqa: F821
+snkmk = snakemake.params  # noqa: F821
 
 
 ##############################################################################
@@ -36,8 +36,8 @@ af = asdf.AsdfFile()
 
 sel = (
     (table["parallax"] > 0 * u.milliarcsecond)  # FIXME! allow negative parallax
-    & masks[snkmkp["pm_mask"]]
-    & masks[snkmkp["phot_mask"]]
+    & masks[snkmk["pm_mask"]]
+    & masks[snkmk["phot_mask"]]
     & ~np.isnan(table["g0"])
     & ~np.isnan(table["ps1_g_error"])
     & ~np.isnan(table["r0"])

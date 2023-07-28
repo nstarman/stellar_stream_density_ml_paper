@@ -13,15 +13,13 @@ from matplotlib.gridspec import GridSpec
 import stream_ml.pytorch as sml
 import stream_ml.visualization as smlvis
 
-# isort: split
 # Add the parent directory to the path
-sys.path.append(Path(__file__).parent.parent.parent.as_posix())
+sys.path.append(Path(__file__).parents[3].as_posix())
 # isort: split
 
-from mock.model import helper  # noqa: E402
-from mock.model.define_model import model  # noqa: E402
-
-import paths  # noqa: E402
+from scripts import paths
+from scripts.mock.define_model import model
+from scripts.mock.model import helper
 
 # =============================================================================
 

@@ -18,6 +18,8 @@ ignore = [
     "COM812",
     # pydocstyle (D)
     "D105", "D107", "D203", "D213", "D417",
+    # pycodestyle (E)
+    "E402",
     # eradicate (ERA)
     "ERA001",  # commented-out-code
     # pep8-naming (N)
@@ -34,8 +36,8 @@ ignore = [
 ]
 
 [tool.ruff.per-file-ignores]
-"src/scripts/*.py" = ["INP001"]  #  implicit namespace package
+"src/scripts/*.py" = ["INP001", "FBT003"]  #  implicit namespace package
 
 [tool.ruff.isort]
-known-first-party = ["stream_ml"]
+known-first-party = ["stream_ml", "scripts"]
 known-local-folder = ["paths"]

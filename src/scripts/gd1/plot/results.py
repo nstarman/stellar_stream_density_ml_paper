@@ -16,16 +16,13 @@ from stream_ml.visualization.background import (
     exponential_like_distribution as exp_distr,
 )
 
-# isort: split
 # Add the parent directory to the path
-sys.path.append(Path(__file__).parent.parent.parent.as_posix())
+sys.path.append(Path(__file__).parents[3].as_posix())
 # isort: split
 
-import helper  # noqa: E402
-from gd1.model.data import data, where  # noqa: E402
-from gd1.model.define_model import model  # noqa: E402
-
-import paths  # noqa: E402
+from scripts import helper, paths
+from scripts.gd1.datasets import data, where
+from scripts.gd1.define_model import model
 
 # =============================================================================
 
@@ -243,7 +240,7 @@ which_bin = np.digitize(data["phi1"], bins[:-1])
 
 # Legend
 ax10 = fig.add_subplot(gs1[0, :])
-ax10.axis(False)  # noqa: FBT003
+ax10.axis(False)
 ax10.legend(
     handles=[
         mpl.patches.Patch(color=cmap(0.01), label="Background"),

@@ -3,24 +3,26 @@
 import pathlib
 import shutil
 import sys
+from typing import Any
 
 import brutus.utils
 
 # Add the parent directory to the path
-sys.path.append(pathlib.Path(__file__).parent.parent.as_posix())
+sys.path.append(pathlib.Path(__file__).parents[2].as_posix())
 # isort: split
 
-import paths  # noqa: E402
+from scripts import paths
 
 ##############################################################################
 
+snkmk: dict[str, Any]
 try:
-    snkmkp = snakemake.params
+    snkmk = dict(snakemake.params)
 except NameError:
-    snkmkp = {"load_from_static": True}
+    snkmk = {"load_from_static": True, "save_to_static": False}
 
 
-if snkmkp["load_from_static"]:
+if snkmk["load_from_static"]:
     shutil.copyfile(
         paths.static / "brutus" / "nn_c3k.h5",
         paths.data / "brutus" / "nn_c3k.h5",
@@ -30,8 +32,10 @@ if snkmkp["load_from_static"]:
 
 
 brutus.utils.fetch_nns(target_dir=paths.data / "brutus", model="c3k")
-shutil.copyfile(
-    paths.data / "brutus" / "nn_c3k.h5",
-    paths.static / "brutus" / "nn_c3k.h5",
-    follow_symlinks=True,
-)
+
+if snkmk["save_to_static"]:
+    shutil.copyfile(
+        paths.data / "brutus" / "nn_c3k.h5",
+        paths.static / "brutus" / "nn_c3k.h5",
+        follow_symlinks=True,
+    )

@@ -4,6 +4,7 @@ import contextlib
 import shutil
 import sys
 from pathlib import Path
+from typing import Any
 
 import asdf
 import astropy.coordinates as coords
@@ -13,28 +14,27 @@ import gala.coordinates as gc
 import numpy as np
 from astropy.table import QTable, vstack
 
-# isort: split
-from frames import gd1_frame as frame
-
-sys.path.append(Path(__file__).parent.parent.parent.as_posix())
+sys.path.append(Path(__file__).parents[3].as_posix())
 # isort: split
 
-import paths  # noqa: E402
+from scripts import paths
+from scripts.gd1.frames import gd1_frame as frame
 
 ##############################################################################
 # Parameters
 
 SAVE_LOC = paths.data / "gd1" / "gaia_ps1_xm.asdf"
 
+snkmk: dict[str, Any]
 try:
-    snkmkp = snakemake.params
+    snkmk = dict(snakemake.params)
 except NameError:
-    snkmkp = {"load_from_static": False}
+    snkmk = {"load_from_static": False, "save_to_static": False}
 
 
 ##############################################################################
 
-if snkmkp["load_from_static"]:
+if snkmk["load_from_static"]:
     shutil.copyfile(paths.static / "gd1" / "gaia_ps1_xm.asdf", SAVE_LOC)
     sys.exit(0)
 
@@ -159,3 +159,6 @@ table = table[np.argsort(table["phi1"])]
 
 # Save
 table.write(SAVE_LOC, format="asdf")
+
+if snkmk["save_to_static"]:
+    shutil.copyfile(SAVE_LOC, paths.static / "gd1" / "gaia_ps1_xm.asdf")

@@ -3,11 +3,12 @@
 import sys
 from pathlib import Path
 
+import astropy.units as u
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import torch as xp
-from astropy.table import QTable
+from astropy.coordinates import Distance
 from matplotlib.gridspec import GridSpec
 
 import stream_ml.visualization as smlvis
@@ -27,7 +28,7 @@ from scripts.helper import manually_set_dropout
 plt.style.use(paths.scripts / "paper.mplstyle")
 
 
-def diagnostic_plot(model: ModelAPI, data: Data, table: QTable) -> plt.Figure:
+def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
     """Plot the model."""
     # Evaluate model
     with xp.no_grad():
@@ -35,28 +36,43 @@ def diagnostic_plot(model: ModelAPI, data: Data, table: QTable) -> plt.Figure:
         mpars = model.unpack_params(model(data))
         model.eval()
 
-        stream_lik = model.component_posterior("stream", mpars, data)
-        bkg_lik = model.component_posterior("background", mpars, data)
+        stream_lik = model.component_posterior(
+            "stream", mpars, data, stream_astrometric_where=where
+        )
+        spur_lik = model.component_posterior(
+            "spur", mpars, data, spur_astrometric_where=where
+        )
+        bkg_lik = model.component_posterior(
+            "background", mpars, data, background_astrometric_where=where
+        )
+        tot_lik = model.posterior(
+            mpars,
+            data,
+            stream_astrometric_where=where,
+            spur_astrometric_where=where,
+            background_astrometric_where=where,
+        )
 
-    weight = mpars[("stream.weight",)]
-    where = weight > 2e-2
+    stream_weight = mpars[("stream.weight",)]
+    stream_cutoff = stream_weight > 2e-2
 
-    stream_prob = stream_lik / (stream_lik + bkg_lik)
+    bkg_prob = bkg_lik / tot_lik
+    stream_prob = stream_lik / tot_lik
+    spur_lik / tot_lik
+    allstream_prob = (stream_lik + spur_lik) / tot_lik
+
     psort = np.argsort(stream_prob)
     pmax = stream_prob.max()
     pmin = stream_prob.min()
 
-    bkg_prob = bkg_lik / (stream_lik + bkg_lik)
-
     # =============================================================================
     # Make Figure
 
-    fig = plt.figure(constrained_layout=True, figsize=(14, 13))
-    gs = GridSpec(2, 1, height_ratios=(1, 1), figure=fig)
-    gs0 = gs[0].subgridspec(4, 1, height_ratios=(1, 5, 5, 5))
+    fig = plt.figure(constrained_layout="tight", figsize=(11, 15))
+    gs = GridSpec(2, 1, figure=fig, height_ratios=(1.2, 1), hspace=0)
+    gs0 = gs[0].subgridspec(6, 1, height_ratios=(1, 5, 5, 5, 5, 5))
 
     cmap = plt.get_cmap()
-    isstream = table["label"] == "stream"
 
     # ---------------------------------------------------------------------------
     # Colormap
@@ -78,21 +94,10 @@ def diagnostic_plot(model: ModelAPI, data: Data, table: QTable) -> plt.Figure:
     ax01.set(ylabel="Stream fraction", ylim=(0, 0.5))
     ax01.set_xticklabels([])
 
-    # Truth
-    phi1 = table["phi1"].to_value("deg")[isstream]
-
-    Hs, bin_edges = np.histogram(phi1, bins=75)
-    Ht, bin_edges = np.histogram(data["phi1"], bins=bin_edges)
-    ax01.bar(
-        bin_edges[:-1],
-        Hs / Ht,
-        width=bin_edges[1] - bin_edges[0],
-    )
-
     with xp.no_grad():
         manually_set_dropout(model, 0.15)
         weights = xp.stack(
-            [model.unpack_params(model(data))["stream.weight",] for i in range(100)], 1
+            [model.unpack_params(model(data))["stream.weight",] for i in range(50)], 1
         )
         weight_percentiles = np.c_[
             np.percentile(weights, 5, axis=1), np.percentile(weights, 95, axis=1)
@@ -104,9 +109,9 @@ def diagnostic_plot(model: ModelAPI, data: Data, table: QTable) -> plt.Figure:
         weight_percentiles[:, 1],
         color="k",
         alpha=0.25,
+        label=r"Model (15% dropout)",
     )
-    ax01.plot(data["phi1"], weight, c="k", ls="--", lw=2, label="Model (MLE)")
-
+    ax01.plot(data["phi1"], stream_weight, c="k", ls="--", lw=2, label="Model (MLE)")
     ax01.legend(loc="upper left")
 
     # ---------------------------------------------------------------------------
@@ -119,15 +124,6 @@ def diagnostic_plot(model: ModelAPI, data: Data, table: QTable) -> plt.Figure:
     ax02.set(ylabel=r"$\phi_2$ [$\degree$]")
 
     ax02.scatter(
-        phi1,
-        table["phi2"].to_value("deg")[isstream],
-        s=10,
-        c="k",
-        alpha=0.5,
-        zorder=-100,
-        label="Ground Truth",
-    )
-    ax02.scatter(
         data["phi1"][psort],
         data["phi2"][psort],
         c=stream_prob[psort],
@@ -138,15 +134,17 @@ def diagnostic_plot(model: ModelAPI, data: Data, table: QTable) -> plt.Figure:
     )
     ax02.set_rasterization_zorder(0)
     ax02.fill_between(
-        data["phi1"][where],
-        mpa["phi2", "mu"][where] - xp.exp(mpa["phi2", "ln-sigma"][where]),
-        mpa["phi2", "mu"][where] + xp.exp(mpa["phi2", "ln-sigma"][where]),
+        data["phi1"][stream_cutoff],
+        mpa["phi2", "mu"][stream_cutoff]
+        - xp.exp(mpa["phi2", "ln-sigma"][stream_cutoff]),
+        mpa["phi2", "mu"][stream_cutoff]
+        + xp.exp(mpa["phi2", "ln-sigma"][stream_cutoff]),
         color="k",
         alpha=0.15,
     )
     ax02.plot(
-        data["phi1"][where],
-        mpa["phi2", "mu"][where],
+        data["phi1"][stream_cutoff],
+        mpa["phi2", "mu"][stream_cutoff],
         c="k",
         ls="--",
         lw=2,
@@ -155,43 +153,83 @@ def diagnostic_plot(model: ModelAPI, data: Data, table: QTable) -> plt.Figure:
     ax02.legend(loc="upper left")
 
     # ---------------------------------------------------------------------------
-    # Distance
+    # PM-Phi1
 
     ax03 = fig.add_subplot(gs0[3, :])
-    ax03.set(xlabel=r"$\phi_1$ [deg]", ylabel=r"$\varpi$ [mas yr$^-1$]")
+    ax03.set_xticklabels([])
+    ax03.set(ylabel=r"$\mu_{\phi_1}^*$ [mas yr$^{-1}$]")
 
     ax03.scatter(
-        phi1,
-        table["parallax"].to_value("mas")[isstream],
-        s=10,
-        c="k",
-        alpha=0.5,
-        zorder=-100,
-        label="Ground Truth",
-    )
-    ax03.scatter(
         data["phi1"][psort],
-        data["parallax"][psort],
-        c=stream_prob[psort],
+        data["pmphi1"][psort],
+        c=allstream_prob[psort],
         alpha=0.1 + (1 - 0.1) / (pmax - pmin) * (stream_prob[psort] - pmin),
         s=2,
         zorder=-10,
-        cmap="seismic",
     )
     ax03.set_rasterization_zorder(0)
     ax03.fill_between(
-        data["phi1"][where],
-        mpa["parallax", "mu"][where] - xp.exp(mpa["parallax", "ln-sigma"][where]),
-        mpa["parallax", "mu"][where] + xp.exp(mpa["parallax", "ln-sigma"][where]),
+        data["phi1"][stream_cutoff],
+        (mpa["pmphi1", "mu"] - xp.exp(mpa["pmphi1", "ln-sigma"]))[stream_cutoff],
+        (mpa["pmphi1", "mu"] + xp.exp(mpa["pmphi1", "ln-sigma"]))[stream_cutoff],
         color="k",
-        alpha=0.15,
+        alpha=0.25,
+        label="Model (MLE)",
     )
-    ax03.plot(
-        data["phi1"][where],
-        mpa["parallax", "mu"][where],
-        c="k",
-        ls="--",
-        lw=2,
+    ax03.legend(loc="upper left")
+
+    # ---------------------------------------------------------------------------
+    # PM-Phi2
+
+    ax04 = fig.add_subplot(gs0[4, :])
+    ax04.set_xticklabels([])
+    ax04.set(ylabel=r"$\mu_{\phi_2}$ [mas yr$^{-1}$]")
+
+    ax04.scatter(
+        data["phi1"][psort],
+        data["pmphi2"][psort],
+        c=allstream_prob[psort],
+        alpha=0.1 + (1 - 0.1) / (pmax - pmin) * (stream_prob[psort] - pmin),
+        s=2,
+        zorder=-10,
+    )
+    ax04.set_rasterization_zorder(0)
+    ax04.fill_between(
+        data["phi1"][stream_cutoff],
+        (mpa["pmphi2", "mu"] - xp.exp(mpa["pmphi2", "ln-sigma"]))[stream_cutoff],
+        (mpa["pmphi2", "mu"] + xp.exp(mpa["pmphi2", "ln-sigma"]))[stream_cutoff],
+        color="k",
+        alpha=0.25,
+        label="Model (MLE)",
+    )
+    ax04.legend(loc="upper left")
+
+    # ---------------------------------------------------------------------------
+    # Distance
+
+    mpa = mpars["stream.photometric.distmod"]
+
+    ax03 = fig.add_subplot(gs0[5, :])
+    ax03.set(xlabel=r"$\phi_1$ [deg]", ylabel=r"$d$ [kpc]")
+
+    d2sm = Distance(distmod=(mpa["mu"] - 2 * xp.exp(mpa["ln-sigma"])) * u.mag)
+    d2sp = Distance(distmod=(mpa["mu"] + 2 * xp.exp(mpa["ln-sigma"])) * u.mag)
+    d1sm = Distance(distmod=(mpa["mu"] - xp.exp(mpa["ln-sigma"])) * u.mag)
+    d1sp = Distance(distmod=(mpa["mu"] + xp.exp(mpa["ln-sigma"])) * u.mag)
+
+    ax03.fill_between(
+        data["phi1"][stream_cutoff],
+        d2sm[stream_cutoff].to_value("kpc"),
+        d2sp[stream_cutoff].to_value("kpc"),
+        alpha=0.15,
+        color="k",
+    )
+    ax03.fill_between(
+        data["phi1"][stream_cutoff],
+        d1sm[stream_cutoff].to_value("kpc"),
+        d1sp[stream_cutoff].to_value("kpc"),
+        alpha=0.25,
+        color="k",
         label="Model (MLE)",
     )
     ax03.legend(loc="upper left")
@@ -222,7 +260,7 @@ def diagnostic_plot(model: ModelAPI, data: Data, table: QTable) -> plt.Figure:
         )
 
         # Recovered
-        cphi2s = np.ones((sel.sum(), 2)) * table["phi2"][sel][:, None]
+        cphi2s = np.ones((sel.sum(), 2)) * data["phi2"][sel][:, None]
         ws = np.stack((bkg_prob[sel], stream_prob[sel]), axis=1)
         ax10i.hist(
             cphi2s,
@@ -234,67 +272,10 @@ def diagnostic_plot(model: ModelAPI, data: Data, table: QTable) -> plt.Figure:
             stacked=True,
             label=["", "Model (MLE)"],
         )
-        # Truth
-        ws = np.stack(
-            (table["label"][sel] == "background", table["label"][sel] == "stream"),
-            axis=1,
-            dtype=int,
-        )
-        ax10i.hist(
-            cphi2s,
-            bins=50,
-            weights=ws,
-            color=["k", "k"],
-            histtype="step",
-            density=True,
-            stacked=True,
-            label=["", "Ground Truth"],
-        )
-
         ax10i.set_xlabel(r"$\phi_2$ [$\degree$]")
         if i == 0:
             ax10i.set_ylabel("frequency")
             ax10i.legend(loc="upper left")
-
-        # ---------------------------------------------------------------------------
-        # Distance
-
-        ax11i = fig.add_subplot(gs1[1, i])
-
-        # Recovered
-        cplxs = np.ones((sel.sum(), 2)) * table["parallax"][sel].value[:, None]
-        ws = np.stack((bkg_prob[sel], stream_prob[sel]), axis=1)
-        ax11i.hist(
-            cplxs,
-            bins=50,
-            weights=ws,
-            color=[cmap(0.01), cmap(0.99)],
-            alpha=0.75,
-            density=True,
-            stacked=True,
-            label=["", "Model (MLE)"],
-        )
-        # Truth
-        ws = np.stack(
-            (table["label"][sel] == "background", table["label"][sel] == "stream"),
-            axis=1,
-            dtype=int,
-        )
-        ax11i.hist(
-            cplxs,
-            bins=50,
-            weights=ws,
-            color=["k", "k"],
-            histtype="step",
-            density=True,
-            stacked=True,
-            label=["", "Ground Truth"],
-        )
-
-        ax11i.set_xlabel(r"$\varpi$ [mas]")
-        if i == 0:
-            ax11i.set_ylabel("frequency")
-            ax11i.legend(loc="upper left")
 
         # ---------------------------------------------------------------------------
         # Photometry

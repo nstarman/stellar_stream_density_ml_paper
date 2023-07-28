@@ -21,12 +21,11 @@ from stream_ml.pytorch.params import ModelParameter, ModelParameters, set_param
 from stream_ml.pytorch.params.bounds import ClippedBounds, SigmoidBounds
 from stream_ml.pytorch.params.scaler import StandardLnWidth, StandardLocation
 
-sys.path.append(Path(__file__).parent.parent.parent.as_posix())
+sys.path.append(Path(__file__).parents[2].as_posix())
 # isort: split
 
-from helper import isochrone_spline  # noqa: E402
-
-import paths  # noqa: E402
+from scripts import paths
+from scripts.helper import isochrone_spline
 
 ##############################################################################
 

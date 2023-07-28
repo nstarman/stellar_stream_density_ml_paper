@@ -9,12 +9,10 @@ import matplotlib.path as mpath
 import numpy as np
 from astropy.table import QTable
 
+sys.path.append(Path(__file__).parents[3].as_posix())
 # isort: split
 
-sys.path.append(Path(__file__).parent.parent.parent.as_posix())
-# isort: split
-
-import paths  # noqa: E402
+from scripts import paths
 
 ##############################################################################
 # PARAMETERS
@@ -22,12 +20,12 @@ import paths  # noqa: E402
 SAVE_LOC = paths.data / "gd1" / "masks.asdf"
 
 try:
-    snkmkp = snakemake.params
+    snkmk = snakemake.params
 except NameError:
-    snkmkp = {"load_from_static": True}
+    snkmk = {"load_from_static": True}
 
 
-if snkmkp["load_from_static"]:
+if snkmk["load_from_static"]:
     shutil.copyfile(paths.static / "gd1" / "masks.asdf", SAVE_LOC)
 
     sys.exit(0)
@@ -110,3 +108,6 @@ masks_table["cmd_loose"] = cmd_loose
 # =============================================================================
 
 masks_table.write(SAVE_LOC)
+
+if snkmk["save_to_static"]:
+    shutil.copyfile(SAVE_LOC, paths.static / "gd1" / "masks.asdf")

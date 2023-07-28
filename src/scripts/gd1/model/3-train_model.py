@@ -2,6 +2,7 @@
 
 import sys
 from pathlib import Path
+from typing import Any
 
 import torch as xp
 import torch.utils.data as td
@@ -10,27 +11,32 @@ from tqdm import tqdm
 
 import stream_ml.pytorch as sml
 
-# isort: split
-from data import data, where
-from define_model import model
-
 # Add the parent directory to the path
-sys.path.append(Path(__file__).parent.parent.as_posix())
+sys.path.append(Path(__file__).parents[3].as_posix())
 # isort: split
 
-import paths  # noqa: E402
+from scripts import paths
+from scripts.gd1.datasets import data, where
+from scripts.gd1.define_model import model
 
 # =============================================================================
+# Parameters
 
+snkmk: dict[str, Any]
 try:
-    snkmkp = snakemake.params
+    snkmk = dict(snakemake.params)
 except NameError:
-    snkmkp = {
+    snkmk = {
         "load_from_static": False,
-        "epochs": 1_000,
+        "save_to_static": False,
+        "diagnostic_plots": True,
+        # epoch milestones
+        "epochs": 1_250 * 10,
+        "lr": 1e-3,
+        "weight_decay": 1e-8,
     }
 
-if snkmkp["load_from_static"]:
+if snkmk["load_from_static"]:
     model.load_state_dict(xp.load(paths.static / "gd1" / "model.pt"))
     xp.save(model.state_dict(), paths.data / "gd1" / "model.pt")
 
@@ -38,13 +44,16 @@ if snkmkp["load_from_static"]:
 
 
 # =============================================================================
+# Load Data
+
+diagnostic_path = paths.figures / "gd1" / "diagnostic" / "model"
+diagnostic_path.mkdir(parents=True, exist_ok=True)
+
+
+# =============================================================================
 # Training Parameters
 
-EPOCHS = 1250 * 10
 BATCH_SIZE = int(len(data) * 0.075)
-
-LEARNING_RATE = 1e-3
-WEIGHT_DECAY = 1e-8
 
 dataset = td.TensorDataset(
     data.array,  # data
@@ -60,11 +69,13 @@ loader = td.DataLoader(
 )
 
 optimizer = optim.Adam(
-    list(model.parameters()), lr=LEARNING_RATE, weight_decay=WEIGHT_DECAY
+    list(model.parameters()), lr=snkmk["lr"], weight_decay=snkmk["weight_decay"]
 )
 
 scheduler = optim.lr_scheduler.ConstantLR(optimizer, factor=0.1)  # constant 1e-4
 
+
+raise ValueError
 
 # =============================================================================
 # Train
@@ -72,7 +83,7 @@ scheduler = optim.lr_scheduler.ConstantLR(optimizer, factor=0.1)  # constant 1e-
 num_steps = len(loader.dataset) // loader.batch_size
 epoch: int = 0
 epoch_iterator = tqdm(
-    range(EPOCHS),
+    range(snkmk["epochs"]),
     dynamic_ncols=True,
     postfix={"lr": f"{scheduler.get_last_lr()[0]:.2e}", "loss": f"{0:.2e}"},
 )
@@ -102,11 +113,20 @@ for _epoch in epoch_iterator:
 
         # update weights
         optimizer.step()
-        model.zero_grad()  # ?
+        model.zero_grad()
 
     scheduler.step()
     epoch_iterator.set_postfix(
         {"lr": f"{scheduler.get_last_lr()[0]:.2e}", "loss": f"{loss_val:.2e}"}
     )
 
-xp.save(model.state_dict(), paths.static / "gd1" / "model.pt")
+    if snkmk["diagnostic_plots"] and (
+        (epoch % 100 == 0) or (epoch == snkmk["epochs"] - 1)
+    ):
+        pass
+
+
+xp.save(model.state_dict(), paths.data / "gd1" / "model.pt")
+
+if snkmk["save_to_static"]:
+    xp.save(model.state_dict(), paths.static / "gd1" / "model.pt")

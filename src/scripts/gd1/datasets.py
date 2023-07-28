@@ -9,12 +9,11 @@ from astropy.table import QTable
 
 import stream_ml.pytorch as sml
 
-# isort: split
 # Add the parent directory to the path
-sys.path.append(Path(__file__).parent.parent.parent.as_posix())
+sys.path.append(Path(__file__).parents[2].as_posix())
 # isort: split
 
-import paths  # noqa: E402
+from scripts import paths
 
 # =============================================================================
 # Load data and model

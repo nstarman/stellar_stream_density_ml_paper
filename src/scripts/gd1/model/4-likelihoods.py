@@ -9,14 +9,13 @@ from astropy.table import QTable
 from tqdm import tqdm
 
 # Add the parent directory to the path
-sys.path.append(Path(__file__).parent.parent.parent.as_posix())
+sys.path.append(Path(__file__).parents[3].as_posix())
 # isort: split
 
-from gd1.model.data import data, table, where  # noqa: E402
-from gd1.model.define_model import model  # noqa: E402
-from helper import manually_set_dropout  # noqa: E402
-
-import paths  # noqa: E402
+from scripts import paths
+from scripts.gd1.datasets import data, table, where
+from scripts.gd1.model.define_model import model
+from scripts.helper import manually_set_dropout
 
 # =============================================================================
 

@@ -7,12 +7,11 @@ import numpy as np
 from astropy.table import QTable
 
 # Add the parent directory to the path
-sys.path.append(Path(__file__).parent.parent.parent.as_posix())
+sys.path.append(Path(__file__).parents[3].as_posix())
 # isort: split
 
-from gd1.model.data import table as data_table  # noqa: E402
-
-import paths  # noqa: E402
+from scripts import paths
+from scripts.gd1.datasets import table as data_table
 
 # =============================================================================
 
