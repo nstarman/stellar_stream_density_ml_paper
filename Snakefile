@@ -261,6 +261,7 @@ rule gd1_train_flow:
         "src/scripts/gd1/model/2-train_flow.py"
 
 
+# TODO: rerun from scratch
 rule gd1_train_model:
     output:
         "src/data/gd1/model.pt"
@@ -269,8 +270,8 @@ rule gd1_train_model:
         "src/data/gd1/model.tmp",
         "src/data/gd1/flow_model.pt",
     params:
-        load_from_static=False,  # set to False to recompute
-        save_to_static=True,
+        load_from_static=True,  # set to False to recompute
+        save_to_static=False,
         diagnostic_plots=True,
         # epoch milestones
         epochs=1_250 * 10,

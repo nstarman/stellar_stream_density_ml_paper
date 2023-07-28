@@ -64,9 +64,9 @@ stream_prob = stream_lik / tot_lik
 spur_prob = spur_lik / tot_lik
 allstream_prob = (stream_lik + spur_lik) / tot_lik
 
-psort = np.argsort(stream_prob)
-pmax = stream_prob.max()
-pmin = stream_prob.min()
+psort = np.argsort(allstream_prob)
+pmax = allstream_prob.max()
+pmin = allstream_prob.min()
 
 
 # =============================================================================
