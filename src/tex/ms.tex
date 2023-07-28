@@ -153,9 +153,9 @@
 
         \subsubsection{On-Stream} \label{ssub:astrometric_model_on_stream}
     
-            The astrometric track is modeled with a neural network in each phase space dimension, parameterized as a function of $\phi_1$. The neural network output for a single stream component is the mean location of the stream track in each dimension, $\mbs{\mu}_w(\phi_1 | q_i)$, and its associated covariance matrix $\mbs{\Sigma}_w(\phi_1 | q_i)$. The probability for the data is then
+            The astrometric track is modeled with a neural network, encompassing each phase space dimension, parameterized as a function of $\phi_1$. The neural network output for a single stream component is the mean location of the stream track in each dimension, $\mbs{\mu}_w(\phi_1 | q_i)$, and its associated covariance matrix $\mbs{\Sigma}_w(\phi_1 | q_i)$. The probability for the data is then
             \begin{equation}
-                \pdf^{(S)}(\nth{\mbs{w}} | \mbs{\theta}, \phi_{1,i}, q_i) = \mcal{N}\left(\nth{\mbs{w}} | \mbs{\mu}_w\left(\phi_{1,i} | q_i \right), \mbs{\Sigma}_w\left(\phi_{1,i} | q_i \right) \right),
+                \pdf^{(S)}(\nth{\mbs{w}} | \mbs{\theta}, \phi_{1,i}, q_i) = \mcal{N}\big(\nth{\mbs{w}} | \mbs{\mu}_w\left(\phi_{1,i} | q_i \right), \mbs{\Sigma}_w\left(\phi_{1,i} | q_i \right) \big),
             \end{equation}
             where $\mbs{\theta}$ is the set of neural network parameters that define $\mbs{\mu}_w$ and $\mbs{\Sigma}_w$.
             In the simplest case, we take $\mbs{\Sigma}_w$ to be diagonal, consisting of both intrinsic dispersion for each dimension of $\mbs{w}$ and the data uncertainties added in quadrature. 
@@ -212,6 +212,13 @@
                 \rm{dist}\left(\phi_1\right) = 10^{\frac{1}{5}\mu_{\rm sample}(\phi_1)+1} \quad\unit{pc}.
             \end{equation}
 
+            \todo[inline]{TODO:}
+            \begin{enumerate}
+                \item Not including isochrone parameters, e.g. age and metallicity
+                \item integrating over $\gamma$ the model assumes a PDMF, e.g. Kroupa
+            \end{enumerate}
+
+            By integrating over $\gamma$ the model is not sensitive to 
 
     
         \subsubsection{Off-stream} \label{sub:photometric_model_off_stream}
@@ -297,7 +304,25 @@
 
         \begin{enumerate}
             \item A network per model component, e.g. one for the weights, one for the stream track and width, one for the background distribution.
+            \item MLP for the components - lin / tanh + dropout
+            \item Normalizing flow - specific pieces
         \end{enumerate}
+
+
+        \begin{table}
+            \centering
+            \caption{MLP structure}
+            \begin{tabular}{@{}ccc@{}}
+            \toprule
+            Layer & Shape & Param \# \\
+            \midrule
+            Linear & (1, 3) & 1  \\
+            Tanh & (2, 3) & 1  \\
+            Dropout & (2, 3) & 0  \\
+            \bottomrule
+            \end{tabular}
+        \end{table}
+
         
 
     \subsection{Astrometric Stream}
