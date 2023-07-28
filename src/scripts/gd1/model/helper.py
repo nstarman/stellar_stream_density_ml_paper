@@ -14,6 +14,9 @@ from matplotlib.gridspec import GridSpec
 import stream_ml.visualization as smlvis
 from stream_ml.core import ModelAPI
 from stream_ml.pytorch import Data
+from stream_ml.visualization.background import (
+    exponential_like_distribution as exp_distr,
+)
 
 # Add the parent directory to the path
 sys.path.append(Path(__file__).parents[3].as_posix())
@@ -32,9 +35,9 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
     """Plot the model."""
     # Evaluate model
     with xp.no_grad():
-        model.train()
-        mpars = model.unpack_params(model(data))
         model.eval()
+        mpars = model.unpack_params(model(data))
+        model.train()
 
         stream_lik = model.component_posterior(
             "stream", mpars, data, stream_astrometric_where=where
@@ -56,13 +59,13 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
     stream_weight = mpars[("stream.weight",)]
     stream_cutoff = stream_weight > 2e-2
 
-    bkg_prob = bkg_lik / tot_lik
-    stream_prob = stream_lik / tot_lik
-    spur_lik / tot_lik
-    allstream_prob = (stream_lik + spur_lik) / tot_lik
+    bkg_prob = xp.nan_to_num(bkg_lik / tot_lik, nan=0)
+    stream_prob = xp.nan_to_num(stream_lik / tot_lik, nan=0)
+    spur_prob = xp.nan_to_num(spur_lik / tot_lik, nan=0)
+    allstream_prob = xp.nan_to_num((stream_lik + spur_lik) / tot_lik, nan=0)
 
     psort = np.argsort(stream_prob)
-    pmax = stream_prob.max()
+    pmax = xp.max(stream_prob.max(), xp.tensor(0.95))
     pmin = stream_prob.min()
 
     # =============================================================================
@@ -97,7 +100,7 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
     with xp.no_grad():
         manually_set_dropout(model, 0.15)
         weights = xp.stack(
-            [model.unpack_params(model(data))["stream.weight",] for i in range(50)], 1
+            [model.unpack_params(model(data))["stream.weight",] for i in range(25)], 1
         )
         weight_percentiles = np.c_[
             np.percentile(weights, 5, axis=1), np.percentile(weights, 95, axis=1)
@@ -126,28 +129,18 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
     ax02.scatter(
         data["phi1"][psort],
         data["phi2"][psort],
-        c=stream_prob[psort],
-        alpha=0.1 + (1 - 0.1) / (pmax - pmin) * (stream_prob[psort] - pmin),
+        c=allstream_prob[psort],
+        alpha=0.1 + (1 - 0.1) / (pmax - pmin) * (allstream_prob[psort] - pmin),
         s=2,
         zorder=-10,
-        cmap="seismic",
     )
     ax02.set_rasterization_zorder(0)
     ax02.fill_between(
         data["phi1"][stream_cutoff],
-        mpa["phi2", "mu"][stream_cutoff]
-        - xp.exp(mpa["phi2", "ln-sigma"][stream_cutoff]),
-        mpa["phi2", "mu"][stream_cutoff]
-        + xp.exp(mpa["phi2", "ln-sigma"][stream_cutoff]),
+        (mpa["phi2", "mu"] - xp.exp(mpa["phi2", "ln-sigma"]))[stream_cutoff],
+        (mpa["phi2", "mu"] + xp.exp(mpa["phi2", "ln-sigma"]))[stream_cutoff],
         color="k",
-        alpha=0.15,
-    )
-    ax02.plot(
-        data["phi1"][stream_cutoff],
-        mpa["phi2", "mu"][stream_cutoff],
-        c="k",
-        ls="--",
-        lw=2,
+        alpha=0.25,
         label="Model (MLE)",
     )
     ax02.legend(loc="upper left")
@@ -237,90 +230,148 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
     # =============================================================================
     # Slice plots
 
-    gs1 = gs[1].subgridspec(4, 4)
+    gs1 = gs[1].subgridspec(5, 4, height_ratios=(0.01, 1, 1, 1, 2), hspace=0)
 
     # Bin the data for plotting
     bins = np.linspace(data["phi1"].min(), data["phi1"].max(), num=5, endpoint=True)
     which_bin = np.digitize(data["phi1"], bins[:-1])
 
+    # Legend
+    ax10 = fig.add_subplot(gs1[0, :])
+    ax10.axis(False)
+    ax10.legend(
+        handles=[
+            mpl.patches.Patch(color=cmap(0.01), label="Background"),
+            mpl.lines.Line2D([0], [0], color="k", lw=4),
+            mpl.patches.Patch(color=cmap(0.99), label="Stream"),
+            mpl.patches.Patch(color="tab:olive", label="Spur"),
+        ],
+        ncols=4,
+    )
+
     for i, b in enumerate(np.unique(which_bin)):
         sel = which_bin == b
+
+        data_ = data[sel]
+        bkg_prob_ = bkg_prob[sel]
+        stream_prob_ = stream_prob[sel]
+        spur_prob_ = spur_prob[sel]
 
         # ---------------------------------------------------------------------------
         # Phi2
 
-        ax10i = fig.add_subplot(gs1[0, i])
+        ax11i = fig.add_subplot(gs1[1, i])
 
         # Connect to top plot(s)
-        for ax in (ax01, ax02):
+        for ax in (ax01, ax02, ax03, ax04):
             ax.axvline(bins[i], color="gray", ls="--", zorder=-200)
             ax.axvline(bins[i + 1], color="gray", ls="--", zorder=-200)
-        smlvis._slices.connect_slices_to_top(  # noqa: SL
-            fig, ax03, ax10i, left=bins[i], right=bins[i + 1], color="gray"
+        smlvis._slices.connect_slices_to_top(  # noqa: SLF001
+            fig, ax03, ax11i, left=bins[i], right=bins[i + 1], color="gray"
         )
 
-        # Recovered
-        cphi2s = np.ones((sel.sum(), 2)) * data["phi2"][sel][:, None]
-        ws = np.stack((bkg_prob[sel], stream_prob[sel]), axis=1)
-        ax10i.hist(
+        cphi2s = np.ones((sel.sum(), 3)) * data_["phi2"][:, None].numpy()
+        ws = np.stack((bkg_prob_, stream_prob_, spur_prob_), axis=1)
+        ax11i.hist(
             cphi2s,
             bins=50,
             weights=ws,
-            color=[cmap(0.01), cmap(0.99)],
+            color=[cmap(0.01), cmap(0.99), "tab:olive"],
             alpha=0.75,
             density=True,
             stacked=True,
-            label=["", "Model (MLE)"],
+            label=["", "Stream Model (MLE)", "Spur Model (MLE)"],
         )
-        ax10i.set_xlabel(r"$\phi_2$ [$\degree$]")
+
+        xmin, xmax = data["phi2"].min().numpy(), data["phi2"].max().numpy()
+        x = np.linspace(xmin, xmax)
+        bkg_wgt = mpars["background.weight",][sel].mean()
+        m = mpars["background.astrometric.phi2", "slope"][sel].mean()
+        ax11i.plot(x, bkg_wgt * exp_distr(m, xmin, xmax).pdf(x), c="k")
+
+        ax11i.set_xlabel(r"$\phi_2$ [$\degree$]")
         if i == 0:
-            ax10i.set_ylabel("frequency")
-            ax10i.legend(loc="upper left")
+            ax11i.set_ylabel("frequency")
+
+        # ---------------------------------------------------------------------------
+        # PM-Phi1
+
+        ax12i = fig.add_subplot(gs1[2, i])
+
+        # Recovered
+        cpmphi1s = np.ones((sel.sum(), 3)) * data_["pmphi1"][:, None].numpy()
+        ws = np.stack((bkg_prob_, stream_prob_, spur_prob_), axis=1)
+        ax12i.hist(
+            cpmphi1s,
+            bins=50,
+            weights=ws,
+            color=[cmap(0.01), cmap(0.99), "tab:olive"],
+            alpha=0.75,
+            density=True,
+            stacked=True,
+            label=["", "Stream Model (MLE)", "Spur Model (MLE)"],
+        )
+
+        xmin, xmax = data["pmphi1"].min().numpy(), data["pmphi1"].max().numpy()
+        x = np.linspace(xmin, xmax)
+        m = mpars["background.astrometric.pmphi1", "slope"][sel].mean()
+        ax12i.plot(x, bkg_wgt * exp_distr(m, xmin, xmax).pdf(x), c="k")
+
+        ax12i.set_xlabel(r"$\mu_{\phi_1}^*$ [mas yr$^{-1}$]")
+        if i == 0:
+            ax12i.set_ylabel("frequency")
+
+        # ---------------------------------------------------------------------------
+        # PM-Phi2
+
+        ax13i = fig.add_subplot(gs1[3, i])
+        ax13i.hist(
+            np.ones((sel.sum(), 3)) * data_["pmphi2"][:, None].numpy(),
+            bins=50,
+            weights=np.stack((bkg_prob_, stream_prob_, spur_prob_), axis=1),
+            color=[cmap(0.01), cmap(0.99), "tab:olive"],
+            alpha=0.75,
+            density=True,
+            stacked=True,
+            label=["", "Stream Model (MLE)", "Spur Model (MLE)"],
+        )
+
+        xmin, xmax = data["pmphi2"].min().numpy(), data["pmphi2"].max().numpy()
+        x = np.linspace(xmin, xmax)
+        m = mpars["background.astrometric.pmphi2", "slope"][sel].mean()
+        ax13i.plot(x, bkg_wgt * exp_distr(m, xmin, xmax).pdf(x), c="k")
+
+        ax13i.set_xlabel(r"$\mu_{phi_2}$ [mas yr$^{-1}$]")
+        if i == 0:
+            ax13i.set_ylabel("frequency")
 
         # ---------------------------------------------------------------------------
         # Photometry
 
-        # ------------------------------------------
-        # Stream
+        ax14i = fig.add_subplot(gs1[4, i])
 
-        ax12i = fig.add_subplot(gs1[2, i])
-
-        prob = stream_prob[sel]
-        sorter = np.argsort(prob)
-        ax12i.scatter(
-            data["g"][sel][sorter],
-            data["r"][sel][sorter],
-            c=prob[sorter],
-            cmap="seismic",
+        sorter = np.argsort(stream_prob_)
+        ax14i.scatter(
+            data_["g"][sorter] - data_["r"][sorter],
+            data_["g"][sorter],
+            c=stream_prob_[sorter],
             s=1,
             rasterized=True,
         )
-        ax12i.set_xticklabels([])
-
-        if i == 0:
-            ax12i.set_ylabel("r [mag]")
-        else:
-            ax12i.set_yticklabels([])
-
-        # ------------------------------------------
-        # Background
-
-        ax13i = fig.add_subplot(gs1[3, i])
-        prob = bkg_prob[sel]
-        sorter = np.argsort(prob)
-        ax13i.scatter(
-            data["g"][sel][sorter],
-            data["r"][sel][sorter],
-            c=1 - prob[sorter],
-            cmap="seismic",
+        isspur = spur_prob_ > 0.75
+        ax14i.scatter(
+            (data_["g"] - data_["r"])[isspur],
+            data_["g"][isspur],
+            c="tab:olive",
             s=1,
             rasterized=True,
         )
-        ax13i.set(xlabel="g [mag]")
+        ax14i.set(xlabel=("g - r [mag]"), xlim=(0, 1), ylim=(22, 13))
+        ax14i.set_xticklabels([])
 
         if i == 0:
-            ax13i.set_ylabel("r [mag]")
+            ax14i.set_ylabel("g [mag]")
         else:
-            ax13i.set_yticklabels([])
+            ax14i.set_yticklabels([])
 
     return fig

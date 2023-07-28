@@ -20,9 +20,10 @@ from stream_ml.visualization.background import (
 sys.path.append(Path(__file__).parents[3].as_posix())
 # isort: split
 
-from scripts import helper, paths
+from scripts import paths
 from scripts.gd1.datasets import data, where
 from scripts.gd1.define_model import model
+from scripts.helper import manually_set_dropout
 
 # =============================================================================
 
@@ -60,11 +61,12 @@ stream_cutoff = stream_weight > 2e-2
 
 bkg_prob = bkg_lik / tot_lik
 stream_prob = stream_lik / tot_lik
+spur_prob = spur_lik / tot_lik
+allstream_prob = (stream_lik + spur_lik) / tot_lik
+
 psort = np.argsort(stream_prob)
 pmax = stream_prob.max()
 pmin = stream_prob.min()
-spur_prob = spur_lik / tot_lik
-allstream_prob = (stream_lik + spur_lik) / tot_lik
 
 
 # =============================================================================
@@ -98,14 +100,14 @@ ax01.set(ylabel="Stream fraction", ylim=(0, 0.5))
 ax01.set_xticklabels([])
 
 with xp.no_grad():
-    helper.manually_set_dropout(model, 0.15)
+    manually_set_dropout(model, 0.15)
     weights = xp.stack(
         [model.unpack_params(model(data))["stream.weight",] for i in range(100)], 1
     )
     weight_percentiles = np.c_[
         np.percentile(weights, 5, axis=1), np.percentile(weights, 95, axis=1)
     ]
-    helper.manually_set_dropout(model, 0)
+    manually_set_dropout(model, 0)
 ax01.fill_between(
     data["phi1"],
     weight_percentiles[:, 0],
@@ -130,7 +132,7 @@ ax02.scatter(
     data["phi1"][psort],
     data["phi2"][psort],
     c=allstream_prob[psort],
-    alpha=0.1 + (1 - 0.1) / (pmax - pmin) * (stream_prob[psort] - pmin),
+    alpha=0.1 + (1 - 0.1) / (pmax - pmin) * (allstream_prob[psort] - pmin),
     s=2,
     zorder=-10,
 )

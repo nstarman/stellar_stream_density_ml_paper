@@ -4,6 +4,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
+import matplotlib.pyplot as plt
 import torch as xp
 import torch.utils.data as td
 from torch import optim
@@ -15,9 +16,10 @@ import stream_ml.pytorch as sml
 sys.path.append(Path(__file__).parents[3].as_posix())
 # isort: split
 
-from scripts import paths
+from scripts import helper, paths
 from scripts.gd1.datasets import data, where
 from scripts.gd1.define_model import model
+from scripts.gd1.model.helper import diagnostic_plot
 
 # =============================================================================
 # Parameters
@@ -74,9 +76,6 @@ optimizer = optim.Adam(
 
 scheduler = optim.lr_scheduler.ConstantLR(optimizer, factor=0.1)  # constant 1e-4
 
-
-raise ValueError
-
 # =============================================================================
 # Train
 
@@ -87,7 +86,7 @@ epoch_iterator = tqdm(
     dynamic_ncols=True,
     postfix={"lr": f"{scheduler.get_last_lr()[0]:.2e}", "loss": f"{0:.2e}"},
 )
-for _epoch in epoch_iterator:
+for epoch in epoch_iterator:
     for _step, (step_arr, step_where_) in enumerate(loader):
         # Prepare
         step_data = sml.Data(step_arr, names=data.names)
@@ -107,6 +106,9 @@ for _epoch in epoch_iterator:
             background_astrometric_where=step_where,
         )
 
+        if loss_val.isnan().any():
+            raise ValueError
+
         # backward pass
         optimizer.zero_grad()
         loss_val.backward()
@@ -123,7 +125,23 @@ for _epoch in epoch_iterator:
     if snkmk["diagnostic_plots"] and (
         (epoch % 100 == 0) or (epoch == snkmk["epochs"] - 1)
     ):
-        pass
+        helper.manually_set_dropout(model, 0)
+
+        with xp.no_grad():
+            mpars = model.unpack_params(model(data))
+            prob = model.posterior(
+                mpars,
+                data,
+                stream_astrometric_where=where,
+                spur_astrometric_where=where,
+                background_astrometric_where=where,
+            )
+
+        fig = diagnostic_plot(model, data, where=where)
+        fig.savefig(diagnostic_path / f"epoch_{epoch:05}.png")
+        plt.close(fig)
+
+        helper.manually_set_dropout(model, 0.15)
 
 
 xp.save(model.state_dict(), paths.data / "gd1" / "model.pt")

@@ -251,8 +251,8 @@ rule gd1_train_flow:
         "src/data/gd1/data.tmp",
         "src/data/gd1/model.tmp",
     params:
-        load_from_static=False,  # set to False to recompute
-        save_to_static=True,
+        load_from_static=True,  # set to False to recompute
+        save_to_static=False,
         diagnostic_plots=True,
         epochs=1_000,
     cache:
