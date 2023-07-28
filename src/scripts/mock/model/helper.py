@@ -9,7 +9,6 @@ import numpy as np
 import torch as xp
 from astropy.table import QTable
 from matplotlib.gridspec import GridSpec
-from scipy import stats
 
 import stream_ml.visualization as smlvis
 from stream_ml.core import ModelAPI
@@ -81,15 +80,16 @@ def plot(model: ModelAPI, data: Data, table: QTable) -> plt.Figure:
     ax01.set(ylabel="Stream fraction", ylim=(0, 0.5))
     ax01.set_xticklabels([])
 
-    # Truth (at some bandwidth)
-    # TODO: replace with histograms.
+    # Truth
     phi1 = table["phi1"].to_value("deg")[isstream]
-    bw_method = 0.045
-    sk = stats.gaussian_kde(phi1, bw_method=bw_method)
-    a, b = phi1.min(), phi1.max()
-    on_stream = (a < data["phi1"]) & (data["phi1"] < b)
-    tk = stats.gaussian_kde(table["phi1"], bw_method=bw_method)
-    x = data["phi1"][on_stream]
+
+    Hs, bin_edges = np.histogram(phi1, bins=75)
+    Ht, bin_edges = np.histogram(data["phi1"], bins=bin_edges)
+    ax01.bar(
+        bin_edges[:-1],
+        Hs / Ht,
+        width=bin_edges[1] - bin_edges[0],
+    )
 
     with xp.no_grad():
         manually_set_dropout(model, 0.15)
@@ -106,14 +106,6 @@ def plot(model: ModelAPI, data: Data, table: QTable) -> plt.Figure:
         weight_percentiles[:, 1],
         color="k",
         alpha=0.25,
-    )
-
-    # MLE
-    ax01.plot(
-        x,
-        ((sk(x) / tk(x)) * ((isstream).sum() / len(table))),
-        c="k",
-        label=f"Stream (`true', bw={bw_method})",
     )
     ax01.plot(data["phi1"], weight, c="k", ls="--", lw=2, label="Model (MLE)")
 

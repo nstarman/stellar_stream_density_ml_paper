@@ -89,8 +89,7 @@ ax01 = fig.add_subplot(gs0[1, :])
 ax01.set(ylabel="Stream fraction", ylim=(0, 0.5))
 ax01.set_xticklabels([])
 
-# Truth (at some bandwidth)
-# TODO: replace with histograms.
+# Truth
 phi1 = stream_table["phi1"].to_value("deg")
 
 Hs, bin_edges = np.histogram(phi1, bins=75)
@@ -101,29 +100,16 @@ ax01.bar(
     width=bin_edges[1] - bin_edges[0],
 )
 
-# bw_method = 0.045
-# sk = stats.gaussian_kde(phi1, bw_method=bw_method)
-# a, b = phi1.min(), phi1.max()
-# on_stream = (a < data["phi1"]) & (data["phi1"] < b)
-# tk = stats.gaussian_kde(table["phi1"], bw_method=bw_method)
-# x = data["phi1"][on_stream]
-# ax01.plot(
-#     x,
-#     ((sk(x) / tk(x)) * (n_stream / (n_stream + n_background))),
-#     c="k",
-#     label=f"Stream ('true', bw={bw_method})",
-# )
-
 # Model
 with xp.no_grad():
     helper.manually_set_dropout(model, 0.15)
     weights = xp.stack(
         [model.unpack_params(model(data))["stream.weight",] for i in range(100)], 1
     )
+    helper.manually_set_dropout(model, 0)
     weight_percentiles = np.c_[
         np.percentile(weights, 5, axis=1), np.percentile(weights, 95, axis=1)
     ]
-    helper.manually_set_dropout(model, 0)
 ax01.fill_between(
     data["phi1"],
     weight_percentiles[:, 0],
