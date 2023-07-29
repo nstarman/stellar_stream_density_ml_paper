@@ -11,7 +11,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 from astropy.table import QTable, Row
 
-# isort: split
 # Add the parent directory to the path
 sys.path.append(Path(__file__).parents[3].as_posix())
 # isort: split
