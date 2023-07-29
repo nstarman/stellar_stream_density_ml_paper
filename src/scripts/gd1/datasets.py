@@ -16,7 +16,7 @@ sys.path.append(Path(__file__).parents[2].as_posix())
 from scripts import paths
 
 # =============================================================================
-# Load data and model
+# Load data table
 
 with asdf.open(
     paths.data / "gd1" / "info.asdf", lazy_load=False, copy_arrays=True
@@ -26,6 +26,10 @@ with asdf.open(
     renamer = af["renamer"]
 
 table = QTable.read(paths.data / "gd1" / "gaia_ps1_xm.asdf")[sel]
+
+
+# =============================================================================
+# Make Data object
 
 data = sml.Data.from_format(
     table, fmt="astropy.table", names=names, renamer=renamer
@@ -40,7 +44,14 @@ where = sml.Data(
 data.array[xp.isnan(data.array)] = 0.0  # set missing data to zero
 
 
-# -----------------------------------------------------------------------------
+# =============================================================================
+# Off-stream selection
+
+off_stream = (data["phi2"] < -1.7) | (data["phi2"] > 2)
+
+
+# =============================================================================
+# Save temp file
 
 pth = paths.data / "gd1" / "data.tmp"
 if not pth.exists():

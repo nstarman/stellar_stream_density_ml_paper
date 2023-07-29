@@ -18,7 +18,7 @@ sys.path.append(Path(__file__).parents[3].as_posix())
 # isort: split
 
 from scripts import paths
-from scripts.gd1.datasets import data
+from scripts.gd1.datasets import data, off_stream
 from scripts.gd1.define_model import (
     background_photometric_model as model,
 )
@@ -48,8 +48,6 @@ figure_path.mkdir(parents=True, exist_ok=True)
 
 # =============================================================================
 # Train
-
-off_stream = (data["phi2"] < -1.5) | (data["phi2"] > 2)
 
 coord_names = (*model.indep_coord_names, *model.coord_names)
 dataset = td.TensorDataset(data[coord_names].array[off_stream])
