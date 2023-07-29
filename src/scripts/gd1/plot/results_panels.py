@@ -72,7 +72,7 @@ pmin = allstream_prob.min()
 
 fig = plt.figure(constrained_layout="tight", figsize=(11, 15))
 gs = GridSpec(2, 1, figure=fig, height_ratios=(1.2, 1), hspace=0)
-gs0 = gs[0].subgridspec(6, 1, height_ratios=(1, 3, 5))
+gs0 = gs[0].subgridspec(3, 1, height_ratios=(1, 3, 5))
 
 cmap = plt.get_cmap()
 
