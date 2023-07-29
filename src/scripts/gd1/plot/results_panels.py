@@ -94,7 +94,7 @@ cbar.ax.xaxis.set_label_position("top")
 # Weight plot
 
 ax01 = fig.add_subplot(gs0[1, :])
-ax01.set(ylabel="Stream fraction", ylim=(0, 0.35))
+ax01.set(ylabel="Stream fraction", ylim=(0, 0.3))
 ax01.set_xticklabels([])
 
 with xp.no_grad():
