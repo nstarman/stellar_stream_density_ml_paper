@@ -70,8 +70,8 @@ pmin = allstream_prob.min()
 # =============================================================================
 # Make Figure
 
-fig = plt.figure(constrained_layout="tight", figsize=(11, 15))
-gs = GridSpec(2, 1, figure=fig, height_ratios=(1.2, 1), hspace=0)
+fig = plt.figure(constrained_layout="tight", figsize=(11, 12))
+gs = GridSpec(2, 1, figure=fig, height_ratios=(0.6, 1), hspace=0.07)
 gs0 = gs[0].subgridspec(3, 1, height_ratios=(1, 3, 5))
 
 cmap = plt.get_cmap()
@@ -148,16 +148,14 @@ ax02.legend(loc="upper left")
 # =============================================================================
 # Slice plots
 
-gs1 = gs[1].subgridspec(5, 4, height_ratios=(0.01, 1, 1, 1, 2), hspace=0)
+gs1 = gs[1].subgridspec(4, 4, height_ratios=(1, 1, 1, 2), hspace=0)
 
 # Bin the data for plotting
 bins = np.linspace(data["phi1"].min(), data["phi1"].max(), num=5, endpoint=True)
 which_bin = np.digitize(data["phi1"], bins[:-1])
 
 # Legend
-ax10 = fig.add_subplot(gs1[0, :])
-ax10.axis(False)
-ax10.legend(
+legend1 = plt.legend(
     handles=[
         mpl.patches.Patch(color=cmap(0.01), label="Background"),
         mpl.lines.Line2D([0], [0], color="k", lw=4),
@@ -165,8 +163,10 @@ ax10.legend(
         mpl.patches.Patch(color="tab:olive", label="Spur"),
     ],
     ncols=4,
+    loc="upper right",
+    bbox_to_anchor=(1, -0.05),
 )
-
+ax02.add_artist(legend1)
 
 for i, b in enumerate(np.unique(which_bin)):
     sel = which_bin == b
@@ -179,7 +179,7 @@ for i, b in enumerate(np.unique(which_bin)):
     # ---------------------------------------------------------------------------
     # Phi2
 
-    ax11i = fig.add_subplot(gs1[1, i])
+    ax11i = fig.add_subplot(gs1[0, i])
 
     # Connect to top plot(s)
     for ax in (ax01, ax02):
@@ -215,7 +215,7 @@ for i, b in enumerate(np.unique(which_bin)):
     # ---------------------------------------------------------------------------
     # PM-Phi1
 
-    ax12i = fig.add_subplot(gs1[2, i])
+    ax12i = fig.add_subplot(gs1[1, i])
 
     # Recovered
     cpmphi1s = np.ones((sel.sum(), 3)) * data_["pmphi1"][:, None].numpy()
@@ -243,7 +243,7 @@ for i, b in enumerate(np.unique(which_bin)):
     # ---------------------------------------------------------------------------
     # PM-Phi2
 
-    ax13i = fig.add_subplot(gs1[3, i])
+    ax13i = fig.add_subplot(gs1[2, i])
     ax13i.hist(
         np.ones((sel.sum(), 3)) * data_["pmphi2"][:, None].numpy(),
         bins=50,
@@ -267,7 +267,7 @@ for i, b in enumerate(np.unique(which_bin)):
     # ---------------------------------------------------------------------------
     # Photometry
 
-    ax14i = fig.add_subplot(gs1[4, i])
+    ax14i = fig.add_subplot(gs1[3, i])
 
     sorter = np.argsort(stream_prob_)
     ax14i.scatter(
