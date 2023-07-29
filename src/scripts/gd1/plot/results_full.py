@@ -94,6 +94,7 @@ ax01.set(ylabel="Stream fraction", ylim=(0, 0.35))
 ax01.set_xticklabels([])
 
 with xp.no_grad():
+    model = model.train()
     manually_set_dropout(model, 0.15)
     weights = xp.stack(
         [model.unpack_params(model(data))["stream.weight",] for i in range(100)], 1
@@ -102,6 +103,7 @@ with xp.no_grad():
         np.percentile(weights, 5, axis=1), np.percentile(weights, 95, axis=1)
     ]
     manually_set_dropout(model, 0)
+    model = model.eval()
 ax01.fill_between(
     data["phi1"],
     weight_percentiles[:, 0],
