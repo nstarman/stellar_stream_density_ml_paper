@@ -14,7 +14,7 @@ sys.path.append(Path(__file__).parents[3].as_posix())
 
 from scripts import paths
 from scripts.gd1.datasets import data, table, where
-from scripts.gd1.model.define_model import model
+from scripts.gd1.define_model import model
 from scripts.helper import manually_set_dropout
 
 # =============================================================================

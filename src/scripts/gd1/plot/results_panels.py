@@ -150,23 +150,25 @@ ax02.legend(loc="upper left")
 
 gs1 = gs[1].subgridspec(4, 4, height_ratios=(1, 1, 1, 2), hspace=0)
 
-# Bin the data for plotting
-bins = np.linspace(data["phi1"].min(), data["phi1"].max(), num=5, endpoint=True)
-which_bin = np.digitize(data["phi1"], bins[:-1])
-
 # Legend
 legend1 = plt.legend(
     handles=[
-        mpl.patches.Patch(color=cmap(0.01), label="Background"),
-        mpl.lines.Line2D([0], [0], color="k", lw=4),
-        mpl.patches.Patch(color=cmap(0.99), label="Stream"),
-        mpl.patches.Patch(color="tab:olive", label="Spur"),
+        mpl.patches.Patch(color=cmap(0.01), label="Background (MLE)"),
+        mpl.lines.Line2D(
+            [0], [0], color="k", lw=4, ls=":", label="Background Distribution"
+        ),
+        mpl.patches.Patch(color=cmap(0.99), label="Stream (MLE)"),
+        mpl.patches.Patch(color="tab:olive", label="Spur (MLE)"),
     ],
     ncols=4,
     loc="upper right",
     bbox_to_anchor=(1, -0.05),
 )
 ax02.add_artist(legend1)
+
+# Bin the data for plotting
+bins = np.linspace(data["phi1"].min(), data["phi1"].max(), num=5, endpoint=True)
+which_bin = np.digitize(data["phi1"], bins[:-1])
 
 for i, b in enumerate(np.unique(which_bin)):
     sel = which_bin == b

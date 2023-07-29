@@ -61,8 +61,8 @@ bkg_prob = bkg_lik / (stream_lik + bkg_lik)
 # Make Figure
 
 fig = plt.figure(constrained_layout=True, figsize=(14, 13))
-gs = GridSpec(2, 1, height_ratios=(1, 1), figure=fig)
-gs0 = gs[0].subgridspec(4, 1, height_ratios=(1, 5, 5, 5))
+gs = GridSpec(2, 1, height_ratios=(1, 1), figure=fig, hspace=0.0)
+gs0 = gs[0].subgridspec(4, 1, height_ratios=(1, 5, 5, 5), hspace=0)
 
 cmap = plt.get_cmap()
 
@@ -179,7 +179,7 @@ ax02.legend(
     [hdata] + handles,
     ["data"] + labels,
     handler_map={tuple: mpl.legend_handler.HandlerTuple(ndivide=None)},
-    loc="upper left",
+    loc="center left",
 )
 
 # ---------------------------------------------------------------------------
@@ -230,23 +230,24 @@ ax03.plot(
     label="Model (MLE)",
 )
 
-# legend
-hdata = (
-    mpl.lines.Line2D([], [], c=cmap(0.01), marker="o"),
-    mpl.lines.Line2D([], [], c=cmap(0.99), marker="o"),
-)
-handles, labels = ax03.get_legend_handles_labels()
-ax03.legend(
-    [hdata] + handles,
-    ["data"] + labels,
-    handler_map={tuple: mpl.legend_handler.HandlerTuple(ndivide=None)},
-    loc="upper left",
-)
-
 # =============================================================================
 # Slice plots
 
 gs1 = gs[1].subgridspec(4, 4)
+
+# Legend
+legend1 = plt.legend(
+    handles=[
+        mpl.patches.Patch(facecolor="white", edgecolor="black", label="Ground Truth"),
+        mpl.patches.Patch(color=cmap(0.01), label="Background (MLE)"),
+        mpl.patches.Patch(color=cmap(0.99), label="Stream (MLE)"),
+    ],
+    ncols=3,
+    loc="upper right",
+    bbox_to_anchor=(1, -0.05),
+)
+ax03.add_artist(legend1)
+
 
 # Bin the data for plotting
 bins = np.linspace(data["phi1"].min(), data["phi1"].max(), num=5, endpoint=True)
@@ -301,7 +302,7 @@ for i, b in enumerate(np.unique(which_bin)):
     ax10i.set_xlabel(r"$\phi_2$ [$\degree$]")
     if i == 0:
         ax10i.set_ylabel("frequency")
-        ax10i.legend(loc="upper left")
+        # ax10i.legend(loc="upper left")
 
     # ---------------------------------------------------------------------------
     # Distance
@@ -341,7 +342,7 @@ for i, b in enumerate(np.unique(which_bin)):
     ax11i.set_xlabel(r"$\varpi$ [mas]")
     if i == 0:
         ax11i.set_ylabel("frequency")
-        ax11i.legend(loc="upper left")
+        # ax11i.legend(loc="upper left")
 
     # ---------------------------------------------------------------------------
     # Photometry
