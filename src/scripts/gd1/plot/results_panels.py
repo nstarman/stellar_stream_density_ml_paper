@@ -3,12 +3,10 @@
 import sys
 from pathlib import Path
 
-import astropy.units as u
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import torch as xp
-from astropy.coordinates import Distance
 from matplotlib.gridspec import GridSpec
 
 import stream_ml.visualization as smlvis
@@ -74,7 +72,7 @@ pmin = allstream_prob.min()
 
 fig = plt.figure(constrained_layout="tight", figsize=(11, 15))
 gs = GridSpec(2, 1, figure=fig, height_ratios=(1.2, 1), hspace=0)
-gs0 = gs[0].subgridspec(6, 1, height_ratios=(1, 5, 5, 5, 5, 5))
+gs0 = gs[0].subgridspec(6, 1, height_ratios=(1, 3, 5))
 
 cmap = plt.get_cmap()
 
@@ -96,7 +94,7 @@ cbar.ax.xaxis.set_label_position("top")
 # Weight plot
 
 ax01 = fig.add_subplot(gs0[1, :])
-ax01.set(ylabel="Stream fraction", ylim=(0, 0.5))
+ax01.set(ylabel="Stream fraction", ylim=(0, 0.35))
 ax01.set_xticklabels([])
 
 with xp.no_grad():
@@ -147,90 +145,6 @@ ax02.fill_between(
 )
 ax02.legend(loc="upper left")
 
-# ---------------------------------------------------------------------------
-# PM-Phi1
-
-ax03 = fig.add_subplot(gs0[3, :])
-ax03.set_xticklabels([])
-ax03.set(ylabel=r"$\mu_{\phi_1}^*$ [mas yr$^{-1}$]")
-
-ax03.scatter(
-    data["phi1"][psort],
-    data["pmphi1"][psort],
-    c=allstream_prob[psort],
-    alpha=0.1 + (1 - 0.1) / (pmax - pmin) * (stream_prob[psort] - pmin),
-    s=2,
-    zorder=-10,
-)
-ax03.set_rasterization_zorder(0)
-ax03.fill_between(
-    data["phi1"][stream_cutoff],
-    (mpa["pmphi1", "mu"] - xp.exp(mpa["pmphi1", "ln-sigma"]))[stream_cutoff],
-    (mpa["pmphi1", "mu"] + xp.exp(mpa["pmphi1", "ln-sigma"]))[stream_cutoff],
-    color="k",
-    alpha=0.25,
-    label="Model (MLE)",
-)
-ax03.legend(loc="upper left")
-
-# ---------------------------------------------------------------------------
-# PM-Phi2
-
-ax04 = fig.add_subplot(gs0[4, :])
-ax04.set_xticklabels([])
-ax04.set(ylabel=r"$\mu_{\phi_2}$ [mas yr$^{-1}$]")
-
-ax04.scatter(
-    data["phi1"][psort],
-    data["pmphi2"][psort],
-    c=allstream_prob[psort],
-    alpha=0.1 + (1 - 0.1) / (pmax - pmin) * (stream_prob[psort] - pmin),
-    s=2,
-    zorder=-10,
-)
-ax04.set_rasterization_zorder(0)
-ax04.fill_between(
-    data["phi1"][stream_cutoff],
-    (mpa["pmphi2", "mu"] - xp.exp(mpa["pmphi2", "ln-sigma"]))[stream_cutoff],
-    (mpa["pmphi2", "mu"] + xp.exp(mpa["pmphi2", "ln-sigma"]))[stream_cutoff],
-    color="k",
-    alpha=0.25,
-    label="Model (MLE)",
-)
-ax04.legend(loc="upper left")
-
-
-# ---------------------------------------------------------------------------
-# Distance
-
-mpa = mpars["stream.photometric.distmod"]
-
-ax03 = fig.add_subplot(gs0[5, :])
-ax03.set(xlabel=r"$\phi_1$ [deg]", ylabel=r"$d$ [kpc]")
-
-d2sm = Distance(distmod=(mpa["mu"] - 2 * xp.exp(mpa["ln-sigma"])) * u.mag)
-d2sp = Distance(distmod=(mpa["mu"] + 2 * xp.exp(mpa["ln-sigma"])) * u.mag)
-d1sm = Distance(distmod=(mpa["mu"] - xp.exp(mpa["ln-sigma"])) * u.mag)
-d1sp = Distance(distmod=(mpa["mu"] + xp.exp(mpa["ln-sigma"])) * u.mag)
-
-ax03.fill_between(
-    data["phi1"][stream_cutoff],
-    d2sm[stream_cutoff].to_value("kpc"),
-    d2sp[stream_cutoff].to_value("kpc"),
-    alpha=0.15,
-    color="k",
-)
-ax03.fill_between(
-    data["phi1"][stream_cutoff],
-    d1sm[stream_cutoff].to_value("kpc"),
-    d1sp[stream_cutoff].to_value("kpc"),
-    alpha=0.25,
-    color="k",
-    label="Model (MLE)",
-)
-ax03.legend(loc="upper left")
-
-
 # =============================================================================
 # Slice plots
 
@@ -272,7 +186,7 @@ for i, b in enumerate(np.unique(which_bin)):
         ax.axvline(bins[i], color="gray", ls="--", zorder=-200)
         ax.axvline(bins[i + 1], color="gray", ls="--", zorder=-200)
     smlvis._slices.connect_slices_to_top(  # noqa: SLF001
-        fig, ax03, ax11i, left=bins[i], right=bins[i + 1], color="gray"
+        fig, ax02, ax11i, left=bins[i], right=bins[i + 1], color="gray"
     )
 
     cphi2s = np.ones((sel.sum(), 3)) * data_["phi2"][:, None].numpy()

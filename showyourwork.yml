@@ -79,10 +79,12 @@ dependencies:
     - src/data/gd1/gaia_ps1_xm.asdf
     - src/data/gd1/pm_edges.ecsv
     - src/data/gd1/masks.asdf
-  src/scripts/gd1/plot/results.py:
-    - src/scripts/gd1/datasets.py
+  src/scripts/gd1/plot/results_full.py:
     - src/data/gd1/data.tmp  # hack
-    - src/scripts/gd1/define_model.py
+    - src/data/gd1/model.tmp  # hack
+    - src/data/gd1/model.pt
+  src/scripts/gd1/plot/results_panels.py:
+    - src/data/gd1/data.tmp  # hack
     - src/data/gd1/model.tmp  # hack
     - src/data/gd1/model.pt
 
