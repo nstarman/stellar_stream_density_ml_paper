@@ -294,4 +294,4 @@ for i, b in enumerate(np.unique(which_bin)):
         ax14i.set_yticklabels([])
 
 
-fig.savefig(paths.figures / "gd1" / "results.pdf")
+fig.savefig(paths.figures / "gd1" / "results_panels.pdf")

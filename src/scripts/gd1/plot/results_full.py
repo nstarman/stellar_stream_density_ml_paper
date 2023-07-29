@@ -224,4 +224,4 @@ ax03.fill_between(
 )
 ax03.legend(loc="upper left")
 
-fig.savefig(paths.figures / "gd1" / "results.pdf")
+fig.savefig(paths.figures / "gd1" / "results_full.pdf")
