@@ -64,7 +64,7 @@ table["r [mag]"] = [
 # Likelihoods
 def process(value: float, minus: float, plus: float, /) -> str:
     """Process to value +/- error string."""
-    dm = np.round(value - minus, 2)
+    dm = np.round(minus - value, 2)
     dp = np.round(plus - value, 2)
 
     if value == 0 and dm == 0 and dp == 0:
