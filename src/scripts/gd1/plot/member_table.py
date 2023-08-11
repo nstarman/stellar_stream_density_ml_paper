@@ -66,12 +66,13 @@ def process(value: float, minus: float, plus: float, /) -> str:
     """Process to value +/- error string."""
     dm = np.round(minus - value, 2)
     dp = np.round(plus - value, 2)
+    v = np.round(value, 2)
 
-    if value == 0 and dm == 0 and dp == 0:
+    if v == 0 and dm == 0 and dp == 0:
         return ""
-    return "".join(
-        (f"${np.round(value, 2):0.2f}", "^{", f"{dp:+0.2f}", "}_{", f"{dm:+0.2f}", "}$")
-    )
+    if dm == 0 and dp == 0:
+        return f"${v:0.2f}$"
+    return "".join((f"${v:0.2f}", "^{", f"{dp:+0.2f}", "}_{", f"{dm:+0.2f}", "}$"))
 
 
 # fmt: off
@@ -103,7 +104,7 @@ table[:20].write(
     latexdict={
         "tabletype": "table*",
         "preamble": r"\centering",
-        "col_align": r"@{}rcccccccc@{}",
+        "col_align": r"@{}rccccccll@{}",
         "header_start": "\n".join(  # noqa: FLY002
             (
                 r"\toprule",
