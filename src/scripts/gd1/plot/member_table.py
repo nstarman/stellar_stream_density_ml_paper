@@ -13,6 +13,8 @@ sys.path.append(Path(__file__).parents[3].as_posix())
 from scripts import paths
 from scripts.gd1.datasets import table as data_table
 
+rng = np.random.default_rng(42)
+
 # =============================================================================
 
 member_liks = QTable.read(paths.data / "gd1" / "membership_likelhoods.ecsv")
@@ -96,12 +98,14 @@ table[r"$\mathcal{L}_{\rm spur}$"] = [
 ]
 # fmt: off
 
-table[:20].write(
-    paths.output / "gd1_members.tex",
-    format="ascii.latex",
-    overwrite=True,
-    caption="Membership Table.",
-    latexdict={
+# -----------------------------------------------------------------------------
+# Write the table
+
+write_kwargs = {
+    "format": "ascii.latex",
+    "overwrite": True,
+    "caption": "Membership Table.",
+    "latexdict": {
         "tabletype": "table*",
         "preamble": r"\centering",
         "col_align": r"@{}rccccccll@{}",
@@ -115,8 +119,40 @@ table[:20].write(
         "header_end": r"\midrule",
         "data_end": r"\bottomrule",
     },
-    formats={
+    "formats": {
         r"$\alpha$ [$\mathrm{{}^{\circ}}$]": "%0.2f",
         r"$\delta$ [$\mathrm{{}^{\circ}}$]": "%0.2f",
     },
-)
+}
+
+# Save the full table for online publication
+table.write(paths.output / "gd1_members.tex", **write_kwargs)
+
+# Save some of the rows for the paper
+rows = []
+# we work within the table selection
+strm_mle = member_liks["stream (MLE)"][sel]
+spur_mle = member_liks["spur (MLE)"][sel]
+# 1 row with highest probability
+rows.append(np.argmax(strm_mle))
+# 5 rows with a probability > 0.9
+prob_idx = np.where(strm_mle > 0.9)[0]
+subselect = rng.choice(np.arange(len(prob_idx)), size=5, replace=False, shuffle=False)
+rows.extend(prob_idx[subselect])
+# 4 rows with a probability < 0.75
+prob_idx = np.where(strm_mle < 0.75)[0]
+subselect = rng.choice(np.arange(len(prob_idx)), size=4, replace=False, shuffle=False)
+rows.extend(prob_idx[subselect])
+# 1 row with highest probability > 0.99
+rows.append(np.argmax(spur_mle))
+# 1 rows with a probability > 0.9 and low stream probability
+prob_idx = np.where((strm_mle < 0.75) & (spur_mle > 0.9) & (spur_mle != spur_mle.max()))[0]  # noqa: E501
+subselect = rng.choice(np.arange(len(prob_idx)), size=1, replace=False, shuffle=False)
+rows.extend(prob_idx[subselect])
+# 3 rows with non-zero joint probability
+prob_idx = np.where((strm_mle > 0.1) & (spur_mle > 0.7))[0]
+subselect = rng.choice(np.arange(len(prob_idx)), size=3, replace=False, shuffle=False)
+rows.extend(prob_idx[subselect])
+
+paper_table = table[rows]
+paper_table.write(paths.output / "gd1_select_members.tex", **write_kwargs)
