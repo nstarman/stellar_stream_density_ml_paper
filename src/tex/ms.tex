@@ -9,32 +9,56 @@
 \usepackage{booktabs}
 \usepackage{todonotes}
 
+% Change the section names
+\renewcommand{\sectionautorefname}{\S\!}%
+\renewcommand{\subsectionautorefname}{\S\!\!}%
+\renewcommand{\subsubsectionautorefname}{\S\!}%
+\renewcommand{\equationautorefname}{Eq.}
+
+\newcommand{\package}[1]{\textsc{#1}}
+\newcommand{\stream}[1]{#1}
+\newcommand{\dataarchive}[1]{\texttt{#1}}
+
+% Math fonts
 \newcommand{\mrm}[1]{\mathrm{#1}}
 \newcommand{\mbs}[1]{\boldsymbol{#1}}
 \newcommand{\mbf}[1]{\mathbf{#1}}
 \newcommand{\mbb}[1]{\mathbb{#1}}
 \newcommand{\mfk}[1]{\mathfrak{#1}}
 \newcommand{\mcal}[1]{\mathcal{#1}}
-\newcommand{\unit}[1]{[\text{#1}]}
 
-\newcommand{\nth}[1]{{#1}_{\mrm{n}}}
-\newcommand{\fth}[1]{{#1}_{\mrm{f}}}
-\newcommand{\qth}[1]{{#1}_{\mrm{q}}}
-
-\newcommand{\pdf}{P}
-\newcommand{\cdf}{\Phi}
-
+% Math symbols
 \newcommand{\Exp}[1]{e^{#1}}
 \newcommand{\Erf}[1]{\mathrm{erf}\left(#1\right)}
-
-\newcommand{\sigobs}{{\sigma_*}}
-\newcommand{\JN}[1]{{\textcolor{red}{JN: #1}}}
-
 \NewDocumentCommand \dif {o m} {
 	\IfNoValueTF{#1}
 		{ \mathrm{d}{#2} }
 		{ \mathrm{d}^{#1}{\!#2} }
 }
+
+% Statistics
+\newcommand{\pdf}{\mcal{P}}
+\newcommand{\cdf}{\mfk{P}}
+\newcommand{\likelihood}{\mcal{L}}
+\newcommand{\prior}{\mcal{\pi}}
+\newcommand{\posterior}{p}
+
+% Labels
+\newcommand{\nth}[1]{{#1}_{\mrm{n}}}  % measurement
+\newcommand{\fth}[1]{{#1}_{\mrm{f}}}  % feature
+\newcommand{\qth}[1]{{#1}_{\mrm{q}}}  % model index
+\newcommand{\unit}[1]{[\text{#1}]}
+
+\newcommand{\cmp}[2]{#2^{(#1)}}
+\newcommand{\smallcomponent}[2]{#2^{\scriptscriptstyle (#1)}}
+\newcommand{\astroM}[1]{\smallcomponent{w}{#1}}
+\newcommand{\photoM}[1]{\smallcomponent{m}{#1}}
+\newcommand{\chemoM}[1]{\smallcomponent{z}{#1}}
+
+\newcommand{\sigobs}{{\sigma_*}}
+
+\newcommand{\JN}[1]{{\textcolor{red}{JN: #1}}}
+
 
 % Begin!
 \begin{document}
@@ -43,10 +67,10 @@
 \title{Characterizing Stellar Streams by ML}
 
 % Author list
-\author{Nathaniel Starkman}
-\author{Jacob Nibauer}
+\author{Nathaniel Starkman \& Jacob Nibauer}
 \author{Jo Bovy}
 \author{Jeremy Webb}
+\author{Ana Bonaca}
 
 % Abstract with filler text
 \begin{abstract}
@@ -55,85 +79,273 @@
 
 \section{Introduction} \label{sec:intro}
 
-    [Content Here]
+    \todo[inline]{Rephrase ---}
 
-    \
+    \begin{quotation}
 
-    Paper Map:
+        A stellar stream is the association of stars tidally stripped from a common
+        progenitor system that orbits in an underlying galactic gravitational field
+        \citep{Johnston1998, HelmiWhite1999}. Stream progenitors are gravitationally
+        bound systems, such as satellite dwarf galaxies or star clusters
+        \citep{Odenkirchen2001, Majewski2003}. In the absence of external interactions
+        these systems are stable, though still capable of mass loss driven by internal
+        processes \citep{Hills1975, HeggieHut2003}, e.g. relaxation and binary
+        interactions. Considering external interactions, these progenitor systems may
+        be disrupted: completely, as in the merger events that formed the Galactic
+        stellar halo \citep{Lynden-Bell1967, Searle1978}; or partially, such as tidal
+        disruption forming a stellar stream.
+
+        In the approximation of a smooth galactic gravitational field, the
+        progenitor's extent is limited to the tidal radius. Through processes internal
+        and external, progenitor stars can achieve sufficient energy to bring them
+        beyond the tidal boundary, thus ``escaping'' into the galactic field. Escape
+        primarily occurs at both an inner and outer saddle point of the combined
+        potential -- e.g. the L2 and L3 Lagrange points for a spherical galactic field
+        \citep{Ross1997, Fukushige2000, BinneyTremaine2008}. Generally, the initial
+        phase space position of the escaped star is very similar to that of the
+        progenitor: the configuration position is the tidal boundary and the star has
+        a low peculiar velocity. Since both the escaped star and its progenitor orbit
+        in the same underlying galactic potential and have similar phase space
+        positions their orbits are similar \citep{BinneyTremaine2008}. Given
+        sufficient time the phase space separation will increase and an escaped star
+        will lead or trail the position of the progenitor, depending on the location
+        from which it escaped. Therefore, a collection of tidally stripped stars will
+        form extended structures, aka tails or streams, that are few to thousands of
+        parsecs in length \citep{Johnston1998, HelmiWhite1999, Bovy2014}.
+
+        To be a coherent, observable structure the peculiar velocity dispersion of
+        escaped stars relative to the progenitor must be relatively low, but does vary
+        from system to system. Stars in kinematically hot streams (e.g. from
+        progenitors with larger kinematic dispersions) have more dissimilar orbits
+        from each other and the progenitor than do stars in cold streams, with smaller
+        dispersions \citep{Johnston1998, Hendel2015}. The orbit of a star depends on
+        its phase space position and the gravitational potential; therefore measuring
+        a star's position and velocity and observing its orbit reveals the local
+        potential, which is normally dominated by the Galaxy (primarily the dark
+        matter halo at large distances) \citep{Gibbons2014}. However, an orbit is
+        impractical to observe on human timescales. Cold streams offer a workaround.
+        Like measuring one star at many points in one orbit over an extended period,
+        streams are many stars measured at different points along approximately one
+        orbit at the same time. Therefore stellar streams are one of the most
+        promising means to study the Galactic gravitational potential: the stellar
+        components as well as the dark matter \citep{Johnston2016}.
+
+        On the observational front there has been a large concerted effort in the
+        field to find new stellar streams \citep[for an extensive list of known
+        Galactic streams see][]{Mateu2022}, extend the detected extents of known
+        streams \citep[e.g. for \stream{Palomar 5} alone:][]{Rockosi2002, Ibata2017,
+        Grillmair2006, Carlberg2012, StarkmanEtAl2019}, and increase the general
+        purity of stream catalogs.
+
+    \end{quotation}
+
+    \todo[inline]{--- Rephrase}
+
+    \paragraph{Review of detection methods}
+
+        Identifying streams of globular of clusters is a challenging task. Streams are very low signal-to-noise structures spread over comparatively large regions of the sky. They live in a vast background of field stars.
+
+        Historically streams were detected by matched-filter techniques
+        % Add citations
+        You took an isochrone and shifted it by a distance modulus until a stream stood out in longitude and latitude as an extended overdensity structure.
+
+        With the advent of Gaia, we gained access to detailed astrometric data. For most streams this 
+        
+        poses a challenging task due to their intricate and diffuse nature
+        from large-scale surveys is challenging due to the complex and overlapping distributions of stars in different regions of the sky; disentangling members from the vast background of field stars 
+    
+        \begin{enumerate}
+            \item Streamfinder \citep{2018MNRAS.477.4063M}. This method requires the potential
+            \item VIA MACHINAE \citep{2022MNRAS.509.5992S}
+            \item Kiyan and Adrian
+            \item Matched Filter
+            \item Gaia stuff: Adrian and Ana and Sara et al
+            \item Uniform Modeling of 12 Stellar stream \citep{PatrickEtAl2022}. Only on phi1, phi2, and CMD. Their CMD method is more sophisticated. Worth discussing.
+        \end{enumerate}
+
+    Review of available data:
     \begin{enumerate}
-        \item Intro
-        \item Method \begin{enumerate}
-            \item Fig 1: Overall explainer figure that illustrates the method with Neural networks, and norm flow for CMD
-            \item Fig 2: Bayesian graphical model
-            \item Test On Synthetic Stream:
-            \item Some sort of plot demonstrating successful recovery
-        \end{enumerate}
-        \item Application / Results \begin{enumerate}
-            \item Test case GD-1: \begin{enumerate}
-                \item CMD norm flow background
-                \item Fig: Stream phi1 phi2 top panel and histograms of each dimension below GD-1
-                \item Some plot in phi1-phi2 that shows density variations
-            \end{enumerate}
-            \item Test case Pal-5 \begin{enumerate}
-                \item CMD norm flow background
-                \item Fig: Stream phi1 phi2 top panel and histograms of each dimension below Pal 5
-                \item Some plot in phi1-phi2 that shows density variations
-            \end{enumerate}
-        \end{enumerate}
-        \item Conclusion
-        \item Appendix
+        \item Gaia. Streams in Gaia have on-sky positions and proper motions, and parallaxes, though for most streams the parallax errors are prohibitively large. Likewise, most streams in Gaia do not have good radial velocity measurements. The photometry is generally poor, generally necessitating cross-matching with other datasets.
+        \item S5. This is a much smaller dataset. It has deeper photometry and radial velocity measurements.
     \end{enumerate}
+
+    \paragraph{Paper organization}
+
+        The paper is organized as follows.
+        In \autoref{sec:method} we introduce our method for characterizing stream tracks and computing stellar membership.
+        We discuss the data in \autoref{sub:framing_the_data} and build a probabilistic framework to model the stream and background in \autoref{sub:likelihood_setup}-\autoref{sub:priors}.
+        In \autoref{sec:results} we apply our method,
+        % TODO: rephrase the mock data
+        first to simulated data (\autoref{sub:mock_data}) to demonstrate the model with a known ground truth dataset,
+        then to the stellar streams \stream{GD-1} (\autoref{sub:gd1}) and \stream{Pal\,5} (\autoref{sub:pal5}).
+        We compare our approach to characterizing stellar streams to other methods in \autoref{sec:comparison}.
+        We conclude in \autoref{sec:conclusions}, discussing the results of this work and future directions.
 
 % section introduction (end)
 
 \section{Method} \label{sec:method}
 
+    We now introduce our method for characterizing stellar stream tracks and computing stream membership likelihoods from N-D phase-space measurements.
+    % TODO: rephrase following sentence
+    We develop a flexible Bayesian model framework, using Mixture Density Networks, that allows arbitrary numbers of phase-space dimensions to be incorporated in the model and permits missing phase-space observations.
 
-    Stellar streams 
+    % \subsection*{}  Conceptual Description
+
+        Below, we offer a concise overview of our approach, followed by a more in-depth technical explanation in subsequent sections.
+
+        \paragraph{one orbit and a single population}
+
+            Stellar streams consist of stars that are tidally disrupted from a progenitor system.
+            To a first approximation, the stars occupy a single orbit, that of their progenitor.
+            Additionally, as stars formed in the progenitor they retain its photometric and chemical characteristics: which for globular clusters means following an isochrone.
+            In this simplistic picture, astrometrically characterizing a stream requires only finding it's orbit. Member stars fall directly on the orbit and the isochrone, making membership likelihood determination trivial.
+
+            % Observational errors complicate this picture. Instead of a certain membership calculation, we must build a probabilistic model, assigning a likelihood that an observed star falls along the stream's orbit.
+
+        \paragraph{similar orbits and a somewhat noisy population}
+
+            Occupying a single orbit implies that streams remain a point in action space, and having a common origin would thus not become extended structure. This is not true.
+            Differences in stream stars' orbits from the progenitor's arise from various factors including internal dynamics of the progenitor and the host Galactic potential.
+
+            An intrinsic width, in configuration and kinematic space.
+
+            Centered on a track, not an orbit.
+
+            This defines an astrometric phase-space hyper-tube \cite{2018MNRAS.477.4063M}, with a distribution radial to the track.
+
+            Instead of characterizing the stream by its orbit, we characterize it by it's track and the distribution around that track.
+            Computing membership likelihoods now requires fitting the track and distribution. This cannot be
+            done without then also fitting the field of stars in which the stream lives, since the stream 
+            and field cannot be clearly separated.
+
+        \paragraph{gaps orbits and a somewhat noisy population}
+
+            This is still a simplistic picture of streams.
+
+            Perturbations to the Galactic potential, in the form of time evolution and non-axisymmetry, as well as substructure can disrupt the stellar stream. 
+            Even most perturbations don't ruin the idea of the phase-space hypertube. They either drop the mixture weight (rephrase, not yet introduced) to 0 or change the width of the hypertube.
+
+        % TODO: significantly expand on this
+
+        \paragraph{Modeling approach}
+
+            We take a Bayesian approach modeling the stream and background distribution.
+            
+            Mixture model are a general formalism for modelling arbitrary conditional density functions.
+            
+            In this case we want to model the density function, conditioned on the location along the track.
+
+            However, previously we discussed how stream will vary along the track, with changes in the width and possible gaps.
+            Also observational effects, e.g the distance gradient changes the on-sky width (should this be mentioned earlier?)
+
+            We can take the parameters of the mixture model -- the mixing coefficients and component distribution parameters -- to be general (continuous) functions of the conditioning variable.
+            We do this by modelling the parameters as This is achieved outputs of a feed-forward neural network that takes the conditioning variable as its input. This is called a Mixture Density Network (MDN)
+
+    % subsection framing_the_data (end)
+
+
+    \subsection{Framing the Data} \label{sub:framing_the_data}
+
+        The hypertube idea is connected to orbits.
+        One might think then that a variable like the phase-angle or the arc-length, or any variable that directly sweeps along the stream would be best to use as the conditioning variable.
+        This is not the case for a number of reasons (see \cite{StarkmanEtAl2023} for some discussion on this topic), not least of which is that we do not have any of these quantities. We do not know the stream track, it's what we want to know.
+        
+        Instead we will approach this in the standard way: by parameterizing the stream along its the longitude -- $w_{\cdot, j\equiv0} \equiv \phi_1$ -- in a stream-oriented reference frame.
+        $\phi_1$ becomes our conditioning variable.
+         
+
+        \begin{quotation}
+            The stream is projected from its initial reference frame, e.g. ICRS
+            \citep{ICRS1997}, into a rotated on-sky frame, with longitude $\phi_1$ and
+            latitude $\phi_2$, such that the stream extends along $\phi_1$. In this frame
+            the stream may be fit by a low-order polynomial as a function of $\phi_1$
+            \citep[e.g.][]{Bonaca2020}. Similar, if more sophisticated, methods swap tools
+            like univariate splines \citep[e.g.][]{Erkal2017, Bonaca2018} for the
+            low-order polynomials. Using a coordinate dimension, here $\phi_1$, as the
+            independent variable works for many streams, as $\phi_1$ sweeps monotonically
+            along the stream. For example \stream{GD-1} is straight for over 80 degrees
+            \citep{Webb2019, Price-Whelan2018}.
+        \end{quotation}
+
+        There are known to be issues with this...
+
+        \begin{quotation}
+            However, this is not true in general: a
+            stream's path can become kinked by subhalo interactions, or curved on the
+            celestial sphere in an observer's reference frame, or like the Magellanic
+            stream wrap multiple times around the Milky Way \citep{Wannier1972}. When a
+            stream track is not a function, methods fitting $\phi_2(\phi_1)$ fail.
+        \end{quotation}
+
+        We leave extending the model framework to phase-wrapped, doubled-backed paths, etc to a future work.
+    
 
     \subsection{Likelihood Setup}\label{sub:likelihood_setup}
     
         \begin{figure}
         \centering
-        \includegraphics[scale=0.5]{figures-not-syw/DAG_StreamDensity.pdf}
+        \includegraphics[scale=0.5]{static/DAG_StreamDensity.pdf}
         \caption{Fill in.}
         \label{fig: DAG}
         \end{figure} 
-    
-        We model the stream and background as functions continuous in some affine parameter. In principle this parameter can be anything. Though it might seem the best parameter is the stream's arc length, the most common, easiest, and practical parameter is the longitude -- $w_{\cdot, j\equiv0} \equiv \phi_1$ -- in some stream-oriented reference frame \citep[for details see][section 2]{2023MNRAS.522.5022S}.
-
-
-        
 
         We model the likelihood for a single star as
         \begin{align} \label{eq:general_model}
             \pdf(\nth{\mbs{w}}, \nth{\mbs{m}} | \mbs{\theta})
                 &= \sum_{q} \ f_q(w_{i, 0}) \pdf(\nth{\mbs{w}}|\mbs{\theta},q_i\!=\!q) \pdf(\nth{\mbs{m}}|\mbs{\theta},q_i\!=\!q)
         \end{align}
-        where we have assumed that $\nth{\mbs{w}}$ and $\nth{\mbs{m}}$ are conditionally independent, and that the mixture weights $f$ are normalized s.t. $\sum_q f(w_{i,0}) = 1$. We discuss the mixture weights further in \autoref{sub:mixture_weight}
+        where we have assumed that $\nth{\mbs{w}}$ and $\nth{\mbs{m}}$ are
+        conditionally independent, and that the mixture weights $f$ are
+        normalized s.t. $\sum_q f(w_{i,0}) = 1$.  We discuss the mixture weights
+        further in \autoref{sub:mixture_weight}.
 
-        Assuming the measurement of each star is independent, the total log-likelihood is a sum over all stars:
+        Assuming the measurement of each star is independent, the total
+        log-likelihood is a sum over all stars:
         \begin{equation}
             \ln\mcal{L}\left(\{(\nth{\mbs{w}},\nth{\mbs{m}})\} | \mbs{\theta}\right) = \sum_i  \ln \pdf(\nth{\mbs{w}}, \nth{\mbs{m}} | \mbs{\theta}).
         \end{equation}
 
-        It will prove convenient to distinguish the models for $q=0,1$ as the \textit{background} and \textit{stream} models, respectively. In this notation:
+        It will prove convenient to distinguish the models for $q=0,1$ as the
+        \textit{background} and \textit{stream} models, respectively. In this
+        notation:
 
-        \begin{multline}
-            \pdf(\nth{\mbs{w}}, \nth{\mbs{m}} | \mbs{\theta}) 
-            = \\\phantom{+} \ \quad f \quad\ P^{(S)}(\nth{\mbs{w}}|\mbs{\theta}) P^{(S)}(\nth{\mbs{m}}|\mbs{\theta})  \\
-            \quad + (1-f) P^{(B)}(\nth{\mbs{w}}|\mbs{\theta}) P^{(B)}(\nth{\mbs{m}}|\mbs{\theta}), \nonumber
-        \end{multline}
+        \begin{align}
+            \pdf(\nth{\mbs{w}}, \nth{\mbs{m}} | \mbs{\theta})
+            =& \phantom{+} \qquad f \phantom{+} P^{(S)}(\nth{\mbs{w}}|\mbs{\theta}) P^{(S)}(\nth{\mbs{m}}|\mbs{\theta}) \\
+            & + (1-f) P^{(B)}(\nth{\mbs{w}}|\mbs{\theta}) P^{(B)}(\nth{\mbs{m}}|\mbs{\theta}), \nonumber
+        \end{align}
 
         The probablity of a being a stream member is then simply
         \begin{equation}\label{eq:membership_prob}
             \pdf\left(S | \mbs{w}_n, \mbs{m}_n, \mbs{\theta} \right) = \frac{f P^{(S)}(\nth{\mbs{w}}|\mbs{\theta}) P^{(S)}(\nth{\mbs{m}}|\mbs{\theta}) }{ \pdf(\nth{\mbs{w}}, \nth{\mbs{m}} | \mbs{\theta})}.
         \end{equation}
-    Hereafter, when we refer to ``membership probability," Eq.~\ref{eq:membership_prob} provides the formal definition. 
-    %\newpage
+
+        Hereafter, when we refer to ``membership probability,"
+        \autoref{eq:membership_prob} provides the formal definition.
+
+
+        \paragraph{missing phase-space observations}
+
+            Streams have a diversity of measurement coverage: several have full 6-D astrometrics as well as photometrics and chemical abundances available \citep[e.g.,][]{Koposov2019, 2020A&A...635L...3A, 2022ApJ...928...30L}, while most have partial coverage, lacking feature dimensions.
+            % TODO: terminology ND-phase-space vs feature columns
+            Most streams in \dataarchive{Gaia} {\color{red} [cite]}, for instance, have proper motions but not radial velocities nor reliable parallax measurements. Followup surveys, like \dataarchive{S5} {\color{red} [cite]}, add many feature dimensions, however only for a select set of streams. Given the diversity of coverage it is important that the likelihood model can deal with missing data.
+
+            The method of treatment of missing data depends on the cause for that data to be missing.
+            Broadly, there are two categories of causes: randomness and systematics.
+            Consider a dataset with all features measured but with a random subset of features masked.
+            One possible approach is to attempt to impute the missing features, then feed the full-featured data to the likelihood model. Alternatively, the likelihood model might use only the present features, ignoring those missing. If however, features are missing for systematic reasons, then this approach can introduce systematic bias. Consider a star too far away to measure it's parallax distance or radial velocity. This is a systematic reason and this information should be incorporated into any model as a prior. Not doing so, the data imputation approach might predict too-close distances. Likewise, using only present features in the likelihood model misses that the star is likely very distant.
+
+            {\color{red} Sentence explaining why we ignore features regardless.}
+            We include a quality flag on our calculations, indicating the number of missing features.
+
+            The per-star likelihood is modelled with a distribution with the same dimensionality as the data vector.
+            For example, a star with a 6D astrometric measurement will be modelled with a full 6D distribution, while a star missing its radial velocity measurement, will be modelled with a 5D dimensionally-reduced form of the 6D distribution. Using dimensionally reduced distributions ensure that missing phase-space dimensions do not amplify nor suppress the likelihood.
+
+
+    % subsection likelihood_setup (end)
 
     \subsection{Determination of the Mixture Weight} \label{sub:mixture_weight}
-        The mixture weight $f_q(w_{i,0})$ as used in Eq.~\ref{eq:general_model} is characterized as the fraction of stars belonging to the mixture component $q$ over an increment $[w_{i,0}, w_{i,0} + \dif{w_{i,0}}]$. Thus, the mixture weight encodes information about the linear density of the stream, which has been shown to depend on substructure in the galaxy (CITE-x). The dependence of the mixture weight on the linear density is captured by the expression
+        The mixture weight $f_q(\phi_1)$ as used in \autoref{eq:general_model} is characterized as the fraction of stars belonging to the mixture component $q$ over an increment $[\phi_1, \phi_1 + \dif{\phi_1}]$. Thus, the mixture weight encodes information about the linear density of the stream, which has been shown to depend on substructure in the galaxy (CITE-x). The dependence of the mixture weight on the linear density is captured by the expression
         \begin{equation}\label{eq:fraction_param}
             f_q\left(w_{i,0}\right) = \frac{N_q\left(\phi_1\right)}{N_{\rm tot}\left(\phi_1\right)},
         \end{equation}
@@ -142,7 +354,7 @@
 
         The mixture model specified in \S-X only models the weight parameter $f_q$, and not the components of the ratio in \autoref{eq:fraction_param}. However, the linear density $N_q(\phi_1)$ can be readily obtained from $f_q$, provided that $N_{\rm tot}\left(\phi_1\right)$ can be calculated. Importantly, this function does not depend on the parameters of the on-stream or off-stream model. Instead, $N_{\rm tot}(\phi_1)$ is simply the number of stars in a small $\phi_1$ increment. We therefore model $N_{\rm tot}\left(\phi_1\right)$ as a post-processing step using a single normalzing flow in $\phi_1$. 
 
-        In particular, for a given field the distribution of $\phi_1$ coordinates is specified by the set $\{\phi_{1,i}\}_i$. A normalizng flow is trained to this dataset, and will satisfy $\int d\phi_1 P_{\phi_i}(\phi_1) = 1$ by construction. In order to re-weight the normalizing flow to obtain $N_{\rm tot}(\phi_1)$, we simply rescale $P_{\phi}(\phi_1)$ by $N_{\rm tot,0}$, which is the total number of stars in the field considered. We can then obtain the linear stream density with
+        In particular, for a given field the distribution of $\phi_1$ coordinates is specified by the set $\{\nth{\phi_{1}}\}_f$. A normalizng flow is trained to this dataset, and will satisfy $\int d\phi_1 P_{\phi_f}(\phi_1) = 1$ by construction. In order to re-weight the normalizing flow to obtain $N_{\rm tot}(\phi_1)$, we simply rescale $P_{\phi}(\phi_1)$ by $N_{\rm tot,0}$, which is the total number of stars in the field considered. We can then obtain the linear stream density with
         \begin{equation}
             N_q\left(\phi_1\right) = f_q N_{\rm tot} \left(\phi_1\right)  = f_q \left[N_{\rm tot,0} P_{\phi_1}\left(\phi_1\right) \right] .
         \end{equation}
@@ -153,30 +365,36 @@
 
         \subsubsection{On-Stream} \label{ssub:astrometric_model_on_stream}
     
-            The astrometric track is modeled with a neural network, encompassing each phase space dimension, parameterized as a function of $\phi_1$. The neural network output for a single stream component is the mean location of the stream track in each dimension, $\mbs{\mu}_w(\phi_1 | q_i)$, and its associated covariance matrix $\mbs{\Sigma}_w(\phi_1 | q_i)$. The probability for the data is then
+            The astrometric track is modeled with a neural network, encompassing each phase space dimension, parameterized as a function of $\phi_1$. The neural network output for a single stream component is the mean location of the stream track in each dimension, $\astroM{\mbs{\mu}}(\phi_1)$, and its associated covariance matrix $\astroM{\mbs{\Sigma}}(\phi_1)$. The probability for the data is then
             \begin{equation}
-                \pdf^{(S)}(\nth{\mbs{w}} | \mbs{\theta}, \phi_{1,i}, q_i) = \mcal{N}\big(\nth{\mbs{w}} | \mbs{\mu}_w\left(\phi_{1,i} | q_i \right), \mbs{\Sigma}_w\left(\phi_{1,i} | q_i \right) \big),
+                \pdf^{(S)}(\nth{\mbs{w}} | \astroM{\mbs{\theta}}(\nth{\phi_{1}})) = \mcal{N}_F \big(\nth{\mbs{w}} | \astroM{\mbs{\mu}} \left(\nth{\phi_{1}} \right), \astroM{\mbs{\Sigma}} \left(\nth{\phi_{1}}\right) \big),
             \end{equation}
-            where $\mbs{\theta}$ is the set of neural network parameters that define $\mbs{\mu}_w$ and $\mbs{\Sigma}_w$.
-            In the simplest case, we take $\mbs{\Sigma}_w$ to be diagonal, consisting of both intrinsic dispersion for each dimension of $\mbs{w}$ and the data uncertainties added in quadrature. 
+            where $\mbs{\theta}$ is the set of neural network parameters that define $\astroM{\mbs{\mu}}$ and $\astroM{\mbs{\Sigma}}$.
+            In the simplest case, we take $\astroM{\mbs{\Sigma}}$ to be diagonal, consisting of both intrinsic dispersion for each dimension of $\mbs{w}$ and the data uncertainties added in quadrature. 
 
-            In practice, we work with truncated Gaussians, where the truncation is set by the size of the field in each astrometric dimension. This ensures that the probability density is zero wherever there is no data. Details of the truncated Gaussian are included in \autoref{app:distributions}.
+            In practice, we work with truncated Gaussians, where the truncation is set by the size of the field in each astrometric dimension. Details of the truncated Gaussian are included in \autoref{app:sub:normal_distribution}. Truncating to the field ensures that the probability density is zero wherever there is no data. This has an added benefit of correctly normalizing the Gaussian distribution, which is not compact (has non-zero probability over all space) and would otherwise not integrate to one within the field.
+
+            As a MDN, we implement the Gaussian distribution parameters with a multi-layered feed-forward neural network. The number of layers required depends on the maximum dimensionality of the Gaussian, and whether the neural network employs regularization techniques like dropout. We use alternating layers of linear and tanh units. Details of the network architecture are discussed in \autoref{sub:model_implementation}.
+
+            In the presence of missing phase-space coordinate $f_k$ we reduce the dimensionality of the Gaussian to that of the data-vector. Namely, for $\mbs{I}_{\tilde{F}} = \mbs{I}_{F} \backslash f_k$
+            \begin{align}
+                \nth{\tilde{\mbf{w}}} &\mapsto \nth{\tilde{\mbf{w}}} = \{ w_{n,f}\}_{f\in \mbs{I}_{\tilde{F}}}, \nonumber\\
+                \astroM{\mbs{\mu}} &\mapsto \astroM{\tilde{\mbs{\mu}}} = \{ \mu_{f}\}_{f\in\mbs{I}_{\tilde{F}}}, \nonumber\\
+                \astroM{\mbs{\Sigma}} &\mapsto \astroM{\tilde{\mbs{\Sigma}}} = \{ \Sigma_{i,j}\}_{i,j \in \mbs{I}_{\tilde{F}}}, & \nonumber
+                \intertext{such that,}
+                \pdf^{(S)}(\nth{\mbs{w}} & | \astroM{\mbs{\theta}}(\nth{\phi_{1}}))
+                    \mapsto \pdf^{(S)}(\nth{\tilde{\mbs{w}}} | \astroM{\tilde{\mbs{\theta}}} (\nth{\phi_{1}})).
+            \end{align}
 
         \subsubsection{Off-stream} \label{ssub:astrometric_model_off_stream}
     
-            We now outline the off-stream astrometric model. We take a similar approach to the on-stream astrometric model discussed in \S\ref{ssub:astrometric_model_on_stream}, though we typically do not characterize the backgrounds with a Gaussian distribution. Instead, we utilize a range of distributions (i.e., exponential, skew-normal) discussed in \autoref{app:distributions}. The parameters of the user-specified background distributions are themselves neural network outputs, such that any $\phi_1$ ``slice" of the background should be characterized by some analytic density, but the evolution of the backgrounds with $\phi_1$ can be complex. 
+            We now outline the off-stream astrometric model. We take a similar approach to the on-stream astrometric model discussed in \autoref{ssub:astrometric_model_on_stream}, though we typically do not characterize the backgrounds with a Gaussian distribution. Instead, we utilize a range of distributions (i.e., exponential, skew-normal) discussed in \autoref{app:distributions}. The parameters of the user-specified background distributions are themselves neural network outputs, such that any $\phi_1$ ``slice" of the background should be characterized by some analytic density, but the evolution of the backgrounds with $\phi_1$ can be complex. Details of the network architecture are discussed in \autoref{sub:model_implementation}.
     
-            Let $\mbs{\theta}_{B,j}(\phi_1)$ represent the neural network which outputs a vector of parameters characterizing the background distribution at a given $\phi_1$ for astrometric dimension $j$. The number of outputs for the background model is equal to $\Sigma_{j>0} \mathrm{dim}\left(\mbs{\theta}_{B,j}\right)$ (where $j=0$ corresponds to $\phi_1$, which we do not model). At a given $\phi_1$, the probability density for the astrometric dimension $j>0$ is $\pdf^{(B)}_j\left(\mbs{w}_{n,j} | \mbs{\theta}, \mbs{\theta}_{B,j}, \phi_1 \right)$. We treat each background component as independent, allowing us to write the likelihood as a product over the astrometric dimensions:
-            \begin{equation}
-                \pdf^{(B)}\left(\mbs{w}_n | \mbs{\theta}, \phi_1 \right) = \prod_{j>0} \pdf_j^{(B)}\left(\mbs{w}_{n,j} | \mbs{\theta}, \mbs{\theta}_{B,j}, \phi_1 \right).
+            Let $\fth{\cmp{B}{\mbs{\theta}}}(\phi_1)$ represent the neural network which outputs a vector of parameters characterizing the background distribution at a given $\phi_1$ for astrometric dimension $f$. The number of outputs for the background model is equal to $\mathrm{dim}\left(\fth{\cmp{B}{\mbs{\theta}}}\right)$ (where $f=0$ corresponds to $\phi_1$, which we do not model). At a given $\phi_1$, the probability density for the astrometric dimension $f>0$ is $\fth{\pdf^{(B)}}\left(\mbs{w}_{n,f} | \fth{\cmp{B}{\mbs{\theta}}}(\phi_1) \right)$. We treat each background component as independent, allowing us to write the likelihood as a product over the astrometric dimensions:
+            \begin{equation} \label{eq:astrometric_model_off_stream_probability}
+                \pdf^{(B)}\left(\nth{\mbs{w}} | \mbs{\theta}(\phi_1) \right) = \prod_{f\in \mbs{I}_{\tilde{F}}} \pdf_f^{(B)}\left(\mbs{w}_{n,f} | \fth{\cmp{B}{\mbs{\theta}}}(\phi_1) \right).
             \end{equation}
-    
-
-        
-
-    
-    
-        
+            Where $\mbs{I}_{\tilde{F}}$ is the set of indices of the features, omitting missing phase space dimensions.
         
     %\newpage
 
@@ -212,13 +430,16 @@
                 \rm{dist}\left(\phi_1\right) = 10^{\frac{1}{5}\mu_{\rm sample}(\phi_1)+1} \quad\unit{pc}.
             \end{equation}
 
+            
+
             \todo[inline]{TODO:}
             \begin{enumerate}
                 \item Not including isochrone parameters, e.g. age and metallicity
                 \item integrating over $\gamma$ the model assumes a PDMF, e.g. Kroupa
+                \item generic details of neural network, e.g Table 1
+                \item introducing parallax
+                \item how we reduce dimensionality.
             \end{enumerate}
-
-            By integrating over $\gamma$ the model is not sensitive to 
 
     
         \subsubsection{Off-stream} \label{sub:photometric_model_off_stream}
@@ -233,6 +454,12 @@
             Once the normalizing flow, $q_{\rm flow}\left(\mathbf{m} | \phi_1\right)$, is fit to the data, its parameters are fixed while the other components of the model begin training. Therefore, the normalizing flow can be rapidly trained and computed as a pre-processing step. 
 
             The specific architecture of the photometric normalizing flow are discussed in \S-X.
+
+            \todo[inline]{TODO:}
+            \begin{enumerate}
+                \item Overview of the architecture
+                \item How one would reduce the dimensionalty.
+            \end{enumerate}
 
             
     % subsection likelihood_setup (end)
@@ -293,41 +520,23 @@
             \script{mock/plot/results.py}
             \centering
             \includegraphics[width=1\linewidth]{figures/mock/results.pdf}
-            \caption{Caption: TO-DO need to show this with a ground truth (e.g. show true weight in top panel).}
+            \caption{Caption: .}
+            TODO:
+            \begin{enumerate}
+                \item Get rid of the dropout in the plot
+                \item the linear density in the stream-fraction plot
+            \end{enumerate}
             \label{fig:mock_data_result}
         \end{figure*}
 
+    \subsection{Priors} \label{sub:priors}
 
-\section{Model Implementation}
-
-    \subsection{Network Architecture}
-
-        \begin{enumerate}
-            \item A network per model component, e.g. one for the weights, one for the stream track and width, one for the background distribution.
-            \item MLP for the components - lin / tanh + dropout
-            \item Normalizing flow - specific pieces
-        \end{enumerate}
+        \subsubsection{Bounding Boxes}
 
 
-        \begin{table}
-            \centering
-            \caption{MLP structure}
-            \begin{tabular}{@{}ccc@{}}
-            \toprule
-            Layer & Shape & Param \# \\
-            \midrule
-            Linear & (1, 3) & 1  \\
-            Tanh & (2, 3) & 1  \\
-            Dropout & (2, 3) & 0  \\
-            \bottomrule
-            \end{tabular}
-        \end{table}
+        \subsubsection{Region Prior} \label{sub:track_region_prior}
 
-        
-
-    \subsection{Astrometric Stream}
-
-        \subsubsection{Track Region Prior} \label{sub:track_region_prior}
+            Region priors encourage the model to pass through a user-defined control region, while also remaining compatible with the data.
 
             The overall track of the stream is known, so it makes sense to give this information to the system. However, we don't want the prior to dominate the results on small scales. A good balance between these two goals is to have a prior that only influences the track on large scales.
             We introduce the ``split" Gaussian prior, which is a Gaussian split at the peak and pieced back together with a flat region connecting the halves. 
@@ -354,14 +563,46 @@
             \end{equation}\end{small}
             where the additive normalization is 
             $-\ln\left(\sqrt{\frac{\pi}{\tau}} \left(\frac{1}{2}\text{erf}\left(2 \sqrt{\tau } w\right)+1\right)\right)$
-    
-            % The total log-probability over all the 
-    
-            % \begin{equation}
-            %     \ln\mcal{L}\left(\{(\nth{\mbs{w}},\nth{\mbs{m}})\} | \mbs{\theta}\right) = \sum_i  \pdf(\nth{\mbs{w}}, \nth{\mbs{m}} | \mbs{\theta}).
-            % \end{equation}
-    
-        % subsection track_region_prior
+
+
+    \subsection{Linking Coordinates: Combining the Distance Modulus with the Parallax Track}
+
+        \todo[inline]{TODO:}
+        \begin{enumerate}
+            \item Discuss how to connect the distance modulus to the parallax.
+            \item First-order error propagation to set width DM to width parallax.
+        \end{enumerate}
+
+
+    \subsection{Model Implementation, aka the code} \label{sub:model_implementation}
+
+        \todo[inline]{TODO:}
+
+        \begin{enumerate}
+            \item A network per model component, e.g. one for the weights, one for the stream track and width, one for the background distribution.
+            \item MLP for the components - lin / tanh + dropout
+            \item Normalizing flow - specific pieces
+            \item Architecture in the Appendix
+        \end{enumerate}
+
+
+        \begin{table}
+            \centering
+            \caption{MLP structure}
+            \begin{tabular}{@{}rrcl@{}}
+            \toprule
+            & Layer & Shape & Param \# \\
+            \midrule
+            & Linear & (None, 1, F) & 1  \\
+            & Tanh & (None, 1, F) & 1  \\
+            & Dropout & (None, 1, F) & 0  \\
+            & Linear & (None, 1, F) & 1  \\
+            \bottomrule
+            \end{tabular}
+        \end{table}
+
+
+        Dropout layers were used to prevent network co-adaptation and over-fitting. Droput works by randomly zeroing out nodes in the network, decreasing the importance of single nodes versus emergent patterns across the  network.
 
         
 % section method (end)
@@ -369,9 +610,9 @@
 %\newpage
 \section{Results} \label{sec:results}
 
-    In this section we present an application of our model to a synthetic stream with known ground truths, and demonstrate the model's ability to characterize stream density variations and membership probabilities in an unsupervised manner. We then apply the method to real stellar streams in \S-X (GD-1) and \S-Y (Pal-5).
+    In this section we present an application of our model to a synthetic stream with known ground truths, and demonstrate the model's ability to characterize stream density variations and membership probabilities in an unsupervised manner. We then apply the method to real stellar streams in \autoref{sub:gd1} and \autoref{sub:pal5}.
 
-    \subsection{Test on a Synthetic Stream}\label{sub:simple_mock_data}
+    \subsection{Test on a Synthetic Stream} \label{sub:mock_data}
     
         In this section we apply our model to a synethic stream in order to demonstrate an accurate recovery of stream members and density variations.
     
@@ -379,17 +620,17 @@
     
         The synthetic stream is also simulated in magnitudes using a 12~Gyr isochrone with [Fe/H] = -1.35~dex. The isochrone truncates just short of the giant branch, and sampled from uniformly (i.e., the initial mass function, $P(\gamma)$, is uniform). The background photometric coordinates are generated as a 2-dimensional Gaussian with non-zero covariance. The distance modulus is derived from a polynomial parallax track with uniform thickness. Thus, the synthetic data scenario described here generates a mock stream in astrometric coordinates and photometric coordinates, with density variations, a distance gradient which is consistent in parallax and distance modulus (i.e., magnitudes), all superimposed over a noisy field of background points in each astrometric and photometric dimension.
     
-        The result of applying our density model to the synthetic data is illustrated in Fig.~\ref{fig:mock_data_result}. The top panel shows the weight parameter that controls membership probability as a function of $\phi_1$. The dashed curve represents the output of our data-driven model, while the solid curve is the ground truth. \JN{todo: maybe the kde should be a histogram}, the second panel shows the stream and background in the $(\phi_1,\phi_2)$ plane, and the third panel shows the stream and background in the $(\phi_1,\varpi)$ plane. Points are color-coded according to their membership probability (Eq.~X) \JN{would be good to remove the $\sigma$ bands in this plot.} The weight parameter clearly shows that the model has captured the two prominent density variations along the stream. The are additional variations  mostly around the edges of the stream, though re-sampling the neural network weights with dropout reveals that these variations represent regions of higher model uncertainty. 
+        The result of applying our density model to the synthetic data is illustrated in \autoref{fig:mock_data_result}. The top panel shows the weight parameter that controls membership probability as a function of $\phi_1$. The dashed curve represents the output of our data-driven model, while the solid curve is the ground truth. \JN{todo: maybe the kde should be a histogram}, the second panel shows the stream and background in the $(\phi_1,\phi_2)$ plane, and the third panel shows the stream and background in the $(\phi_1,\varpi)$ plane. Points are color-coded according to their membership probability (Eq.~X) \JN{would be good to remove the $\sigma$ bands in this plot.} The weight parameter clearly shows that the model has captured the two prominent density variations along the stream. The are additional variations  mostly around the edges of the stream, though re-sampling the neural network weights with dropout reveals that these variations represent regions of higher model uncertainty. 
         
         We find that the stream is successfully recovered in both astrometric and photometric coordinates, with $x\%$ stream stars being recovered with membership probability greater than $y$. The false positive rate (i.e., stars misidentified as stream members) for this test is found to be $z\%$ when cutting on this threshold. 
     
-        In the bottom two rows of Fig.~\ref{fig:mock_data_result} we illustrate the synthetic data color-coded by stream membership probability (top) and background membership probability (background) for different $\phi_1$ slices. Importantly, the photometric portion of the mixture model successfully identifies the stream in magnitude space, showing a high stream membership probability where the stream is present, and a low probability ($\sim 0$) where the stream is absent.  
+        In the bottom two rows of \autoref{fig:mock_data_result} we illustrate the synthetic data color-coded by stream membership probability (top) and background membership probability (background) for different $\phi_1$ slices. Importantly, the photometric portion of the mixture model successfully identifies the stream in magnitude space, showing a high stream membership probability where the stream is present, and a low probability ($\sim 0$) where the stream is absent.  
     
     % subsection test_on_a_synthetic_stream (end)
     
     \subsection{Results on GD-1} \label{sub:gd1}
 
-        We now apply our density modeling approach to the stellar stream GD-1. We discuss the data selection in \S\ref{ssub:gd1_data} and results in \S\ref{ssub:trained_gd1}.
+        We now apply our density modeling approach to the stellar stream GD-1. We discuss the data selection in \autoref{ssub:gd1_data} and results in \autoref{ssub:trained_gd1}.
         
         \subsubsection{Data Selection} \label{ssub:gd1_data}
             We utilize data from {\it Gaia} DR3 for the astrometric coordinates of each star, and Pan-STARRS1 to obtain more accurate color information. We adopt broad cuts on the cross-matched data to limit the field to a region known to contain GD-1. We perform these rough cuts by requiring \JN{fill in what the cuts are and reference proper motion figure and CMD figure.} 
@@ -407,16 +648,16 @@
     
             In this section we present results from our model applied to real {\it Gaia} and Pan-STARRS data of GD-1. 
 
-            We visualize the performance of our model in identifying stream stars and characterizing the astrometric background with Fig.~\ref{fig:gd1-background}. The top panel shows the stream in $\phi_1$, $\phi_2$ coordinates, color-coded by membership probability (derived from Eq.~\ref{eq:membership_prob}). The following three rows represent background distributions in $\phi_2, \mu_{\phi_1}, \rm{\ and} \ \mu_{\rm phi_2}$, respectively taken at different $\phi_1$ increments centered on the red lines. The $\phi_1$ increments are roughly $\sim X$ in size. 
+            We visualize the performance of our model in identifying stream stars and characterizing the astrometric background with \autoref{fig:gd1-results-full} and \autoref{fig:gd1-results-panels}. In \autoref{fig:gd1-results-full} The top panel shows the stream in $\phi_1$, $\phi_2$ coordinates, color-coded by membership probability (derived from \autoref{eq:membership_prob}). The following three rows represent background distributions in $\phi_2, \mu_{\phi_1}, \rm{\ and} \ \mu_{\rm phi_2}$, respectively taken at different $\phi_1$ increments centered on the red lines. The $\phi_1$ increments are roughly $\sim X$ in size. 
 
-            The blue lines over-plotted represent the best fit model at the given $\phi_1$ slice. We find that the backgrounds are typically well characterized by the distributions adopted (described in \S-x). We can also see from Fig.~\ref{fig:gd1-background}
+            The blue lines over-plotted represent the best fit model at the given $\phi_1$ slice. We find that the backgrounds are typically well characterized by the distributions adopted (described in \S-x). We can also see from \autoref{fig:gd1-results-panels}
             that the stream and spur components appear to be well characterized. 
             
-            Our ability to recover the stream is demonstrated further in Fig.~\ref{fig:gd1-astrometrics}. In this figure, we only plot stars if their membership probability is greater than \JN{X}. The result is a ``gold" catalog of probable stream and spur members, extending over $X$-degrees in $\phi_1$. We find the expected gap around $\phi_1 \sim -20~\rm{deg}$, which has been proposed to be the location of the dissolved progenitor (CITE).
+            Our ability to recover the stream is demonstrated further in \autoref{fig:gd1-results-full}. In this figure, we only plot stars if their membership probability is greater than \JN{X}. The result is a ``gold" catalog of probable stream and spur members, extending over $X$-degrees in $\phi_1$. We find the expected gap around $\phi_1 \sim -20~\rm{deg}$, which has been proposed to be the location of the dissolved progenitor (CITE).
 
-            Our model also fits the distribution of stream stars in the CMD. These fits are illustrated in Fig.~\ref{fig:gd1-cmds}, where the CMD for the population in a given $\phi_1$ band is plotted, color-coded by stream membership probability. For the on-stream regions, the isochrone appears to provide a decent description of the stream, though there is room for further improvements (discussed in \S-x). However, we note that the stream's presence and absence in the isochrone is well captured by the mixture weight, which is a neural network output. 
+            Our model also fits the distribution of stream stars in the CMD. These fits are illustrated in \autoref{fig:gd1-results-panels}, where the CMD for the population in a given $\phi_1$ band is plotted, color-coded by stream membership probability. For the on-stream regions, the isochrone appears to provide a decent description of the stream, though there is room for further improvements (discussed in \S-x). However, we note that the stream's presence and absence in the isochrone is well captured by the mixture weight, which is a neural network output. 
             
-            Additionally, the distance modulus is also a neural network output, conditioned on $\phi_1$. This allows us to obtain a distance modulus at each $\phi_1$ along the stream. The distance modulus track and (converted) distance track are illustrated in Fig.~\ref{fig:gd1-distance_modulus}. The left panel shows the distance modulus (in magnitudes), while the right shows the corresponding distance track. Importantly, the prior on the distance track is that the stream must fall between $[4,40]~\rm{kpc}$. Thus, our ability to recover the distance to GD-1 without substantial bias provides a useful indicator that our color-magnitude model combined with the astrometric model provide an adequate description of the data. \JN{more on this...}
+            Additionally, the distance modulus is also a neural network output, conditioned on $\phi_1$. This allows us to obtain a distance modulus at each $\phi_1$ along the stream. The distance modulus track and (converted) distance track are illustrated in \autoref{fig:gd1-results-full}. The left panel shows the distance modulus (in magnitudes), while the right shows the corresponding distance track. Importantly, the prior on the distance track is that the stream must fall between $[4,40]~\rm{kpc}$. Thus, our ability to recover the distance to GD-1 without substantial bias provides a useful indicator that our color-magnitude model combined with the astrometric model provide an adequate description of the data. \JN{more on this...}
 
             \begin{figure*}[h]
                 \script{gd1/plot/data_selection.py}
@@ -477,13 +718,86 @@
 
     % subsection gd1 (end)
 
+    \subsection{Palomar 5} \label{sub:pal5}
+
+        Content
+
+    % subsection pal5 (end)
+
 % section results (end)
+
+
+\section{Comparison to Other Methods} \label{sec:comparison}
+
+    \subsection[STREAMFINDER]{\cite{2018MNRAS.477.4063M}}
+
+        
+
+    % subsection streamfinder (end)
+
+    \subsection{VIA MACHINAE}{\cite{2022MNRAS.509.5992S}}
+
+    % subsection via_machinae (end)
+
+    \subsection[Uniform Modeling of 13 Stellar Streams]{\cite{PatrickEtAl2022}}
+
+    % subsection uniform_modeling_of_13_stellar_streams (end)
+
+
+\section{Conclusions} \label{sec:conclusions}
+
+
+% section comparison_to_other_methods (end)
+
 
 \section{acknowledgements}
 
     We would like to thank the Academy.
 
-    \url{https://github.com/nstarman/stellar_stream_density_ml_paper/}
+    \GitHubURL
+
+    \todo[inline]{reword}
+    "This study was carried out using the reproducibility software
+    \href{https://github.com/showyourwork/showyourwork}{\showyourwork}
+    \citep{Luger2021}, which leverages continuous integration to
+    programmatically download the data from
+    \href{https://zenodo.org/}{zenodo.org}, create the figures, and
+    compile the manuscript. Each figure caption contains two links: one
+    to the dataset stored on zenodo used in the corresponding figure,
+    and the other to the script used to make the figure (at the commit
+    corresponding to the current build of the manuscript). The git
+    repository associated to this study is publicly available at
+    \url{https://github.com/mathren/CE_accretors}, and the release
+    v.2.1 allows anyone to re-build the entire manuscript. The datasets
+    are stored at \url{https://doi.org/10.5281/zenodo.7343715}, including
+    the template setup to recreate them using MESA (version 15140 and
+    the software development kit \texttt{x86\_64-linux-20.12.1}) and
+    the scripts used to produce the figures."
+
+    \paragraph{Software (alphabetical)}
+
+        \package{asdf} \citep{Greenfield2015},
+        \package{astropy} \citep{Astropy2013, Astropy2018, Astropy2022},
+        \package{astroquery} \citep{Astroquery2019},
+        \package{Matplotlib} \citep{Hunter2007},
+        \package{NumPy} \citep{Harris2020},
+        \package{Pytorch} \citep{Pytorch2019},
+        \package{SciPy} \citep{Scipy2020},
+
+
+\section*{Data Availability} \label{sec:data_availability}
+
+    This study was carried out using the reproducibility software
+    \href{https://github.com/showyourwork/showyourwork}{\showyourwork}
+    \citep{Luger2021}, which uses continuous integration to
+    programmatically download the data, perform the analyses, create the
+    figures, and compile the manuscript. Each figure caption contains two links:
+    one to the dataset used in the corresponding figure, and the other to the
+    script used to make the figure. The datasets are stored at
+    \todo[inline]{zenodo url}. The git repository associated
+    with this study is publicly available at \GitHubURL.
+
+% section data_availability (end)
 
 
 \bibliography{bib}
@@ -492,72 +806,102 @@
 
 \section{Notation} \label{app:notation}
 
-    \begin{itemize}
-        \item Full Data
-            \begin{itemize}
-                \item $\mbf{D} \in \mbb{R}^{(N, F^{(d)})}$ is the data matrix
-                \item indexed with index sets $\mrm{n} \in \mbs{I_N} \equiv \{0, ..., N\} \in \mbb{Z^+}$ for the measurements and $\mrm{f} \in \mbs{I_F}  \equiv \{0, ..., F^{(d)}\} \in \mbb{Z^+}$ for the features.
-                \item $d_{\mrm{nf}}$ elements of the $n$-th measurement of the $f$-th feature.
-                \item $\nth{\mbs{d}}$ row-vector of all features.
-                \item  $\mbf{D}$ is split into astrometric and photometric coordinates $\mbf{D} = \{\mbf{W}, \mbf{M}\}$, in that order of features. $F^{(w)} + F^{(m)} = F$, where $F^{(w)}, F^{(m)}$ are defined below.
-            \end{itemize}
-        \item Astrometric Data
-            \begin{itemize}
-                \item $\mbf{W} \in \mathbb{R}^{(N, F^{(w)})}$ is the astrometric data matrix
-                \item indexed with index the same $N$ as the full data and $\mrm{f} \in \mbs{I_{F^{(w)}}} \equiv \{0, ..., F^{(w)}\} \in \mathbb{Z^+}$ for the astrometric features, where $F^{(w)} \leq F$.
-                \item $w_{\mrm{nf}}$ elements of the $n$-th measurement of the $f$-th astrometric feature.
-                \item $\nth{\mbs{w}}$ row-vector of all astrometric features.
-                \item The first (index 0) feature column, $w_{\cdot,0}$ of $\mbf{W}$ (and $\mbf{D}$) is $\phi_1$.
-            \end{itemize}
-        \item Photometric Data
-            \begin{itemize}
-                \item $\mbf{M} \in \mathbb{R}^{(N, F^{(m)})}$ is the photometric data matrix
-                \item indexed with index the same $N$ as the full data and $\mrm{f} \in \mbs{I_{F^{(m)}}} \equiv \{0, ..., F^{(m)}\} \in \mathbb{Z^+}$ for the photometric features, where $F^{(m)} \leq F$.
-                \item $m_{\mrm{nf}}$ elements of the $n$-th measurement of the $f$-th photometric feature.
-                \item $\nth{\mbs{m}}$ row-vector of all photometric features.
-            \end{itemize}
-        \item Mixture Models
-            \begin{itemize}
-                \item index set over the models: $\mrm{q} \in \mbs{I_Q} \equiv \{0, ..., Q \} \in \mbb{Z^+}$ 
-            \end{itemize}
-        \item $\pdf(...)$ is a PDF and $\cdf(...)$ it's CDF.
-        % \item $\pi(...)$ is a prior
-        \item $\mcal{L}$ is a likelihood.
-    \end{itemize}
+    In this work we use multiple data sets and a variety of mathematical tools to analyze the data, including machine learning algorithms and statistical models.
+    For clarity and to connect related components of the models used in this work, a consistent mathematical notation is crucial. Here we establish the notation and symbols used throughout this work.
+    \autoref{table:symbol_table} enumerates the symbols used for the statistical models and the different datasets, e.g. distinguishing astrometric from photometric data. 
+
+    \begin{table}
+    \centering
+    \caption{Symbol Table}
+    \label{table:symbol_table}
+    \begin{tabular}{p{0.35\linewidth} p{0.6\linewidth}}
+    Symbol                         & Explanation \\
+    \toprule
+    % -----------------------------------------------------------------------------
+    \\
+    \multicolumn{2}{l}{\textbf{Datasets}:} \\
+    \midrule
+    % -------------------------------------------------
+    \multicolumn{2}{l}{\textbf{Full Data}:}  \vspace{5pt} \\
+    $\mbf{X} \in \mbb{R}^{(N, F+1)}$ & Full dataset.  \\
+    $N$ & The number of independent measurements (aka stars) in the dataset.  \\
+    $F$ & The number of measured features, e.g. $(\alpha, \delta, \varpi, \mu_{\alpha^*}, \mu_\delta, v_r, g, r)$,  not including the the `independent' feature over which the others are conditioned. \\
+    $\mrm{n} \in \mbs{I_N} \equiv \{1, ..., N\} \in \mbb{Z^+}$ & Index into the set of measurements $\mbf{X}$. \\
+    $\mrm{f} \in \mbs{I_F}  \equiv \{1, ..., F\} \in \mbb{Z^+}$ & Index into the set of features of $\mbf{X}$. $ f=0$ is the `independent' feature.\\
+    $x_{\mrm{n,f}}$ & $n$-th measurement of the $f$-th feature of $\mbf{X}$. \\
+    $\nth{\mbs{x}}$ & $n$-th row-vector of all features. \\
+    % -------------------------------------------------
+    \\
+    \multicolumn{2}{l}{\textbf{Astrometric Data}:}  \vspace{5pt} \\
+    $\mbf{W} \in \mathbb{R}^{(N, F_w + 1)}$ & Full astrometric dataset. \\
+    $\mrm{f_w} \in \mbs{I_{F_w}} \equiv \{1, ..., F_w\} \in \mathbb{Z^+}$ & Index into the set of astrometric features. $f_w = 0$ is the `independent' feature.\\
+    $w_{\mrm{n,f_w}}$ & $n$-th measurement of the $f_w$-th feature of $\mbf{W}.$\\
+    $\nth{\mbs{w}}$ & $n$-th row-vector of all astrometric features. \\
+    $\phi_1 \equiv w_{\cdot,0}$ & The `independent' (index 0) feature column on which the models are conditioned.\\
+    % -------------------------------------------------
+    \\
+    \multicolumn{2}{l}{\textbf{Photometric Data}:}  \vspace{5pt} \\
+    $\mbf{M} \in \mathbb{R}^{(N, F_m)}$ & Full photometric dataset. \\
+    $\mrm{f_m} \in \mbs{I_{F_m}} \equiv \{1, ..., F_m\} \in \mathbb{Z^+}$ & Index into the set of photometric features. \\
+    $m_{\mrm{n,f_m}}$ & $n$-th measurement of the $f_m$-th feature of $\mbf{M}$. \\
+    $\nth{\mbs{m}}$ & $n$-th row-vector of all features. \\
+    % -----------------------------------------------------------------------------
+    \\
+    \multicolumn{2}{l}{\textbf{Statistics}:} \\
+    \midrule
+    $\pdf(...)$ & The PDF of the distribution. \\
+    $\cdf(...)$ & The CDF corresponding to $\pdf(...)$. \\
+    $\mbs{\theta} = \{\theta_f\}_f$ & The vector of a distribution's parameters. \\
+    $\mcal{L}(\nth{\mbf{x}}, \mbs{\theta}(\phi_1))$ & The likelihood of the data given the parameters. \\
+    $Q$ & The number of models in a mixture model. \\
+    $\mrm{q} \in \mbs{I_Q} \equiv \{1, ..., Q \} \in \mbb{Z^+}$ & Index into the set of $Q$ models. \\
+    % -------------------------------------------------
+    \\
+    \end{tabular}
+    \end{table}
+
+    We use $\tilde{F}$ to indicate that there a missing features, e.g. radial velocities.
+    The index set $\mbs{I}_F \mapsto \mbs{I}_{\tilde{F}} = \{1, ..., k-1, k+1, ... \}$ where $k$ is the index of the missing feature.
+
+% section notation (end)
 
 
+\section{Theory of Mixture Density Networks (MDNs)} \label{app:theory_of_mixture_density_networks}
 
-\section{Theory of Mixture Density Networks (MDNs} \label{app:theory_of_mixture_density_networks}
+    Mixture models (MMs) are a statistical method to represent a population as a set of a sub-populations specified by probability distributions. These distributions are characterized by their parameters and mixture by a corresponding set of mixture weights. Mixture Density Networks (MDNs) 
+    are a machine learning method to combine a MM with neural networks, increasing the flexibility of the model. An MDN replaces the scalar distribution parameters of the MM with neural networks, allowing the distribution parameters and mixture weights to vary as smooth functions \citep{Bishop1994}. Functional parameters allows the model to capture variation over those parameters that is not possible with scalar-valued models. Moreover, by using neural networks the inferred functional forms are ``model-free" and driven entirely by the data.
 
-    Mixture Density Networks (MDNs) are a generalization over mixture models, where the weights and model parameters may be functions, rather than scalars, as in normal mixture models. Generalizing to functional parameters allows the model to capture variation over those parameters that is not possible with scalar-valued models.
-    
-    For the MDN we take $d_{\cdot, 0} \equiv x_{\cdot}$ (indexed from 0), which is the first feature column of $\mbf{D}$, as the `independent' coordinate over which the MDN parameters are functions. In the context of streams $d_{\cdot, 0} = x$ is $\phi_1$ the longitude coordinate in a reference frame rotated such that the stream is aligned along $\phi_1$.
+    % Quote from https://mikedusenberry.com/mixture-density-networks
+    % A mixture density network (MDN) is an interesting model formalism built within the general framework of neural networks and probability theory for working on supervised learning problems in which the target variable cannot be easily approximated by a single standard probability distribution. Essentially an MDN allows one to model a conditional probability distribution as a mixture of distributions, in which the individual distributions and the corresponding mixture coefficients are parameterized by functions of the inputs 
+
+    For the MDN we take $x_{\cdot, 0} \equiv x_{\cdot}$ (indexed from 0), which is the first feature column of $\mbf{X}$, as the `independent' coordinate over which the MDN parameters are conditioned. In the context of streams $x_{\cdot, 0} \equiv \phi_1$ is the longitude coordinate in a reference frame rotated such that the stream is aligned along $\phi_1$.
 
     The PDF of the MDN is
 
     \begin{equation} \label{eq:general_mixture_network}
-        \pdf(\nth{\mbs{d}} | \mbs{\theta}(\nth{x}))
-        = \sum_{\mrm{q} \in \mbs{I_Q}} \ \qth{f}(\nth{x}) \qth{P}(\nth{d}|\qth{\mbs{\theta}}(\nth{x}),q\!=\!\mrm{q})
+        \pdf(\nth{\mbs{x}} | \mbs{\theta}(\phi_1))
+        = \sum_{\mrm{q} \in \mbs{I_Q}} \ \qth{f}(\phi_1) \qth{P}(\nth{x}|\qth{\mbs{\theta}}(\phi_1),q\!=\!\mrm{q})
     \end{equation}
-    The mixture weights $\qth{f}$ are normalized s.t.
-
+    The mixture coefficients $\qth{f}$ are normalized s.t.
     \begin{equation}
-        \sum_{\mrm{q}} \qth{f}(\nth{x}) = 1 \qquad \forall \nth{x}
+        \sum_{\mrm{q}} \qth{f}(\phi_1) = 1 \qquad \forall \phi_1
     \end{equation}
     In practice this is enforced by defining
     \begin{equation}
-        f_{\mrm{q} = b}(\nth{x}) = 1 - \sum_{\rm{q}\in \mbs{I_Q}\backslash b} \qth{f}(\nth{x})
+        f_{b}(\phi_1) = 1 - \sum_{\rm{q}\in \mbs{I_Q}\backslash b} \qth{f}(\phi_1)
     \end{equation}
     for some ``background" index $b \in \mbs{I_Q}$.
 
-    Assuming the measurement of each datum is independent, the total log-likelihood is a sum over all data:
+    Assuming the measurement of each datum is independent, the likelihood is a sum over all data:
     \begin{equation}
-        \ln\mcal{L}\left(\mbf{D} | \mbs{\theta}(\mbs{x})\right) = \sum_{n \in \mbs{I_N}} \ln \left[ \sum_{q\in\mbs{I_Q}} \qth{P}\left(\nth{\mbs{d}} | \qth{\mbs{\theta}}(x_n)\right) \right].
+        \mcal{L}\left(\mbf{x}_n | \mbs{\theta}(\phi_1)\right) = \sum_{q\in\mbs{I_Q}} \qth{P}\left(\nth{\mbs{x}} | \qth{\mbs{\theta}}(\phi_1)\right).
     \end{equation}
 
     The full posterior distribution includes the priors.
 
-    \todo[inline]{TODO}
+    \begin{equation}
+        \ln\posterior\left(\mbf{X} | \mbs{\theta}(\mbs{x})\right) = \ln\mcal{L}\left(\mbf{X} | \mbs{\theta}(\mbs{x})\right) +  \sum_{n \in \mbs{I_N}} \ln \left[ \sum_{q\in\mbs{I_Q}} \qth{\prior}\left(\qth{\mbs{\theta}}(\mbf{x}_n)\right) \right].
+    \end{equation}
 
 
 \section{Probability Distributions} \label{app:distributions}
@@ -659,7 +1003,7 @@
         \end{equation}
 
     \vspace{10pt}
-    \subsection{Normal Distribution}
+    \subsection{Normal Distribution} \label{app:sub:normal_distribution}
 
         The properties of the Normal distribution are well known. For completeness we state
 
@@ -700,8 +1044,7 @@
 
         Despite the popularity of this distribution we are not aware of any work showing the convolution of the skew-normal distribution with a centered Gaussian. Moreover, our Mathematica (v13.2) does not successfully perform this convolution. Consequently we present a step-by-step derivation of $P_{X\cdot\mcal{N}}$.
 
-        \autoref{eq:general_convolution} establishes that convolutions of PDFs are an integral operation. Integrals are often challenging and it is useful to recast a problem in different terms. Rather that working with PDFs of distributions we can instead consider the moment-generating function (MGF) corresponding to the PDF's distribution. Like the PDF, the MGF uniquely determines a distribution, so a MFG uniquely maps to a PDF. Also, 
-        for the MGF of two distributions the convolutions is a multiplication, not an integral.
+        \autoref{eq:general_convolution} establishes that convolutions of PDFs are an integral operation. Integrals are often intractable, but the problem is solvable if recast in different terms. Rather that working with PDFs of distributions we can instead consider the moment-generating function (MGF) corresponding to the PDF's distribution. Like the PDF, the MGF uniquely determines a distribution, so a MFG uniquely maps to a PDF. For the MGF of two distributions the convolutions is a multiplication, not an integral.
         Therefore, for the convolution of two PDFs their MGFs are multiplied and if the product is the MGF of a known distribution, the corresponding PDF is the convolution of the two original PDFs.
 
         The MGF of the Normal distribution is
@@ -748,38 +1091,38 @@
         \begin{equation}
             \cdf_{S\mcal{N}}(x; \mu, \sigma) = \frac{1}{2} \text{erfc}\left(\frac{\mu -x}{\sqrt{2} \sigma }\right)-2 T\left(\frac{x-\mu }{\sigma },\alpha \right)
         \end{equation}
-        where $T$ is Owen's T distribution.
+        where $T$ is Owen's T distribution \citep{Owen_1956}.
 
 
-\section{Plots} \label{app:developing_plots}
+% \section{Plots} \label{app:developing_plots}
 
-    \begin{figure*}
-        \centering
-        \includegraphics[scale=0.7]{figures-not-syw/gd1/tot_stream_and_spur_prob.png}
-        \caption{Caption}
-        \label{fig:gd1-astrometrics}
-    \end{figure*}
+%     \begin{figure*}
+%         \centering
+%         \includegraphics[scale=0.7]{figures-not-syw/gd1/tot_stream_and_spur_prob.png}
+%         \caption{Caption}
+%         \label{fig:gd1-astrometrics}
+%     \end{figure*}
 
-    \begin{figure*}
-        \centering
-        \includegraphics[scale=0.8]{figures-not-syw/gd1/Unknown.png}
-        \caption{Caption}
-        \label{fig:gd1-distance_modulus}
-    \end{figure*}
+%     \begin{figure*}
+%         \centering
+%         \includegraphics[scale=0.8]{figures-not-syw/gd1/Unknown.png}
+%         \caption{Caption}
+%         \label{fig:gd1-distance_modulus}
+%     \end{figure*}
 
-    \begin{figure}
-        \centering
-        \includegraphics[scale=0.6]{figures-not-syw/gd1/Unknown-2.png}
-        \caption{Caption}
-        \label{fig:gd1-cmd}
-    \end{figure}
+%     \begin{figure}
+%         \centering
+%         \includegraphics[scale=0.6]{figures-not-syw/gd1/Unknown-2.png}
+%         \caption{Caption}
+%         \label{fig:gd1-cmd}
+%     \end{figure}
 
-    \begin{figure*}
-        \centering
-        \includegraphics[scale=0.6]{figures-not-syw/gd1/Unknown-4.png}
-        \caption{Caption}
-        \label{fig:gd1-cmds}
-    \end{figure*}
+%     \begin{figure*}
+%         \centering
+%         \includegraphics[scale=0.6]{figures-not-syw/gd1/Unknown-4.png}
+%         \caption{Caption}
+%         \label{fig:gd1-cmds}
+%     \end{figure*}
 
 
 \end{document}
