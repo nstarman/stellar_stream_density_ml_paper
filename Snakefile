@@ -184,6 +184,9 @@ rule gd1_masks_pm:
 rule gd1_masks_iso:
     output:
         "src/data/gd1/isochrone.asdf"
+    input:
+        "src/data/brutus/MIST_1.2_iso_vvcrit0.0.h5",
+        "src/data/brutus/MIST_1.nn_c3k.0.h5",
     conda:
         "environment.yml"
     cache:
