@@ -100,23 +100,24 @@ ax01.bar(
 )
 
 # Model
-with xp.no_grad():
-    helper.manually_set_dropout(model, 0.15)
-    weights = xp.stack(
-        [model.unpack_params(model(data))["stream.weight",] for i in range(100)], 1
-    )
-    helper.manually_set_dropout(model, 0)
-    weight_percentiles = np.c_[
-        np.percentile(weights, 5, axis=1), np.percentile(weights, 95, axis=1)
-    ]
-ax01.fill_between(
-    data["phi1"],
-    weight_percentiles[:, 0],
-    weight_percentiles[:, 1],
-    color="k",
-    alpha=0.25,
-    label=r"Model (15% dropout)",
-)
+# TODO: in a diagnostic plot
+# with xp.no_grad():
+#     helper.manually_set_dropout(model, 0.15)
+#     weights = xp.stack(
+#         [model.unpack_params(model(data))["stream.weight",] for i in range(100)], 1
+#     )
+#     helper.manually_set_dropout(model, 0)
+#     weight_percentiles = np.c_[
+#         np.percentile(weights, 5, axis=1), np.percentile(weights, 95, axis=1)
+#     ]
+# ax01.fill_between(
+#     data["phi1"],
+#     weight_percentiles[:, 0],
+#     weight_percentiles[:, 1],
+#     color="k",
+#     alpha=0.25,
+#     label=r"Model (15% dropout)",
+# )
 ax01.plot(data["phi1"], weight, c="k", ls="--", lw=2, label="Model (MLE)")
 
 ax01.legend(loc="upper left")
