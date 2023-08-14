@@ -28,19 +28,9 @@ model = model.eval()
 with xp.no_grad():
     mpars = model.unpack_params(model(data))
 
-    stream_lnlik = model.component_ln_likelihood(
-        "stream", mpars, data, stream_astrometric_where=where
-    )
-    spur_lnlik = model.component_ln_likelihood(
-        "spur", mpars, data, spur_astrometric_where=where
-    )
-    tot_lnlik = model.ln_likelihood(
-        mpars,
-        data,
-        stream_astrometric_where=where,
-        spur_astrometric_where=where,
-        background_astrometric_where=where,
-    )
+    stream_lnlik = model.component_ln_likelihood("stream", mpars, data, where=where)
+    spur_lnlik = model.component_ln_likelihood("spur", mpars, data, where=where)
+    tot_lnlik = model.ln_likelihood(mpars, data, where=where)
 
 tot_stream_prob = np.exp(np.logaddexp(stream_lnlik, spur_lnlik) - tot_lnlik)
 

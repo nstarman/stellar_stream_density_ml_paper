@@ -36,22 +36,10 @@ model = model.eval()
 with xp.no_grad():
     mpars = model.unpack_params(model(data))
 
-    stream_lik = model.component_posterior(
-        "stream", mpars, data, stream_astrometric_where=where
-    )
-    spur_lik = model.component_posterior(
-        "spur", mpars, data, spur_astrometric_where=where
-    )
-    bkg_lik = model.component_posterior(
-        "background", mpars, data, background_astrometric_where=where
-    )
-    tot_lik = model.posterior(
-        mpars,
-        data,
-        stream_astrometric_where=where,
-        spur_astrometric_where=where,
-        background_astrometric_where=where,
-    )
+    stream_lik = model.component_posterior("stream", mpars, data, where=where)
+    spur_lik = model.component_posterior("spur", mpars, data, where=where)
+    bkg_lik = model.component_posterior("background", mpars, data, where=where)
+    tot_lik = model.posterior(mpars, data, where=where)
 
 
 stream_weight = mpars[("stream.weight",)]

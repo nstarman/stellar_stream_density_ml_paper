@@ -77,7 +77,6 @@ background_astrometric_model = sml.builtin.Exponential(
             },
         }
     ),
-    require_where=True,
 )
 
 # -----------------------------------------------------------------------------
@@ -193,7 +192,6 @@ stream_astrometric_model = sml.builtin.TruncatedNormal(
         }
     ),
     priors=(stream_control_points_prior,),
-    require_where=True,
 )
 
 
@@ -338,7 +336,6 @@ spur_astrometric_model = sml.builtin.Normal(
         }
     ),
     priors=(spur_control_points_prior,),
-    require_where=True,
 )
 
 

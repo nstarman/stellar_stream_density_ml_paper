@@ -98,13 +98,7 @@ for epoch in epoch_iterator:
             raise ValueError
 
         mpars = model.unpack_params(pred)
-        loss_val = -model.ln_posterior_tot(
-            mpars,
-            step_data,
-            stream_astrometric_where=step_where,
-            spur_astrometric_where=step_where,
-            background_astrometric_where=step_where,
-        )
+        loss_val = -model.ln_posterior_tot(mpars, step_data, where=step_where)
 
         if loss_val.isnan().any():
             raise ValueError
@@ -129,13 +123,7 @@ for epoch in epoch_iterator:
 
         with xp.no_grad():
             mpars = model.unpack_params(model(data))
-            prob = model.posterior(
-                mpars,
-                data,
-                stream_astrometric_where=where,
-                spur_astrometric_where=where,
-                background_astrometric_where=where,
-            )
+            prob = model.posterior(mpars, data, where=where)
 
         fig = diagnostic_plot(model, data, where=where)
         fig.savefig(diagnostic_path / f"epoch_{epoch:05}.png")
