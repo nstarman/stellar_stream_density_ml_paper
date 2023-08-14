@@ -319,7 +319,7 @@ rule gd1_member_likelihoods:
 
 rule gd1_member_table:
     output:
-        "src/tex/output/gd1_members.tex"
+        "src/tex/output/gd1/select_members.tex"
     input:
         "src/data/gd1/data.tmp",
         "src/data/gd1/model.tmp",

@@ -13,6 +13,7 @@ sys.path.append(Path(__file__).parents[3].as_posix())
 from scripts import paths
 from scripts.gd1.datasets import table as data_table
 
+(paths.output / "gd1").mkdir(exist_ok=True, parents=True)
 rng = np.random.default_rng(42)
 
 # =============================================================================
@@ -134,7 +135,7 @@ write_kwargs = {
 }
 
 # Save the full table for online publication
-table.write(paths.output / "gd1_members.tex", **write_kwargs)
+table.write(paths.output / "gd1" / "gd1_members.tex", **write_kwargs)
 
 # Save some of the rows for the paper
 rows = []
@@ -163,4 +164,4 @@ subselect = rng.choice(np.arange(len(prob_idx)), size=3, replace=False, shuffle=
 rows.extend(prob_idx[subselect])
 
 paper_table = table[rows]
-paper_table.write(paths.output / "gd1_select_members.tex", **write_kwargs)
+paper_table.write(paths.output / "gd1" / "select_members.tex", **write_kwargs)
