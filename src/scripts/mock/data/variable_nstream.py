@@ -12,4 +12,4 @@ paths = Paths()
 with asdf.open(
     paths.data / "mock" / "data.asdf", lazy_load=False, copy_arrays=True
 ) as af, (paths.output / "mock" / "nstream_variable.txt").open("w") as f:
-    f.write(f"{af['n_stream']}")
+    f.write(f"${af['n_stream']}$")
