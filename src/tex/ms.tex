@@ -636,7 +636,9 @@
         \subsubsection{Parameter Bounds}
 
             We implement a hard bound on the range of all parameters.
-            Hard cutoffs can be an unwise choice of prior, but we set the ranges to larger than the data prefers and check that the parameters are never ``up against" the bound
+            Hard cutoffs can be an unwise choice of prior, but we set the ranges to larger than the data prefers and check that the trained parameters are never ``up against" the bounds.
+            This makes the priors safe.
+            We require these priors for the loss function 
 
 
         \subsubsection{Region Prior} \label{sub:track_region_prior}
