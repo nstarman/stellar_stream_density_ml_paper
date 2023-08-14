@@ -642,7 +642,7 @@
             An advantage is that in the allowed region the prior does not not contribute to the posterior at all. We don't want it to. We want to keep the posterior as simple as possible, driven as much as possible by the likelihood and not any priors.
             A marked disadvantage is that outside the bounded region the prior does not contribute a gradient to the loss function the optimizer can use in the fitting.
             However, we sidestep this issue by encoding the prior bounds into the ``geometry" \TODO{(What is this called?)} of the neural network, so that the network can never
-            produce outputs outside the hard bounds. This is a standard technique in ML to ensure that the nerual network is efficient, only covering the required region of the output space 
+            produce outputs outside the hard bounds. This is a standard technique in ML to ensure that the neural network is efficient, only covering the required region of the output space \TODO{[cite]}. 
 
 
         \subsubsection{Region Prior} \label{sub:track_region_prior}
@@ -896,7 +896,7 @@
     one to the dataset used in the corresponding figure, and the other to the
     script used to make the figure. The datasets are stored at
     \todo[inline]{zenodo url}. The git repository associated
-    with this study is publicly available at \GitHubURL{}.
+    with this study is publicly available at $\GitHubURL{}$.
 
 % section data_availability (end)
 
