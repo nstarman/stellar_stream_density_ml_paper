@@ -49,6 +49,17 @@ rule mock_make_data:
         "src/scripts/mock/data/make.py"
 
 
+rule mock_nstream_variable:
+    output:
+        "src/data/mock/nstream_variable.txt"
+    conda:
+        "environment.yml"
+    cache:
+        True
+    script:
+        "src/scripts/mock/data/variable_nstream.py"
+
+
 rule mock_train_flow:
     output:
         "src/data/mock/flow_model.pt"

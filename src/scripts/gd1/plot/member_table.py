@@ -101,6 +101,14 @@ table[r"$\mathcal{L}_{\rm spur}$"] = [
 # -----------------------------------------------------------------------------
 # Write the table
 
+caption = """Subset of Membership Table.
+\\ This table includes a selection of stars with high membership likelihoods for
+the GD-1 stream.
+
+We include a quality flag on our calculations, indicating the number of missing
+features.
+"""
+
 write_kwargs = {
     "format": "ascii.latex",
     "overwrite": True,
