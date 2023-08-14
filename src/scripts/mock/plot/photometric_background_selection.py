@@ -26,6 +26,7 @@ with asdf.open(
     paths.data / "mock" / "data.asdf", lazy_load=False, copy_arrays=True
 ) as af:
     data = sml.Data(**af["data"]).astype(xp.Tensor, dtype=xp.float32)
+    where = sml.Data(**af["data"]).astype(xp.Tensor, dtype=xp.bool)
     off_stream = np.array(af["off_stream"], dtype=bool)
 
 # =============================================================================

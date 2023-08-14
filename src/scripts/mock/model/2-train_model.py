@@ -55,6 +55,7 @@ with asdf.open(
     paths.data / "mock" / "data.asdf", lazy_load=False, copy_arrays=True
 ) as af:
     data = sml.Data(**af["data"]).astype(xp.Tensor, dtype=xp.float32)
+    where = sml.Data(**af["data"]).astype(xp.Tensor, dtype=xp.bool)
     scaler = sml.utils.StandardScaler(**af["scaler"]).astype(
         xp.Tensor, dtype=xp.float32
     )
@@ -114,7 +115,7 @@ for epoch in epoch_iterator:
         data_cur = sml.Data(data_cur_, names=data.names)
 
         mpars = model.unpack_params(model(data_cur))
-        loss = -model.ln_posterior_tot(mpars, data_cur)
+        loss = -model.ln_posterior_tot(mpars, data_cur, where=where)
 
         if loss.isnan().any():
             raise ValueError

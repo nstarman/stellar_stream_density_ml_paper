@@ -43,6 +43,7 @@ with asdf.open(
     table = af["table"]
 
     data = sml.Data(**af["data"]).astype(xp.Tensor, dtype=xp.float32)
+    where = sml.Data(**af["data"]).astype(xp.Tensor, dtype=xp.bool)
     scaler = sml.utils.StandardScaler(**af["scaler"]).astype(
         xp.Tensor, dtype=xp.float32
     )

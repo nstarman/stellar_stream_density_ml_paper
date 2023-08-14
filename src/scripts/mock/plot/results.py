@@ -32,6 +32,7 @@ model.load_state_dict(xp.load(paths.data / "mock" / "model.pt"))
 # Load data
 with asdf.open(paths.data / "mock" / "data.asdf") as af:
     data = sml.Data(**af["data"]).astype(xp.Tensor, dtype=xp.float32)
+    where = sml.Data(**af["data"]).astype(xp.Tensor, dtype=xp.bool)
     stream_table = af["stream_table"]
     table = af["table"]
     n_stream = af["n_stream"]
@@ -42,8 +43,8 @@ with xp.no_grad():
     helper.manually_set_dropout(model, 0)
     mpars = model.unpack_params(model(data))
 
-    stream_lik = model.component_posterior("stream", mpars, data)
-    bkg_lik = model.component_posterior("background", mpars, data)
+    stream_lik = model.component_posterior("stream", mpars, data, where=where)
+    bkg_lik = model.component_posterior("background", mpars, data, where=where)
 
 weight = mpars[("stream.weight",)]
 where = weight > 2e-2

@@ -229,6 +229,7 @@ af["off_stream"] = (
 )
 
 af["data"] = {"array": data.array, "names": data.names}
+af["where"] = {"array": ~np.isnan(data.array), "names": data.names}
 af["scaler"] = {"mean": scaler.mean, "scale": scaler.scale, "names": scaler.names}
 af["coord_bounds"] = {
     k: (float(np.nanmin(data[k])), float(np.nanmax(data[k]))) for k in data.names
