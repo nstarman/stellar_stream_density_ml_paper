@@ -134,9 +134,6 @@ write_kwargs = {
     },
 }
 
-# Save the full table for online publication
-table.write(paths.output / "gd1" / "gd1_members.tex", **write_kwargs)
-
 # Save some of the rows for the paper
 rows = []
 # we work within the table selection
@@ -165,3 +162,6 @@ rows.extend(prob_idx[subselect])
 
 paper_table = table[rows]
 paper_table.write(paths.output / "gd1" / "select_members.tex", **write_kwargs)
+
+# Save the full table for online publication
+table.write(paths.output / "gd1" / "gd1_members.tex", **write_kwargs)
