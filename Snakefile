@@ -51,7 +51,7 @@ rule mock_make_data:
 
 rule mock_nstream_variable:
     output:
-        "src/output/mock/nstream_variable.txt"
+        "src/tex/output/mock/nstream_variable.txt"
     conda:
         "environment.yml"
     cache:
@@ -62,7 +62,7 @@ rule mock_nstream_variable:
 
 rule mock_nbackround_variable:
     output:
-        "src/output/mock/nbackground_variable.txt"
+        "src/tex/output/mock/nbackground_variable.txt"
     conda:
         "environment.yml"
     cache:
