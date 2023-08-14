@@ -498,6 +498,9 @@
             where $\prior_{\cal{I}}$ and $\prior_{obs}$ are the isochrone and observational priors, respectively.
             \autoref{eq:photometric_probability} already encodes the photometric distribution -- the ``track" -- of the isochrone model at each point along the track, but not the amplitudes, the relative probability of points. Physically, this amplitude is the the present-day mass function (PDMF). We include the PDMF as $\prior_{\cal{I}}(\gamma, \phi_1)$. $\prior_{\cal{I}}$ is a joint distribution, depending on $\gamma$ since it is the $\gamma$-dependent distribution amplitude, and also on $\phi_1$. This latter dependence is confusing termed the ``mass function of the stream", which is the expected variation in the average stellar mass along the stream, due to e.g. mass segregation in the progenitor \TODO{[cite]}. To date this effect has not been observed \TODO{[cite?]}, so in practice we drop the $\phi_1$ dependence -- $\prior_{\cal{I}}(\gamma, \phi_1) = \prior_{\cal{I}}(\gamma)$ -- assuming that the PDMF is constant along the stream.
 
+            % link to the code!
+            In the code we offer a few ansatz for the PDMF. The default assumption, which is known to be non-physical is a uniform distribution over $\gamma$. Any user-defined function may be used
+
             \todo[inline]{More on the PDMF}
             \begin{enumerate}
                 \item problems with just a Kroupa -- it's not present day
