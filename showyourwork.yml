@@ -115,7 +115,7 @@ overleaf:
   pull:
     - src/tex/ms.tex
     - src/tex/bib.bib
-    - src/tex/figures-not-syw
+    - src/tex/static/model
 
 # Always require all input files to be present on disk for workflow to pass?
 require_inputs: true
