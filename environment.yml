@@ -19,6 +19,7 @@ dependencies:
   - tqdm=4.65
 
   - pip:
+      - daft
       - gala>=1.6
       - nflows
       - pre-commit

@@ -5,6 +5,7 @@ from pathlib import Path
 
 import numpy as np
 from astropy.table import QTable
+from numpy.lib.recfunctions import structured_to_unstructured
 
 # Add the parent directory to the path
 sys.path.append(Path(__file__).parents[3].as_posix())
@@ -63,6 +64,15 @@ table["r [mag]"] = [
     )
 ]
 
+table[r"${\rm dim}(\boldsymbol{x})$"] = np.sum(
+    ~np.isnan(
+        structured_to_unstructured(
+            data_table[["ra", "dec", "pmra", "pmdec", "g0", "r0"]][sel].as_array()
+        )
+    ),
+    1,
+)
+
 
 # Likelihoods
 def process(value: float, minus: float, plus: float, /) -> str:
@@ -102,18 +112,33 @@ table[r"$\mathcal{L}_{\rm spur}$"] = [
 # -----------------------------------------------------------------------------
 # Write the table
 
-caption = """Subset of Membership Table.
-\\ This table includes a selection of stars with high membership likelihoods for
-the GD-1 stream.
+caption = r"""Subset of Membership Table.
 
-We include a quality flag on our calculations, indicating the number of missing
-features.
-"""
+This table includes a selection of stars with high membership likelihoods for
+the GD-1 stream.
+We include:
+%
+1 star with the maximum likelihood for the stream,
+%
+5 stars  $(\\mathcal{L}^{(S)}_{\rm MLE}) > 0.9$,
+%
+4 stars with $\\mathcal{L}^{(S)}_{\rm MLE}) < 0.75, \\mathcal{L}^{(S)}_{\rm 95\\%}) > 0.8$,
+%
+1 star with the maximum likelihood for the spur,
+%
+1 star with $\\mathcal{L}^{(spur)}_{\rm MLE}) > 0.9, \\mathcal{L}^{(S)}_{\rm MLE}) < 0.75$,
+%
+and 3 stars with significant likelihoods for both the stream and spur -- $\\mathcal{L}^{(S)}_{\rm MLE}) > 0.1, \\mathcal{L}^{(spur)}_{\rm MLE}) > 0.7$
+
+We also include a quality flag ${\rm dim}(\boldsymbol{x})$, indicating the number of
+features used by the model.
+The full table is available online.
+"""  # noqa: E501
 
 write_kwargs = {
     "format": "ascii.latex",
     "overwrite": True,
-    "caption": "Membership Table.",
+    "caption": caption,
     "latexdict": {
         "tabletype": "table*",
         "preamble": r"\centering",
@@ -121,7 +146,7 @@ write_kwargs = {
         "header_start": "\n".join(  # noqa: FLY002
             (
                 r"\toprule",
-                r"& \multicolumn{4}{c}{Gaia} & \multicolumn{2}{c}{PS-1} & \multicolumn{2}{c}{Likelihood}\\",  # noqa: E501
+                r"& \multicolumn{4}{c}{Gaia} & \multicolumn{2}{c}{PS-1} & \multicolumn{1}{c}{} & \multicolumn{2}{c}{Likelihood}\\",  # noqa: E501
                 r"\cmidrule(lr){2-5} \cmidrule(lr){6-7} \cmidrule(lr){8-9}"
             )
         ),
