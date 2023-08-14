@@ -638,7 +638,8 @@
             We implement a hard bound on the range of all parameters.
             Hard cutoffs can be an unwise choice of prior, but we set the ranges to larger than the data prefers and check that the trained parameters are never ``up against" the bounds.
             This makes the priors safe.
-            We require these priors for the loss function 
+            We require these priors for training the neural network. It helps to have a well-bounded problem. Simple hard priors have advantages and disadvantages in this regard.
+            An advantage is that in the allowed region the prior does not not contribute to the posterior at all. We don't want it to. We want to keep the posterior as simple as possible, driven as much as possible by the likelihood and not any priors.
 
 
         \subsubsection{Region Prior} \label{sub:track_region_prior}
