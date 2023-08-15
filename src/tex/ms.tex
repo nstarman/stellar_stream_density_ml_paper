@@ -626,7 +626,6 @@
             \caption{Caption: .}
             TODO:
             \begin{enumerate}
-                \item Get rid of the dropout in the plot
                 \item the linear density in the stream-fraction plot
             \end{enumerate}
             \label{fig:mock_data_result}
@@ -638,6 +637,8 @@
 
         \subsubsection{Parameter Bounds}
 
+            \todo[inline]{}
+    
             We implement a hard bound on the range of all parameters.
             Hard cutoffs can be an unwise choice of prior, but we set the ranges to larger than the data prefers and check that the trained parameters are never ``up against" the bounds.
             This makes the priors safe.
@@ -676,7 +677,7 @@
                 \end{cases},
             \end{equation}\end{small}
             where the additive normalization is 
-            $-\ln\left(\sqrt{\frac{\pi}{\tau}} \left(\frac{1}{2}\text{erf}\left(2 \sqrt{\tau } w\right)+1\right)\right)$
+            $-\ln\left(\sqrt{\frac{\pi}{\tau}} \left(\frac{1}{2}\text{erf}\left(2 \sqrt{\tau } w\right)+1\right)\right)$. In this form we see that $\tau$ may be increased to strengthen the prior and encourage $\mbs{\theta}$ to pass through 
 
 
     \subsection{Model Implementation, aka the code} \label{sub:model_implementation}
@@ -725,7 +726,7 @@
     
         The synthetic stream is also simulated in magnitudes using a 12~Gyr isochrone with [Fe/H] = -1.35~dex. The isochrone truncates just short of the giant branch, and sampled from uniformly (i.e., the initial mass function, $P(\gamma)$, is uniform). The background photometric coordinates are generated as a 2-dimensional Gaussian with non-zero covariance. The distance modulus is derived from a polynomial parallax track with uniform thickness. Thus, the synthetic data scenario described here generates a mock stream in astrometric coordinates and photometric coordinates, with density variations, a distance gradient which is consistent in parallax and distance modulus (i.e., magnitudes), all superimposed over a noisy field of background points in each astrometric and photometric dimension.
     
-        The result of applying our density model to the synthetic data is illustrated in \autoref{fig:mock_data_result}. The top panel shows the weight parameter that controls membership probability as a function of $\phi_1$. The dashed curve represents the output of our data-driven model, while the solid curve is the ground truth. \JN{todo: maybe the kde should be a histogram}, the second panel shows the stream and background in the $(\phi_1,\phi_2)$ plane, and the third panel shows the stream and background in the $(\phi_1,\varpi)$ plane. Points are color-coded according to their membership probability (Eq.~X) \JN{would be good to remove the $\sigma$ bands in this plot.} The weight parameter clearly shows that the model has captured the two prominent density variations along the stream. The are additional variations  mostly around the edges of the stream, though re-sampling the neural network weights with dropout reveals that these variations represent regions of higher model uncertainty. 
+        The result of applying our density model to the synthetic data is illustrated in \autoref{fig:mock_data_result}. The top panel shows the weight parameter that controls membership probability as a function of $\phi_1$. The dashed curve represents the output of our data-driven model, while the solid curve is the ground truth. The second panel shows the stream and background in the $(\phi_1,\phi_2)$ plane, and the third panel shows the stream and background in the $(\phi_1,\varpi)$ plane. Points are color-coded according to their membership probability (Eq.~X) \JN{would be good to remove the $\sigma$ bands in this plot.} The weight parameter clearly shows that the model has captured the two prominent density variations along the stream. The are additional variations  mostly around the edges of the stream, though re-sampling the neural network weights with dropout reveals that these variations represent regions of higher model uncertainty. 
         
         We find that the stream is successfully recovered in both astrometric and photometric coordinates, with $x\%$ stream stars being recovered with membership probability greater than $y$. The false positive rate (i.e., stars misidentified as stream members) for this test is found to be $z\%$ when cutting on this threshold. 
     
