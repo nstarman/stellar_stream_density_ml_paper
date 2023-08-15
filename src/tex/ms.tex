@@ -63,6 +63,7 @@
 \newcommand{\Spdf}{\Scmp{\pdf}}
 \newcommand{\Bpdf}{\Bcmp{\pdf}}
 
+\newcommand{\parallax}{\varpi}
 \newcommand{\sigobs}{{\sigma_*}}
 
 \newcommand{\TODO}[1]{{\textcolor{red}{#1}}}
@@ -235,28 +236,78 @@
 
     We now introduce our method for characterizing stellar stream tracks and computing stream membership likelihoods from N-D phase-space measurements.
     % TODO: rephrase following sentence
-    We develop a flexible Bayesian model framework, using Mixture Density Networks, that allows arbitrary numbers of phase-space dimensions to be incorporated in the model and permits missing phase-space observations.
+    We develop a flexible Bayesian model framework, that allows arbitrary numbers of phase-space dimensions to be incorporated in the model and permits missing phase-space observations. 
+    Below, we offer a concise overview of our approach, followed by a more in-depth technical explanation in subsequent sections.
+    We start, in \autoref{sub:framing_the_data}, by transforming the astrometric data into
+    a stream-oriented on-sky reference frame ($\phi_1, \phi_2, \parallax, \mu_{\phi_1}^*, \mu_{\phi_2}, v_r)$, for each stream. In this frame, 
+    the stream track lies along $\phi_1$, and the stream density may be described by distributions in the other parameters as injective functions of $\phi_1$.
+    % TODO: ⬆ I think a few more sentences explaining why this is important, feature variations, etc?
+    % However, previously we discussed how stream will vary along the track, with changes in the width and possible gaps.
+    % Also observational effects, e.g the distance gradient changes the on-sky width (should this be mentioned earlier?)
+    Likewise, the background of the Galactic field may be described with $\phi_1$-conditioned distributions.
+    % TODO: ⬆ I think this should be expanded.
+    Even non-astrometric coordinates, e.g. photometry and metallicity, are modelled along the stream and background as functions of $\phi_1$.
 
-    % \subsection*{}  Conceptual Description
-
-        Below, we offer a concise overview of our approach, followed by a more in-depth technical explanation in subsequent sections.
-
-        We take a Bayesian approach modeling the stream and background distribution.
-        
-        Mixture model are a general formalism for modelling arbitrary conditional density functions.
-        
-        In this case we want to model the density function, conditioned on the location along the track.
-
-        However, previously we discussed how stream will vary along the track, with changes in the width and possible gaps.
-        Also observational effects, e.g the distance gradient changes the on-sky width (should this be mentioned earlier?)
-
-        We can take the parameters of the mixture model -- the mixing coefficients and component distribution parameters -- to be general (continuous) functions of the conditioning variable.
-        We do this by modelling the parameters as This is achieved outputs of a feed-forward neural network that takes the conditioning variable as its input. This is called a Mixture Density Network (MDN)
+    The distributions for the stream and background are collected in a single mixture model that describes the entire field.
+    We take the parameters of the mixture model -- the mixing coefficients and component distribution parameters -- to be general (continuous) functions of the conditioning variable, $\phi_1$. This is done using feed-forward neural network that takes the conditioning variable as its input and output the parameter value. Mixture models of conditional probability distributions using neural networks are called Mixture Density Networks (MDNs). Since the model coefficients may evolve with $\phi_1$, MNDs are well suited to characterize streams (and the background) with all their
+    variations in position, width, and linear density.
 
     % subsection framing_the_data (end)
 
 
     \subsection{Framing the Data} \label{sub:framing_the_data}
+
+        As a stream progenitor orbits the Galactic center of mass (GCOM), its orbital path
+        describes an ellipse in the orbital plane. The associated arms of the stream generally
+        align closely with its orbital plane.
+        From a Galactocentric reference frame, an orbital plane assumes the form of a great
+        circle in the observer's celestial "sky," thereby allowing the potential realignment of
+        longitudinal ($\ell$) and latitudinal ($b$) coordinates to a coordinate system aligned
+        with the stream ($\cmp{GCOM}{\phi_1}, \phi_2^{(GCOM)}$). Here, the progenitor is
+        established at the origin, with the stream progressing along
+        $\cmp{GCOM}{\phi_1} (\phi_2^{(GCOM)} \approx 0)$. $\cmp{GCOM}{\phi_1}$ is clearly a good
+        affine parameter along which to construct models and analyze the stream's characteristics.
+
+        However, data observations are not taken from the GCOM, but from  $\sim 8$ kpc distant
+        \citep{GRAVITY2018, Leung2022} in a local frame, typically from vantage points such as
+        Earth or its solar Lagrange points, and subsequently represented in the International
+        Celestial Reference System (ICRS) \citep{ICRS1997}.
+        Restricted as we are to a very local volume, there is no means to observe systems from
+        the more ``intrinsic" reference frames. In our observational frames there is no inherent
+        assurance of effecting a rotation that would similarly align the stream within observer
+        coordinates such that $\phi_2(\phi_1) \approx 0$.
+        Thankfully, most streams are adequately distant from both the Galactic center and the
+        observer, or exhibit orientations such that a rotation a) can be established or
+        b) holds valid.
+        
+        Within a Galactocentric framework and expressed in spherical coordinates, streams
+        effectively approximate linear formations on a great circle, wherein a phase angle
+        traverses the entire stream length.
+
+        
+        % Data observations are taken in an (approximately) heliocentric reference frame, e.g. from the Earth or a Lagrange point, and is reported in an ICRS
+        % \citep{ICRS1997} frame. Restricted as we are to a very local volume, there
+        % is no means to observe systems from more ``intrinsic" reference frames, namely from the Galactic center of mass about which orbit satellites such as stellar streams.
+
+        % As the progenitor orbits the Galactic COM (center of mass), its
+        % orbital path describes an elliptical path in an orbital plane. The
+        % progenitor's tidal tails (stream) will likewise lie near the progenitor's
+        % orbital plane. Observing from the Galactic center, an orbital plane lies on a
+        % great circle in the observer's `sky' and it is possible to re-orient the
+        % longitude ($\ell$) and latitude ($b$) to a stream-oriented coordinate system
+        % ($\phi_1, \phi_2$) with the progenitor at the origin and the stream along
+        % $\phi_1 (\phi_2 \approx 0)$. However, our observations are not from the
+        % Galactic center, but approximately 8 kpc distant \citep[for recent
+        % measurements, see][]{GRAVITY2018, Leung2022}. For an arbitrary stream lying
+        % (approximately) along a galactocentric ellipse there is no guaranteed rotation to similarly align the stream in the observer coordinates so that the stream
+        % lies along $\phi_2(\phi_1) \approx 0$. Thankfully, many streams are sufficiently
+        % distant from both the Galaxy and observer or oriented such that a rotation a)
+        % exists, or b) applies to significant lengths of the stream before deviations
+        % become problematic.
+
+        % In a Galactocentric frame and in spherical coordinates  streams are approximately lines on a great circle, with a phase-angle sweeping the length of the stream. This, clearly, is a good affine parameter along which to model and study the stream.
+
+      
 
         {\color{red} Assume we know a stream track}
         
@@ -288,19 +339,20 @@
         \end{quotation}
 
         We leave extending the model framework to phase-wrapped, doubled-backed paths, etc to a future work.
-    
+
 
     \subsection{Likelihood Setup}\label{sub:likelihood_setup}
 
-        \IfFileExists{static/DAG_StreamDensity.pdf}{
-            \begin{figure}
-                \centering
-                \includegraphics[scale=0.5]{static/DAG_StreamDensity.pdf}
-                \caption{Fill in.}
-                \label{fig:DAG}
-            \end{figure}
-        }{
-        }
+        \begin{figure}
+            \centering
+            \includegraphics[scale=0.5]{static/model/DAG_StreamDensity.pdf}
+            \caption{Probabilistic Graphical Model of the Mixture Density Network (MDN)}
+            \todo[inline]{todo}
+            \begin{enumerate}
+                \item Do this with \url{https://github.com/daft-dev/daft}
+            \end{enumerate}
+            \label{fig:DAG}
+        \end{figure}
 
         Mixture models (MMs) are a statistical method to represent a population as a set of a sub-populations specified by probability distributions. These distributions are characterized by their parameters and the mixture by a corresponding set of mixture coefficients. Scalar mixture models may be extended to model completely general conditional distributions by making the distribution parameters and mixture coefficients functions of a conditional input \citep{McLachlan1989MixtureM}.
         Mixture Density Networks (MDNs) are a machine learning method to implement these general MM, taking the parameters and coefficients to be the outputs of feed-forward neural networks and as such, general continuous functions \citep{Bishop1994}. Functional parameters allows the model to capture variation over those parameters that is not possible with scalar-valued models. Moreover, by using neural networks the inferred functional forms are ``model-free" and driven entirely by the data.
@@ -533,19 +585,19 @@
 
             We introduce a prior to connect these components of the model:
             \begin{align}
-                \prior(\{\mu_I, \mu_\varpi \} | \phi_1) &= \delta( \rm{dist}(\mu_I) - \rm{dist}(\varpi) )(\phi_1), \label{eq:distance_track_prior}
-                % \prior(\{\sigma_I, \sigma_\varpi \}(\phi_1)) &= \delta( \rm{dist}(\mu_I) - \rm{dist}(\varpi) )(\phi_1) \label{eq:distance_width_prior}
+                \prior(\{\mu_I, \mu_\parallax \} | \phi_1) &= \delta( \rm{dist}(\mu_I) - \rm{dist}(\parallax) )(\phi_1), \label{eq:distance_track_prior}
+                % \prior(\{\sigma_I, \sigma_\parallax \}(\phi_1)) &= \delta( \rm{dist}(\mu_I) - \rm{dist}(\parallax) )(\phi_1) \label{eq:distance_width_prior}
             \end{align}
             where $\delta$ is the Dirac delta function, and simply expresses that the distance modulus track and parallax track must be equal (when converted to the actual distance) as a function of $\phi_1$.
             The widths are similarly constrained.
             \begin{align}
-                \mu_I(\varpi) &= 10 - 5\log_{10}(\varpi) \\
-                \sigma_I(\sigma_\varpi) &= \frac{5}{\ln{10}} \mu_I \sigma_\varpi
+                \mu_I(\parallax) &= 10 - 5\log_{10}(\parallax) \\
+                \sigma_I(\sigma_\parallax) &= \frac{5}{\ln{10}} \mu_I \sigma_\parallax
             \end{align}
 
             \todo[inline]{expand on this?}
 
-            In practice, at the distance of many streams the parallaxes are informative and are excluded from most models.
+            In practice, at the distance of many streams the errors in the parallaxes are of order 1 and we excluded the feature from most models.
             % TODO! 
     
         \subsubsection{Off-stream} \label{sub:photometric_model_off_stream}
@@ -637,7 +689,7 @@
 
         \subsubsection{Parameter Bounds}
 
-            \todo[inline]{}
+            \todo[inline]{this section is very rough}
     
             We implement a hard bound on the range of all parameters.
             Hard cutoffs can be an unwise choice of prior, but we set the ranges to larger than the data prefers and check that the trained parameters are never ``up against" the bounds.
@@ -682,12 +734,14 @@
 
     \subsection{Model Implementation, aka the code} \label{sub:model_implementation}
 
-        \todo[inline]{TODO:}
+        \todo[inline]{TODO: how much should be included here?}
 
         \begin{enumerate}
             \item A network per model component, e.g. one for the weights, one for the stream track and width, one for the background distribution.
             \item MLP for the components - lin / tanh + dropout
             \item Normalizing flow - specific pieces
+            \item connective priors
+            \item 
             \item Architecture in the Appendix
         \end{enumerate}
 
@@ -726,7 +780,7 @@
     
         The synthetic stream is also simulated in magnitudes using a 12~Gyr isochrone with [Fe/H] = -1.35~dex. The isochrone truncates just short of the giant branch, and sampled from uniformly (i.e., the initial mass function, $P(\gamma)$, is uniform). The background photometric coordinates are generated as a 2-dimensional Gaussian with non-zero covariance. The distance modulus is derived from a polynomial parallax track with uniform thickness. Thus, the synthetic data scenario described here generates a mock stream in astrometric coordinates and photometric coordinates, with density variations, a distance gradient which is consistent in parallax and distance modulus (i.e., magnitudes), all superimposed over a noisy field of background points in each astrometric and photometric dimension.
     
-        The result of applying our density model to the synthetic data is illustrated in \autoref{fig:mock_data_result}. The top panel shows the weight parameter that controls membership probability as a function of $\phi_1$. The dashed curve represents the output of our data-driven model, while the solid curve is the ground truth. The second panel shows the stream and background in the $(\phi_1,\phi_2)$ plane, and the third panel shows the stream and background in the $(\phi_1,\varpi)$ plane. Points are color-coded according to their membership probability (Eq.~X) \JN{would be good to remove the $\sigma$ bands in this plot.} The weight parameter clearly shows that the model has captured the two prominent density variations along the stream. The are additional variations  mostly around the edges of the stream, though re-sampling the neural network weights with dropout reveals that these variations represent regions of higher model uncertainty. 
+        The result of applying our density model to the synthetic data is illustrated in \autoref{fig:mock_data_result}. The top panel shows the weight parameter that controls membership probability as a function of $\phi_1$. The dashed curve represents the output of our data-driven model, while the solid curve is the ground truth. The second panel shows the stream and background in the $(\phi_1,\phi_2)$ plane, and the third panel shows the stream and background in the $(\phi_1,\parallax)$ plane. Points are color-coded according to their membership probability (Eq.~X) \JN{would be good to remove the $\sigma$ bands in this plot.} The weight parameter clearly shows that the model has captured the two prominent density variations along the stream. The are additional variations  mostly around the edges of the stream, though re-sampling the neural network weights with dropout reveals that these variations represent regions of higher model uncertainty. 
         
         We find that the stream is successfully recovered in both astrometric and photometric coordinates, with $x\%$ stream stars being recovered with membership probability greater than $y$. The false positive rate (i.e., stars misidentified as stream members) for this test is found to be $z\%$ when cutting on this threshold. 
     
@@ -933,7 +987,7 @@
     $\mbf{X} \in \mbb{R}^{(N, F+1)}$ & The full dataset, including all measurements (rows) and features (columns).  \\
     $\mbs{\delta}\mbf{X} \in \mbb{R}^{(N, F+1)}$ & The full set of uncertainties in $\mbf{X}$, e.g. Gaussian $\sigma_{n,f}$ and correlation terms $\sigma_{n,(f_i, f_j)}$.\\
     $N$ & The number of independent measurements (aka stars) in the dataset.  \\
-    $F$ & The number of measured features, e.g. $(\alpha, \delta, \varpi, \mu_{\alpha^*}, \mu_\delta, v_r, g, r)$,  not including the the `independent' feature over which the others are conditioned. \\
+    $F$ & The number of measured features, e.g. $(\alpha, \delta, \parallax, \mu_{\alpha^*}, \mu_\delta, v_r, g, r)$,  not including the the `independent' feature over which the others are conditioned. \\
     $\mrm{n} \in \mbs{I_N} \equiv \{1, ..., N\} \in \mbb{Z^+}$ & Index into the set of measurements $\mbf{X}$ (and $\mbs{\delta}\mbf{X}$), i.e. the $n$-th star. \\
     $\mrm{f} \in \mbs{I_F}  \equiv \{1, ..., F\} \in \mbb{Z^+}$ & Index into the set of features of $\mbf{X}$  (and $\mbs{\delta}\mbf{X}$). $ f=0$ is the `independent' feature.\\
     $(\delta)x_{\mrm{n,f}}$ & $n$-th star with $f$-th feature in $(\mbs{\delta})\mbf{X}$. \\
