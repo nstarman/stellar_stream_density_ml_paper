@@ -496,16 +496,17 @@
                 \prior(\gamma, \nth{\mbs{m}}, \phi_1) = \prior_{\cal{I}}(\gamma, \phi_1) \prior_{obs}(\nth{\mbs{m}}, \phi_1)
             \end{equation}
             where $\prior_{\cal{I}}$ and $\prior_{obs}$ are the isochrone and observational priors, respectively.
-            \autoref{eq:photometric_probability} already encodes the photometric distribution -- the ``track" -- of the isochrone model at each point along the track, but not the amplitudes, the relative probability of points. Physically, this amplitude is the the present-day mass function (PDMF). We include the PDMF as $\prior_{\cal{I}}(\gamma, \phi_1)$. $\prior_{\cal{I}}$ is a joint distribution, depending on $\gamma$ since it is the $\gamma$-dependent distribution amplitude, and also on $\phi_1$. This latter dependence is confusing termed the ``mass function of the stream", which is the expected variation in the average stellar mass along the stream, due to e.g. mass segregation in the progenitor \TODO{[cite]}. To date this effect has not been observed \TODO{[cite?]}, so in practice we drop the $\phi_1$ dependence -- $\prior_{\cal{I}}(\gamma, \phi_1) = \prior_{\cal{I}}(\gamma)$ -- assuming that the PDMF is constant along the stream.
+            \autoref{eq:photometric_probability} already encodes the photometric distribution -- the ``track" -- of the isochrone model at each point along the track, but not the amplitudes, the relative probability of points. Physically, this amplitude is the the present-day mass function (PDMF). We include the PDMF as $\prior_{\cal{I}}(\gamma, \phi_1)$. $\prior_{\cal{I}}$ is a joint distribution, depending on $\gamma$ since it is the $\gamma$-dependent distribution amplitude, and also on $\phi_1$. This latter dependence is confusing termed the ``mass function of the stream", which is the expected variation in the average stellar mass along the stream, due to e.g. mass segregation in the progenitor \TODO{[cite]}. To date this effect has not been observed \TODO{[cite]}, so in practice we drop the $\phi_1$ dependence -- $\prior_{\cal{I}}(\gamma, \phi_1) = \prior_{\cal{I}}(\gamma)$ -- assuming that the PDMF is constant along the stream.
 
             % link to the code!
-            In the code we offer a few ansatz for the PDMF. The default assumption, which is known to be non-physical is a uniform distribution over $\gamma$. Any user-defined function may be used
+            In the code we offer a few ansatz for the PDMF. The default assumption, which is known to be non-physical is a uniform distribution over $\gamma$.
+            Any user-defined function may be used.
 
             \todo[inline]{More on the PDMF}
             \begin{enumerate}
-                \item problems with just a Kroupa -- it's not present day
+                \item problems with just a Kroupa -- it's not present day.
                 \item could parameterize a more general distribution and fit for the PDMF
-                \item we are interested in the photometric model for a number of reasons, but an important one is that we can fit the distance modulus of the stream, for this only a subsection of the isochrone is needed. The best section is the MS turnoff.
+                \item Alternatively, we are interested in the photometric model for a number of reasons, but an important one is that we can fit the distance modulus of the stream, for this only a subsection of the isochrone is needed. The best section is the MS turnoff.
                 Consequently, if we focus on the MS turnoff then the variation in the PDMF is much smaller and we can use a flat distribution. (Maybe need a plot demonstrating this?)
             \end{enumerate}
 
@@ -520,6 +521,7 @@
 
             \todo[inline]{Dust}
             We use \package{dustmaps} Bayestar 19 for the dust modeling. We treat it as known. Include as a source of error in $\Sigma_n$
+            % TODO: actually implement that in the model
 
         % ssub: on_stream (end)
 
@@ -536,14 +538,12 @@
             \end{align}
             where $\delta$ is the Dirac delta function, and simply expresses that the distance modulus track and parallax track must be equal (when converted to the actual distance) as a function of $\phi_1$.
             The widths are similarly constrained.
+            \begin{align}
+                \mu_I(\varpi) &= 10 - 5\log_{10}(\varpi) \\
+                \sigma_I(\sigma_\varpi) &= \frac{5}{\ln{10}} \mu_I \sigma_\varpi
+            \end{align}
 
-            % TODO: include the specific functions?
-            % \begin{align}
-            %     \mu_I(\varpi) &= 10 - 5\log_{10}(\varpi) \\
-            %     \sigma_I(\sigma_\varpi) &= \TODO{\text{write down the equation}}
-            % \end{align}
-
-            \todo[inline]{expand on this}
+            \todo[inline]{expand on this?}
 
             In practice, at the distance of many streams the parallaxes are informative and are excluded from most models.
             % TODO! 
