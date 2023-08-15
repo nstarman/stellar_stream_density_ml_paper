@@ -113,7 +113,7 @@ table[r"$\mathcal{L}_{\rm spur}$"] = [
 # Write the table
 
 caption = r"""Subset of Membership Table.
-
+\\
 This table includes a selection of stars with high membership likelihoods for
 the GD-1 stream.
 We include:
@@ -129,7 +129,7 @@ We include:
 1 star with $\mathcal{L}^{(spur)}_{\rm MLE}) > 0.9, \mathcal{L}^{(S)}_{\rm MLE}) < 0.75$,
 %
 and 3 stars with significant likelihoods for both the stream and spur -- $\mathcal{L}^{(S)}_{\rm MLE}) > 0.1, \mathcal{L}^{(spur)}_{\rm MLE}) > 0.7$
-
+\\
 We also include a quality flag ${\rm dim}(\boldsymbol{x})$, indicating the number of
 features used by the model.
 The full table is available online.
