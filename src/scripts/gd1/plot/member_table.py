@@ -142,7 +142,7 @@ write_kwargs = {
     "latexdict": {
         "tabletype": "table*",
         "preamble": r"\centering",
-        "col_align": r"@{}rccccccll@{}",
+        "col_align": r"@{}rcccccccll@{}",
         "header_start": "\n".join(  # noqa: FLY002
             (
                 r"\toprule",
