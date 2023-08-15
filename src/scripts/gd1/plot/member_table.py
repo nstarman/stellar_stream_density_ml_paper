@@ -147,7 +147,7 @@ write_kwargs = {
             (
                 r"\toprule",
                 r"& \multicolumn{4}{c}{Gaia} & \multicolumn{2}{c}{PS-1} & \multicolumn{1}{c}{} & \multicolumn{2}{c}{Likelihood}\\",  # noqa: E501
-                r"\cmidrule(lr){2-5} \cmidrule(lr){6-7} \cmidrule(lr){8-9}"
+                r"\cmidrule(lr){2-5} \cmidrule(lr){6-7} \cmidrule(lr){9-10}"
             )
         ),
         "header_end": r"\midrule",
