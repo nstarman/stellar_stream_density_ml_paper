@@ -117,21 +117,16 @@ caption = r"""Subset of Membership Table.
 This table includes a selection of stars with high membership likelihoods for
 the GD-1 stream.
 We include:
-%
-1 star with the maximum likelihood for the stream,
-%
-5 stars  $(\mathcal{L}^{(S)}_{\rm MLE}) > 0.9$,
-%
-4 stars with $\mathcal{L}^{(S)}_{\rm MLE}) < 0.75, \mathcal{L}^{(S)}_{\rm 95\%}) > 0.8$,
-%
-1 star with the maximum likelihood for the spur,
-%
-1 star with $\mathcal{L}^{(spur)}_{\rm MLE}) > 0.9, \mathcal{L}^{(S)}_{\rm MLE}) < 0.75$,
-%
-and 3 stars with significant likelihoods for both the stream and spur -- $\mathcal{L}^{(S)}_{\rm MLE}) > 0.1, \mathcal{L}^{(spur)}_{\rm MLE}) > 0.7$
-\\
+\begin{enumerate}
+    \item 1 star with the maximum likelihood for the stream,
+    \item 5 stars  $(\mathcal{L}^{(S)}_{\rm MLE}) > 0.9$,
+    \item 4 stars with $\mathcal{L}^{(S)}_{\rm MLE}) < 0.75, \mathcal{L}^{(S)}_{\rm 95\%}) > 0.8$,
+    \item 1 star with the maximum likelihood for the spur,
+    \item 1 star with $\mathcal{L}^{(spur)}_{\rm MLE}) > 0.9, \mathcal{L}^{(S)}_{\rm MLE}) < 0.75$,
+    \item 3 stars with significant likelihoods for both the stream and spur -- $\mathcal{L}^{(S)}_{\rm MLE}) > 0.1, \mathcal{L}^{(spur)}_{\rm MLE}) > 0.7$
+\end{enumerate}
 We also include a quality flag ${\rm dim}(\boldsymbol{x})$, indicating the number of
-features used by the model.
+features used by the model.  For most stars all features are measured.
 The full table is available online.
 """  # noqa: E501
 
