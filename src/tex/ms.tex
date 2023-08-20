@@ -584,7 +584,7 @@
 
             % The specific architecture of the photometric normalizing flow are discussed in \autoref{sub:model_implementation}. But
             It is easy to evaluate the log-likelihood a normalizing flow at a point $\mbs{m}$ when all feature dimensions are present. When one (or more) feature dimension is missing, however, evaluating the marginal log-likelihood involves integrals over the flow. While the procedure is straightforward it is computationally expensive. As an alternative, we conservatively set the log-likelihood to $0$, the maximum value, overemphasizing the flow's contribution to the background model. Conceptually, up-weighting the background model decreases the false-positive rate in stream membership identification, at the
-            cost of increasing the false-negative rate. However, the intrinsic width of stellar streams tends to be quite small, with correspondingly small $\sigma_\mu$ (see \autoref{eq:photometric_probability}); thus the effective region of the isochrone model is well determined and we do not find the marginal log-likelihood approach to be impactful. Another approach, which we leave to a future work, is to construct normalizing flows of each marginal distribution, e.g. $q_{\rm flow}\left(\{m_i\}_{i \in \mbs{I}_F, i \neq {j, k}} | m_j, m_k, \phi_1\right)$, and select for each $\nth{\mbs{m}}$ the correct flow given the features.
+            cost of increasing the false-negative rate. However, the intrinsic width of stellar streams tends to be quite small, with correspondingly small $\sigma_\mu$ (see \autoref{eq:photometric_probability}); thus the effective region of the isochrone model is well determined and we do not find the marginal log-likelihood approach to be impactful. Another approach, which we leave to a future work, is to construct normalizing flows of each marginal distribution, e.g. $q_{\rm flow}\left(\{m_i\}_{i \in \mbs{I}_F, i \neq {j, k}} | m_j, m_k, \phi_1\right)$, and select for each $\nth{\mbs{m}}$ the correct flow given the present features.
 
         % ssub: off_stream (end)
     
@@ -592,25 +592,15 @@
 
     % subsection photmetric background (end)
 
-        
-
-        \begin{figure*}
-            \script{mock/plot/results.py}
-            \centering
-            \includegraphics[width=1\linewidth]{figures/mock/results.pdf}
-            \caption{Caption: .}
-            TODO:
-            \begin{enumerate}
-                \item the linear density in the stream-fraction plot
-            \end{enumerate}
-            \label{fig:mock_data_result}
-        \end{figure*}
-
     \subsection{Priors} \label{sub:priors}
 
         \todo[inline]{intro sentences}
 
         \subsubsection{Parameter Bounds}
+
+            We implement hard bounds on the range of each parameter $\theta$.
+
+            
 
             \todo[inline]{this section is very rough}
     
@@ -712,6 +702,19 @@
         \end{figure}
     
         The synthetic stream is also simulated in magnitudes using a 12~Gyr isochrone with [Fe/H] = -1.35~dex. The isochrone truncates just short of the giant branch, and sampled from uniformly (i.e., the initial mass function, $P(\gamma)$, is uniform). The background photometric coordinates are generated as a 2-dimensional Gaussian with non-zero covariance. The distance modulus is derived from a polynomial parallax track with uniform thickness. Thus, the synthetic data scenario described here generates a mock stream in astrometric coordinates and photometric coordinates, with density variations, a distance gradient which is consistent in parallax and distance modulus (i.e., magnitudes), all superimposed over a noisy field of background points in each astrometric and photometric dimension.
+
+        \begin{figure*}
+            \script{mock/plot/results.py}
+            \centering
+            \includegraphics[width=1\linewidth]{figures/mock/results.pdf}
+            \caption{Caption: .}
+            TODO:
+            \begin{enumerate}
+                \item the linear density in the stream-fraction plot
+            \end{enumerate}
+            \label{fig:mock_data_result}
+        \end{figure*}
+
     
         The result of applying our density model to the synthetic data is illustrated in \autoref{fig:mock_data_result}. The top panel shows the weight parameter that controls membership probability as a function of $\phi_1$. The dashed curve represents the output of our data-driven model, while the solid curve is the ground truth. The second panel shows the stream and background in the $(\phi_1,\phi_2)$ plane, and the third panel shows the stream and background in the $(\phi_1,\parallax)$ plane. Points are color-coded according to their membership probability (Eq.~X) \JN{would be good to remove the $\sigma$ bands in this plot.} The weight parameter clearly shows that the model has captured the two prominent density variations along the stream. The are additional variations  mostly around the edges of the stream, though re-sampling the neural network weights with dropout reveals that these variations represent regions of higher model uncertainty. 
         
