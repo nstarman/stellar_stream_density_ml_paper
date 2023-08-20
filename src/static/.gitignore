@@ -1,7 +1,8 @@
 # Anything is game in this folder
 !*
-.DS_Store
 
+# Ignore...
+.DS_Store
 gaia.login
 
 # backup files
