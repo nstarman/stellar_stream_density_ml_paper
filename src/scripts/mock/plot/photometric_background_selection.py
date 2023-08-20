@@ -33,6 +33,7 @@ with asdf.open(
 
 fig, axs = plt.subplots(2, 1, figsize=(4, 4))
 
+# Plot the astrometric background selection
 axs[0].plot(
     data["phi1"][off_stream],
     data["phi2"][off_stream],
@@ -40,21 +41,33 @@ axs[0].plot(
     marker=",",
     ms=1,
     color="k",
-    rasterized=True,
+)
+axs[0].plot(
+    data["phi1"][~off_stream],
+    data["phi2"][~off_stream],
+    ls="none",
+    marker=",",
+    ms=1,
+    color="tab:blue",
+    alpha=0.5,
 )
 axs[0].set_xlabel(r"$\phi_1 \ $ [$\degree$]")
 axs[0].set_ylabel(r"$\phi_2 \ $ [$\degree$]")
 axs[0].set_aspect(2)
 axs[0].grid(visible=True, which="both", axis="y")
 axs[0].grid(visible=True, which="major", axis="x")
+axs[0].set_rasterization_zorder(100)
 
+# Plot the photometric background selection
+axs[1].scatter(data["g-r"][off_stream], data["g"][off_stream], s=0.5, color="k")
 axs[1].scatter(
-    data["g-r"][off_stream], data["g"][off_stream], s=0.5, color="k", rasterized=True
+    data["g-r"][~off_stream], data["g"][~off_stream], s=0.5, color="tab:blue", alpha=0.5
 )
 axs[1].set_xlabel(r"$g-r \ $ [mag]")
 axs[1].set_ylabel(r"$g \ $ [mag]")
 axs[1].set_aspect("auto")
 axs[1].grid(visible=True, which="major")
+axs[1].set_rasterization_zorder(100)
 
 fig.tight_layout()
 fig.savefig(paths.figures / "mock" / "photometric_background_selection.pdf")
