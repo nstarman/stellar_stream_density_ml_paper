@@ -49,7 +49,7 @@ axs[0].plot(
     marker=",",
     ms=1,
     color="tab:blue",
-    alpha=0.5,
+    alpha=0.25,
 )
 axs[0].set_xlabel(r"$\phi_1 \ $ [$\degree$]")
 axs[0].set_ylabel(r"$\phi_2 \ $ [$\degree$]")
@@ -61,7 +61,11 @@ axs[0].set_rasterization_zorder(100)
 # Plot the photometric background selection
 axs[1].scatter(data["g-r"][off_stream], data["g"][off_stream], s=0.5, color="k")
 axs[1].scatter(
-    data["g-r"][~off_stream], data["g"][~off_stream], s=0.5, color="tab:blue", alpha=0.5
+    data["g-r"][~off_stream],
+    data["g"][~off_stream],
+    s=0.5,
+    color="tab:blue",
+    alpha=0.25,
 )
 axs[1].set_xlabel(r"$g-r \ $ [mag]")
 axs[1].set_ylabel(r"$g \ $ [mag]")
