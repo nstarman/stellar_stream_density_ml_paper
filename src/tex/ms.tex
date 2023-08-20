@@ -697,7 +697,15 @@
             \script{mock/plot/photometric_background_selection.py}
             \centering
             \includegraphics[width=1\linewidth]{figures/mock/photometric_background_selection.pdf}
-            \caption{Caption: TODO need to show this with a ground truth (e.g. show true weight in top panel).}
+            \caption{
+                % 
+                \textbf{Top panel:} Astrometric coordinates ($\phi_1$, $\phi_2$) for the mock data set.
+                Light blue points are the stream and background within an ``on"-stream region. Black points are in the ``off"-stream region used to train the background photometric model.
+                % 
+                \textbf{Bottom panel:} Astrometric coordinates ($\phi_1$, $\phi_2$) for the mock data set.
+                Black points are in the ``off"-stream region from the region defined in the astrometric coordinates.
+                Light blue points are the stream and background from the on-stream region. The stream's isochrone is apparent as an overdensity around (g-r, g)$\approx (0, 20)$.
+            }
             \label{fig:mock_data_photometric_background_selection}
         \end{figure}
     
@@ -716,7 +724,7 @@
         \end{figure*}
 
     
-        The result of applying our density model to the synthetic data is illustrated in \autoref{fig:mock_data_result}. The top panel shows the weight parameter that controls membership probability as a function of $\phi_1$. The dashed curve represents the output of our data-driven model, while the solid curve is the ground truth. The second panel shows the stream and background in the $(\phi_1,\phi_2)$ plane, and the third panel shows the stream and background in the $(\phi_1,\parallax)$ plane. Points are color-coded according to their membership probability (Eq.~X) \JN{would be good to remove the $\sigma$ bands in this plot.} The weight parameter clearly shows that the model has captured the two prominent density variations along the stream. The are additional variations  mostly around the edges of the stream, though re-sampling the neural network weights with dropout reveals that these variations represent regions of higher model uncertainty. 
+        The result of applying our density model to the synthetic data is illustrated in \autoref{fig:mock_data_result}. The top panel shows the weight parameter that controls membership probability as a function of $\phi_1$. The dashed curve represents the output of our data-driven model, while the solid curve is the ground truth. The second panel shows the stream and background in the $(\phi_1,\phi_2)$ plane, and the third panel shows the stream and background in the $(\phi_1,\parallax)$ plane. Points are color-coded according to their membership probability \autoref{eq:membership_prob}. The weight parameter clearly shows that the model has captured the two prominent density variations along the stream. The are additional variations  mostly around the edges of the stream, though re-sampling the neural network weights with dropout reveals that these variations represent regions of higher model uncertainty. 
         
         We find that the stream is successfully recovered in both astrometric and photometric coordinates, with $x\%$ stream stars being recovered with membership probability greater than $y$. The false positive rate (i.e., stars misidentified as stream members) for this test is found to be $z\%$ when cutting on this threshold. 
     
