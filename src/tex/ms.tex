@@ -4,10 +4,11 @@
 
 \documentclass[twocolumn]{aastex631}
 \usepackage{showyourwork}
-\usepackage{amsmath}
+\usepackage{amsmath, amssymb}
 \usepackage{xcolor}
 \usepackage{booktabs}
 \usepackage{dsfont}
+\usepackage[inline]{enumitem}
 \usepackage{todonotes}
 
 % Change the section names
@@ -717,21 +718,22 @@
             \includegraphics[width=1\linewidth]{figures/mock/results.pdf}
             \caption{
                 %
-                \textbf{Top panel 1:}%
+                \textbf{Top panel:}%
+                The stream mixture coefficient $f(\phi_1)$ 
                 Stream fraction.
                 %
-                \textbf{Top panel 2:}%
+                \textbf{Middle panel:}%
                 $\phi_2(\phi_1)$
                 %
-                \textbf{Top panel 3:}%
+                \textbf{Lower panel 3:}%
                 %
-                \textbf{Bottom panel row 1:}%
+                \textbf{Upper Histograms:}%
                 %
-                \textbf{Bottom panel row 2:}%
+                \textbf{Upper Middle Histograms:}%
                 %
-                \textbf{Bottom panel row 3:}%
+                \textbf{Lower Middle Histograms:}%
                 %
-                \textbf{Bottom panel row 4:}%
+                \textbf{Lower Histograms:}%
             }
             TODO:
             \begin{enumerate}
@@ -845,7 +847,7 @@
                 \label{fig:gd1-heatmap}
             \end{figure*}
 
-            \variable{output/gd1/select_members.tex}
+            \variable{output/gd1/member_table_select.tex}
 
 
     % subsection gd1 (end)
@@ -892,7 +894,7 @@
 
     We would like to thank the Academy.
 
-    The data availability statement is modified from 
+    The data availability statement is modified from one provided to ShowYourWork by Mathieu Renzo.
 
     \paragraph{Software (alphabetical)}
 
@@ -903,6 +905,7 @@
         \package{NumPy} \citep{Harris2020},
         \package{Pytorch} \citep{Pytorch2019},
         \package{SciPy} \citep{Scipy2020},
+        \package{ShowYourWork} \citep{}
 
 
 \section*{Data Availability} \label{sec:data_availability}
@@ -915,7 +918,7 @@
     one to the dataset used in the corresponding figure, and the other to the
     script used to make the figure. The datasets are stored at
     \todo[inline]{zenodo url}. The git repository associated
-    with this study is publicly available at $\GitHubURL{}$.
+    with this study is publicly available at \GitHubURL{}.
 
 % section data_availability (end)
 
