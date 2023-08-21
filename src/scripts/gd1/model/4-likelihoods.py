@@ -31,6 +31,7 @@ N = 250
 
 stream_probs = xp.empty((len(data), N))
 spur_probs = xp.empty((len(data), N))
+bkg_probs = xp.empty((len(data), N))
 with xp.no_grad():
     model.train()
     manually_set_dropout(model, 0.15)
@@ -44,6 +45,7 @@ with xp.no_grad():
 
         stream_probs[:, i] = stream_lik / tot_lik
         spur_probs[:, i] = spur_lik / tot_lik
+        bkg_probs[:, i] = bkg_lik / tot_lik
 
 stream_prob_percentiles = np.c_[
     np.percentile(stream_probs, 5, axis=1),
@@ -52,6 +54,10 @@ stream_prob_percentiles = np.c_[
 spur_prob_percentiles = np.c_[
     np.percentile(spur_probs, 5, axis=1),
     np.percentile(spur_probs, 95, axis=1),
+]
+bkg_prob_percentiles = np.c_[
+    np.percentile(bkg_probs, 5, axis=1),
+    np.percentile(bkg_probs, 95, axis=1),
 ]
 
 model.eval()
@@ -71,6 +77,7 @@ with xp.no_grad():
 
 stream_prob = stream_lik / tot_lik
 spur_prob = spur_lik / tot_lik
+bkg_prob = bkg_lik / tot_lik
 
 # =============================================================================
 
@@ -82,5 +89,8 @@ lik_tbl["stream (95%)"] = stream_prob_percentiles[:, 1]
 lik_tbl["spur (5%)"] = spur_prob_percentiles[:, 0]
 lik_tbl["spur (MLE)"] = spur_prob.numpy()
 lik_tbl["spur (95%)"] = spur_prob_percentiles[:, 1]
+lik_tbl["bkg (5%)"] = bkg_prob_percentiles[:, 0]
+lik_tbl["bkg (MLE)"] = bkg_prob.numpy()
+lik_tbl["bkg (95%)"] = bkg_prob_percentiles[:, 1]
 
-lik_tbl.write(paths.data / "gd1" / "membership_likelhoods.ecsv")
+lik_tbl.write(paths.data / "gd1" / "membership_likelhoods.ecsv", overwrite=True)
