@@ -24,7 +24,7 @@ member_liks = QTable.read(paths.data / "gd1" / "membership_likelhoods.ecsv")
 sel = (member_liks["stream (95%)"] > 0.8) | (member_liks["spur (95%)"] > 0.8)
 
 table = QTable()
-table["Source ID"] = data_table["source_id"][sel]
+table[r"\texttt{source\_id}"] = data_table["source_id"][sel]
 
 # Astrometry
 table[r"$\alpha$ [$\mathrm{{}^{\circ}}$]"] = data_table["ra"][sel].to_value("deg")
@@ -82,10 +82,10 @@ def process(value: float, minus: float, plus: float, /) -> str:
     v = np.round(value, 2)
 
     if v == 0 and dm == 0 and dp == 0:
-        return ""
+        return "---"
     if dm == 0 and dp == 0:
         return f"${v:0.2f}$"
-    return "".join((f"${v:0.2f}", "^{", f"{dp:+0.2f}", "}_{", f"{dm:+0.2f}", "}$"))
+    return "".join((f"${v:0.2f}", "_{", f"{dm:+0.2f}", "}^{", f"{dp:+0.2f}", "}$"))
 
 
 # fmt: off
@@ -107,28 +107,42 @@ table[r"$\mathcal{L}_{\rm spur}$"] = [
         strict=True
     )
 ]
+table[r"$\mathcal{L}_{\rm background}$"] = [
+    process(v, m, p)
+    for (v, m, p) in zip(
+        member_liks["bkg (MLE)"][sel],
+        member_liks["bkg (5%)"][sel],
+        member_liks["bkg (95%)"][sel],
+        strict=True
+    )
+]
 # fmt: off
 
 # -----------------------------------------------------------------------------
 # Write the table
 
+preamble = r"""
+\centering
+\small
+\addtolength{\tabcolsep}{-1pt}
+\newcommand\capitem{\\$\phantom{+}\ast$\ }
+"""
+
 caption = r"""Subset of Membership Table.
-\\
-This table includes a selection of stars with high membership likelihoods for
-the GD-1 stream.
-We include:
-\begin{enumerate}
-    \item 1 star with the maximum likelihood for the stream,
-    \item 5 stars  $(\mathcal{L}^{(S)}_{\rm MLE}) > 0.9$,
-    \item 4 stars with $\mathcal{L}^{(S)}_{\rm MLE}) < 0.75, \mathcal{L}^{(S)}_{\rm 95\%}) > 0.8$,
-    \item 1 star with the maximum likelihood for the spur,
-    \item 1 star with $\mathcal{L}^{(spur)}_{\rm MLE}) > 0.9, \mathcal{L}^{(S)}_{\rm MLE}) < 0.75$,
-    \item 3 stars with significant likelihoods for both the stream and spur -- $\mathcal{L}^{(S)}_{\rm MLE}) > 0.1, \mathcal{L}^{(spur)}_{\rm MLE}) > 0.7$
-\end{enumerate}
-We also include a quality flag ${\rm dim}(\boldsymbol{x})$, indicating the number of
-features used by the model.  For most stars all features are measured.
-The full table is available online.
-"""  # noqa: E501
+\\ This table includes a selection of candidate member stars for the GD-1
+stream, based on the membership likelihoods.  For each star we include the Gaia
+DR3 source ID and astrometric solution, the Pan-STARRS1 photometry, and the
+membership likelihoods for the stream, spur, and background. The likelihoods are
+computed using the trained model described in \autoref{ssub:trained_gd1} and we
+include a quality flag ${\rm dim}(\boldsymbol{x})$, indicating the number of
+features used by the model.  For most stars all features are measured. We use
+dropout regularization to estimate the uncertainty in the likelihoods, and
+report the 5\% and 95\% quantiles of the distribution, as well as the
+dropout-disabled maximum-likelihood estimate (MLE) of the likelihood.  For
+convenience we round the likelihoods to 2 decimal places, and only show the
+value and uncertainty when it is non-zero.\\ \textit{The full table is
+available online.}
+"""
 
 write_kwargs = {
     "format": "ascii.latex",
@@ -136,17 +150,17 @@ write_kwargs = {
     "caption": caption,
     "latexdict": {
         "tabletype": "table*",
-        "preamble": r"\centering",
-        "col_align": r"@{}rcccccccll@{}",
+        "preamble": preamble[1:],
+        "col_align": r"@{}r*{4}{c}*{2}{c}c*{3}{l}@{}",
         "header_start": "\n".join(  # noqa: FLY002
             (
                 r"\toprule",
-                r"& \multicolumn{4}{c}{Gaia} & \multicolumn{2}{c}{PS-1} & \multicolumn{1}{c}{} & \multicolumn{2}{c}{Likelihood}\\",  # noqa: E501
-                r"\cmidrule(lr){2-5} \cmidrule(lr){6-7} \cmidrule(lr){9-10}"
+                r"\multicolumn{5}{c}{Gaia} & \multicolumn{2}{c}{PS-1} & \multicolumn{1}{c}{} & \multicolumn{3}{c}{Likelihood (${\rm MLE}_{5\%}^{95\%}$)}\\",  # noqa: E501
+                r"\cmidrule(lr){1-5} \cmidrule(lr){6-7} \cmidrule(lr){9-11}"
             )
         ),
         "header_end": r"\midrule",
-        "data_end": r"\bottomrule",
+        "data_end": r"\bottomrule\bottomrule",
     },
     "formats": {
         r"$\alpha$ [$\mathrm{{}^{\circ}}$]": "%0.2f",
@@ -154,34 +168,4 @@ write_kwargs = {
     },
 }
 
-# Save some of the rows for the paper
-rows = []
-# we work within the table selection
-strm_mle = member_liks["stream (MLE)"][sel]
-spur_mle = member_liks["spur (MLE)"][sel]
-# 1 row with highest probability
-rows.append(np.argmax(strm_mle))
-# 5 rows with a probability > 0.9
-prob_idx = np.where(strm_mle > 0.9)[0]
-subselect = rng.choice(np.arange(len(prob_idx)), size=5, replace=False, shuffle=False)
-rows.extend(prob_idx[subselect])
-# 4 rows with a probability < 0.75
-prob_idx = np.where(strm_mle < 0.75)[0]
-subselect = rng.choice(np.arange(len(prob_idx)), size=4, replace=False, shuffle=False)
-rows.extend(prob_idx[subselect])
-# 1 row with highest probability > 0.99
-rows.append(np.argmax(spur_mle))
-# 1 rows with a probability > 0.9 and low stream probability
-prob_idx = np.where((strm_mle < 0.75) & (spur_mle > 0.9) & (spur_mle != spur_mle.max()))[0]  # noqa: E501
-subselect = rng.choice(np.arange(len(prob_idx)), size=1, replace=False, shuffle=False)
-rows.extend(prob_idx[subselect])
-# 3 rows with non-zero joint probability
-prob_idx = np.where((strm_mle > 0.1) & (spur_mle > 0.7))[0]
-subselect = rng.choice(np.arange(len(prob_idx)), size=3, replace=False, shuffle=False)
-rows.extend(prob_idx[subselect])
-
-paper_table = table[rows]
-paper_table.write(paths.output / "gd1" / "select_members.tex", **write_kwargs)
-
-# Save the full table for online publication
-table.write(paths.output / "gd1" / "gd1_members.tex", **write_kwargs)
+table.write(paths.output / "gd1" / "member_table_full.tex", **write_kwargs)

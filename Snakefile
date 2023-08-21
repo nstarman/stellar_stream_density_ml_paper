@@ -324,9 +324,9 @@ rule gd1_member_likelihoods:
         "src/scripts/gd1/model/4-likelihoods.py"
 
 
-rule gd1_member_table:
+rule gd1_member_table_select:
     output:
-        "src/tex/output/gd1/select_members.tex"
+        "src/tex/output/gd1/member_table_select.tex"
     input:
         "src/data/gd1/data.tmp",
         "src/data/gd1/model.tmp",
@@ -334,4 +334,17 @@ rule gd1_member_table:
     cache:
         True
     script:
-        "src/scripts/gd1/plot/member_table.py"
+        "src/scripts/gd1/plot/member_table_select.py"
+
+
+rule gd1_member_table_full:
+    output:
+        "src/tex/output/gd1/member_table_full.tex"
+    input:
+        "src/data/gd1/data.tmp",
+        "src/data/gd1/model.tmp",
+        "src/data/gd1/membership_likelhoods.ecsv"
+    cache:
+        True
+    script:
+        "src/scripts/gd1/plot/member_table_full.py"
