@@ -234,10 +234,8 @@
         The paper is organized as follows.
         In \autoref{sec:method} we introduce our method for characterizing stream tracks and computing stellar membership.
         We discuss the data in \autoref{sub:framing_the_data} and build a probabilistic framework to model the stream and background in \autoref{sub:likelihood_setup}-\autoref{sub:priors}.
-        In \autoref{sec:results} we apply our method,
-        % TODO: rephrase the mock data
-        first to simulated data (\autoref{sub:mock_data}) to demonstrate the model with a known ground truth dataset,
-        then to the stellar streams \stream{GD-1} (\autoref{sec:results_gd1}) and \stream{Pal\,5} (\autoref{sub:pal5}).
+        In \autoref{sec:results_mock} we apply our method to simulated data (\autoref{sub:mock_data}) to demonstrate the model with a known ground truth dataset,
+        then to the stellar streams \stream{GD-1} (\autoref{sec:results_gd1}) and \stream{Pal\,5} (\autoref{sec:results_pal5}).
         We compare our approach to characterizing stellar streams to other methods in \autoref{sec:comparison}.
         We conclude in \autoref{sec:conclusions}, discussing the results of this work and future directions.
 
@@ -309,9 +307,9 @@
             \centering
             \includegraphics[scale=0.5]{static/model/DAG_StreamDensity.pdf}
             \caption{Probabilistic Graphical Model of the Mixture Density Network (MDN)}
-            \todo[inline]{todo}
+            \todo[inline]{TODO:}
             \begin{enumerate}
-                \item remake this example this with \url{https://github.com/daft-dev/daft}.
+                \item remake this example this with \url{https://github.com/daft-dev/daft}. See \url{https://en.wikipedia.org/wiki/Mixture_model} for examples.
             \end{enumerate}
             \label{fig:DAG}
         \end{figure}
@@ -500,23 +498,24 @@
             % Is this true? re-read Uniform Modeling of 13 streams
             We defer this to a future work.
 
-            The photometric probability, \autoref{eq:photometric_probability} includes the term $\prior(\gamma, \nth{\mbs{m}}, \phi_1)$, which encodes all priors on both the isochrone as well as observational constraints. It is safe to assume that the properties of the isochrone are conditionally independent from observational constraints; namely
+            The photometric probability, \autoref{eq:photometric_probability}, includes the term $\prior(\gamma, \nth{\mbs{m}}, \phi_1)$, which encodes all priors on both the isochrone as well as observational constraints. We assume that the properties of the isochrone are conditionally independent from observational constraints; namely
             \begin{equation} \label{eq:isochrone_prior_components}
                 \prior(\gamma, \nth{\mbs{m}}, \phi_1) = \prior_{\cal{I}}(\gamma, \phi_1) \prior_{obs}(\nth{\mbs{m}}, \phi_1)
             \end{equation}
             where $\prior_{\cal{I}}$ and $\prior_{obs}$ are the isochrone and observational priors, respectively.
-            \autoref{eq:photometric_probability} already encodes the photometric distribution -- the ``track" -- of the isochrone model at each point along the track, but not the amplitudes, the relative probability of points. Physically, this amplitude is the the present-day mass function (PDMF). We include the PDMF as $\prior_{\cal{I}}(\gamma, \phi_1)$. $\prior_{\cal{I}}$ is a joint distribution, depending on $\gamma$ since it is the $\gamma$-dependent distribution amplitude, and also on $\phi_1$. This latter dependence is confusing termed the ``mass function of the stream", which is the expected variation in the average stellar mass along the stream, due to e.g. mass segregation in the progenitor \TODO{[cite]}. To date this effect has not been observed \TODO{[cite]}, so in practice we drop the $\phi_1$ dependence -- $\prior_{\cal{I}}(\gamma, \phi_1) = \prior_{\cal{I}}(\gamma)$ -- assuming that the PDMF is constant along the stream.
+            \autoref{eq:photometric_probability} already encodes the photometric distribution -- the ``track" -- of the isochrone model at each point along the track, but not the amplitudes, the relative probability of points. Physically, this amplitude is the the present-day mass function (PDMF). We The PDMF $\prior_{\cal{I}}(\gamma, \phi_1)$ is a joint distribution, depending on $\gamma$ since it is the $\gamma$-dependent distribution amplitude, and also on $\phi_1$. This latter dependence is confusingly termed the ``mass function of the stream", which is the expected variation in the stellar mass distrubion along the stream, arising due to e.g. mass segregation in the progenitor \TODO{[cite]}. To date this variation along the stream has not been observed \TODO{[cite]}, so in practice we drop the $\phi_1$ dependence -- $\prior_{\cal{I}}(\gamma, \phi_1) = \prior_{\cal{I}}(\gamma)$ -- assuming that the PDMF is constant along the stream.
 
             % link to the code!
-            In the code we offer a few ansatz for the PDMF, though any user-defined function may be used instead. The default assumption, which is known to be non-physical is a uniform distribution over $\gamma$. Similarly are truncated uniform distributions, considering only a segment of the isochrone, e.g. the main sequence turnoff (MSTO). We include also a Kroupa initial mass function (IMF) \citep{2001MNRAS.322..231K}. The Kroupa IMF, and all physically-motivated IMFs,
+            In the code we offer a few ansatz for the PDMF, though any user-defined function may be used instead. The default assumption, known to be non-physical, is a uniform distribution over $\gamma$. Similarly non-physical are truncated uniform distributions, considering only a segment of the isochrone, e.g. the main sequence turnoff (MSTO). We include also a Kroupa initial mass function (IMF) \citep{2001MNRAS.322..231K}. The Kroupa IMF, and all physically-motivated IMFs,
             have an much larger fraction of low-mass stars then high-mass stars, the latter being less likely to form. This is observed in streams, particularly their progenitors. However the Kroupa IMF, and all IMF, are poor fits to the observed PDMF as stream progenitors like globular clusters are extremely old ($\sim10$ Gyr) while an IMF is the zero-age distribution.
             How then should the PDMF $\prior_{\cal{I}}$ be treated?
             % ⬆ rephrase previous sentence
-            One approach to the PDMF is to use a more informed distribution, for example time-evolving an IMF, either analytically or by simulation.
-            Using any fixed distribution is simple in implementation, however the choice of distribution is not \TODO{[cite]}.
-            There is large uncertainty in the PDMF of most globular clusters.
-            % ⬆ rephrase previous sentence
-            
+            One approach to the PDMF is to use a more informed distribution, for example time-evolving an IMF, either analytically or by simulation, to the age of the stream's stellar population.
+            As discussed previously, globular clusters are known to be poorly fit by theoretic isochrones with realistic inputs (e.g. age, $Z$). Thus fitting an isochrone's track to the data means its age, metallicity and therefore PDMF
+            are not well fit \TODO{[cite]}. Moreover, for many streams, e.g. those lacking known progenitors, the PDMF is observationally poorly constrained.
+            In short, using any fixed distribution is simple in implementation, however the choice of distribution is not.
+
+            Rather than using a fixed \textit{a priori} 
             Similarly, the PDMF might be incorporated into the model,
             parameterized by some distribution and fit simultaneously to the distance modulus and other $\cmp{m}{\mbs{\theta}}$.
             Using a fixed distribution is a simple matter, however 
@@ -686,7 +685,7 @@
 %\newpage
 \section{Results: Mock} \label{sec:results_mock}
 
-    In this section we present an application of our model to a synthetic stream with known ground truths, and demonstrate the model's ability to characterize stream density variations and membership probabilities in an unsupervised manner. We then apply the method to real stellar streams in \autoref{sec:results_gd1} and \autoref{sub:pal5}.
+    In this section we present an application of our model to a synthetic stream with known ground truths, and demonstrate the model's ability to characterize stream density variations and membership probabilities in an unsupervised manner. We then apply the method to real stellar streams in \autoref{sec:results_gd1} and \autoref{sec:results_pal5}.
 
     \subsection{Test on a Synthetic Stream} \label{sub:mock_data}
     
@@ -753,110 +752,110 @@
 
 \section{Results: GD-1} \label{sec:results_gd1}
 
-        We now apply our density modeling approach to the stellar stream GD-1. We discuss the data selection in \autoref{ssec:results_gd1_data} and results in \autoref{ssub:trained_gd1}.
+    We now apply our density modeling approach to the stellar stream GD-1. We discuss the data selection in \autoref{sub:results_gd1_data} and results in \autoref{ssub:trained_gd1}.
+    
+    \subsection{Data Selection} \label{sub:results_gd1_data}
+
+        \begin{enumerate}
+            \item Gaia data.
+                \begin{enumerate}
+                    \item box size
+                    \item selection criteria
+                \end{enumerate}
+            \item crossmatched with panstarrs1
+            \item extinction corrected with bayestar2019
+        \end{enumerate}
+
+        We utilize data from {\it Gaia} DR3 for the astrometric coordinates of each star, and Pan-STARRS1 to obtain more accurate color information. We adopt broad cuts on the cross-matched data to limit the field to a region known to contain GD-1. We perform these rough cuts by requiring \JN{fill in what the cuts are and reference proper motion figure and CMD figure.} 
+
+        The result is a field populated by \JN{x} stars, from which we would like to identify stream members.
+
+    \subsection{Model Specification}\label{sec:GD_1_ModelSpecification}
+    
+        We model GD-1 as a three-component mixture consisting of a main stream component, a spur, and background. In order to guide our model towards GD-1, we set down 4 ``control points" along GD-1's main track, and 3 control points along the spur (illustrated in \JN{x}). These control points act as Gaussian priors on the model. We set the Gaussian error on these control points to large values, so that their influence on the model is not dominant. Indeed, we find that the value of the control points is to help reduce training time, since otherwise it will take the flexible density model longer time to converge to the actual stream.
+
+        The weight parameter is also set to truncate to $0$ at $\phi_1 < X$ and $\phi_1 > Y$. This ensures that we do not model stream stars that fall 
+    
         
-        \subsubsection{Data Selection} \label{ssec:results_gd1_data}
-
-            \begin{enumerate}
-                \item Gaia data.
-                    \begin{enumerate}
-                        \item box size
-                        \item selection criteria
-                    \end{enumerate}
-                \item crossmatched with panstarrs1
-                \item extinction corrected with bayestar2019
-            \end{enumerate}
-
-            We utilize data from {\it Gaia} DR3 for the astrometric coordinates of each star, and Pan-STARRS1 to obtain more accurate color information. We adopt broad cuts on the cross-matched data to limit the field to a region known to contain GD-1. We perform these rough cuts by requiring \JN{fill in what the cuts are and reference proper motion figure and CMD figure.} 
-
-            The result is a field populated by \JN{x} stars, from which we would like to identify stream members.
-
-        \subsubsection{Model Specification}\label{sec:GD_1_ModelSpecification}
+    \subsection{Trained Density Model}\label{ssub:trained_gd1}
     
-            We model GD-1 as a three-component mixture consisting of a main stream component, a spur, and background. In order to guide our model towards GD-1, we set down 4 ``control points" along GD-1's main track, and 3 control points along the spur (illustrated in \JN{x}). These control points act as Gaussian priors on the model. We set the Gaussian error on these control points to large values, so that their influence on the model is not dominant. Indeed, we find that the value of the control points is to help reduce training time, since otherwise it will take the flexible density model longer time to converge to the actual stream.
-    
-            The weight parameter is also set to truncate to $0$ at $\phi_1 < X$ and $\phi_1 > Y$. This ensures that we do not model stream stars that fall 
+        In this section we present results from our model applied to real {\it Gaia} and Pan-STARRS data of GD-1. 
+
+        We visualize the performance of our model in identifying stream stars and characterizing the astrometric background with \autoref{fig:gd1-results-full} and \autoref{fig:gd1-results-panels}. In \autoref{fig:gd1-results-full} The top panel shows the stream in $\phi_1$, $\phi_2$ coordinates, color-coded by membership probability (derived from \autoref{eq:membership_prob}). The following three rows represent background distributions in $\phi_2, \mu_{\phi_1}, \rm{\ and} \ \mu_{\rm phi_2}$, respectively taken at different $\phi_1$ increments centered on the red lines. The $\phi_1$ increments are roughly $\sim X$ in size. 
+
+        The blue lines over-plotted represent the best fit model at the given $\phi_1$ slice. We find that the backgrounds are typically well characterized by the distributions adopted (described in \S-x). We can also see from \autoref{fig:gd1-results-panels}
+        that the stream and spur components appear to be well characterized. 
         
+        Our ability to recover the stream is demonstrated further in \autoref{fig:gd1-results-full}. In this figure, we only plot stars if their membership probability is greater than \JN{X}. The result is a ``gold" catalog of probable stream and spur members, extending over $X$-degrees in $\phi_1$. We find the expected gap around $\phi_1 \sim -20~\rm{deg}$, which has been proposed to be the location of the dissolved progenitor (CITE).
+
+        Our model also fits the distribution of stream stars in the CMD. These fits are illustrated in \autoref{fig:gd1-results-panels}, where the CMD for the population in a given $\phi_1$ band is plotted, color-coded by stream membership probability. For the on-stream regions, the isochrone appears to provide a decent description of the stream, though there is room for further improvements (discussed in \S-x). However, we note that the stream's presence and absence in the isochrone is well captured by the mixture weight, which is a neural network output. 
         
-        \subsubsection{Trained Density Model}\label{ssub:trained_gd1}
-    
-            In this section we present results from our model applied to real {\it Gaia} and Pan-STARRS data of GD-1. 
+        Additionally, the distance modulus is also a neural network output, conditioned on $\phi_1$. This allows us to obtain a distance modulus at each $\phi_1$ along the stream. The distance modulus track and (converted) distance track are illustrated in \autoref{fig:gd1-results-full}. The left panel shows the distance modulus (in magnitudes), while the right shows the corresponding distance track. Importantly, the prior on the distance track is that the stream must fall between $[4,40]~\rm{kpc}$. Thus, our ability to recover the distance to GD-1 without substantial bias provides a useful indicator that our color-magnitude model combined with the astrometric model provide an adequate description of the data. \JN{more on this...}
 
-            We visualize the performance of our model in identifying stream stars and characterizing the astrometric background with \autoref{fig:gd1-results-full} and \autoref{fig:gd1-results-panels}. In \autoref{fig:gd1-results-full} The top panel shows the stream in $\phi_1$, $\phi_2$ coordinates, color-coded by membership probability (derived from \autoref{eq:membership_prob}). The following three rows represent background distributions in $\phi_2, \mu_{\phi_1}, \rm{\ and} \ \mu_{\rm phi_2}$, respectively taken at different $\phi_1$ increments centered on the red lines. The $\phi_1$ increments are roughly $\sim X$ in size. 
+        \begin{figure*}[h]
+            \script{gd1/plot/data_selection.py}
+            \centering
+            \includegraphics[width=1\linewidth]{figures/gd1/data_selection.pdf}
+            \caption{Caption}
+            \label{fig:gd1-data_selection}
+        \end{figure*}
 
-            The blue lines over-plotted represent the best fit model at the given $\phi_1$ slice. We find that the backgrounds are typically well characterized by the distributions adopted (described in \S-x). We can also see from \autoref{fig:gd1-results-panels}
-            that the stream and spur components appear to be well characterized. 
-            
-            Our ability to recover the stream is demonstrated further in \autoref{fig:gd1-results-full}. In this figure, we only plot stars if their membership probability is greater than \JN{X}. The result is a ``gold" catalog of probable stream and spur members, extending over $X$-degrees in $\phi_1$. We find the expected gap around $\phi_1 \sim -20~\rm{deg}$, which has been proposed to be the location of the dissolved progenitor (CITE).
+        \begin{figure}
+            \script{gd1/plot/photometric_background_selection.py}
+            \centering
+            \includegraphics[width=1\linewidth]{figures/gd1/photometric_background_selection.pdf}
+            \caption{Caption}
+            \label{fig:gd1-photometric_background_selection}
+        \end{figure}
 
-            Our model also fits the distribution of stream stars in the CMD. These fits are illustrated in \autoref{fig:gd1-results-panels}, where the CMD for the population in a given $\phi_1$ band is plotted, color-coded by stream membership probability. For the on-stream regions, the isochrone appears to provide a decent description of the stream, though there is room for further improvements (discussed in \S-x). However, we note that the stream's presence and absence in the isochrone is well captured by the mixture weight, which is a neural network output. 
-            
-            Additionally, the distance modulus is also a neural network output, conditioned on $\phi_1$. This allows us to obtain a distance modulus at each $\phi_1$ along the stream. The distance modulus track and (converted) distance track are illustrated in \autoref{fig:gd1-results-full}. The left panel shows the distance modulus (in magnitudes), while the right shows the corresponding distance track. Importantly, the prior on the distance track is that the stream must fall between $[4,40]~\rm{kpc}$. Thus, our ability to recover the distance to GD-1 without substantial bias provides a useful indicator that our color-magnitude model combined with the astrometric model provide an adequate description of the data. \JN{more on this...}
+        \begin{figure*}[h]
+            \script{gd1/plot/results_full.py}
+            \centering
+            \includegraphics[width=1\linewidth]{figures/gd1/results_full.pdf}
+            \caption{CAPTION}
+            TODO:
+            \begin{itemize}
+                \item Add plot of the stream linear density
+                \item Color palette for the spur
+                \item more subtle stream MLE path
+                \item rerun model with larger pmphi2 sigma
+                \item add the isochrones to the cmd plots
+            \end{itemize}
+            \label{fig:gd1-results-full}
+        \end{figure*}
 
-            \begin{figure*}[h]
-                \script{gd1/plot/data_selection.py}
-                \centering
-                \includegraphics[width=1\linewidth]{figures/gd1/data_selection.pdf}
-                \caption{Caption}
-                \label{fig:gd1-data_selection}
-            \end{figure*}
+        \begin{figure*}[h]
+            \script{gd1/plot/results_panels.py}
+            \centering
+            \includegraphics[width=1\linewidth]{figures/gd1/results_panels.pdf}
+            \caption{CAPTION}
+            TODO:
+            \begin{itemize}
+                \item Add plot of the stream linear density
+                \item Color palette for the spur
+                \item add the isochrones to the cmd plots
+            \end{itemize}
+            \label{fig:gd1-results-panels}
+        \end{figure*}
 
-            \begin{figure}
-                \script{gd1/plot/photometric_background_selection.py}
-                \centering
-                \includegraphics[width=1\linewidth]{figures/gd1/photometric_background_selection.pdf}
-                \caption{Caption}
-                \label{fig:gd1-photometric_background_selection}
-            \end{figure}
+        \begin{figure*}
+            \script{gd1/plot/smooth_likelihood.py}
+            \centering
+            \includegraphics[scale=0.8]{figures/gd1/smooth_likelihood.pdf}
+            \caption{Caption}
+            \label{fig:gd1-heatmap}
+        \end{figure*}
 
-            \begin{figure*}[h]
-                \script{gd1/plot/results_full.py}
-                \centering
-                \includegraphics[width=1\linewidth]{figures/gd1/results_full.pdf}
-                \caption{CAPTION}
-                TODO:
-                \begin{itemize}
-                    \item Add plot of the stream linear density
-                    \item Color palette for the spur
-                    \item more subtle stream MLE path
-                    \item rerun model with larger pmphi2 sigma
-                    \item add the isochrones to the cmd plots
-                \end{itemize}
-                \label{fig:gd1-results-full}
-            \end{figure*}
-
-            \begin{figure*}[h]
-                \script{gd1/plot/results_panels.py}
-                \centering
-                \includegraphics[width=1\linewidth]{figures/gd1/results_panels.pdf}
-                \caption{CAPTION}
-                TODO:
-                \begin{itemize}
-                    \item Add plot of the stream linear density
-                    \item Color palette for the spur
-                    \item add the isochrones to the cmd plots
-                \end{itemize}
-                \label{fig:gd1-results-panels}
-            \end{figure*}
-    
-            \begin{figure*}
-                \script{gd1/plot/smooth_likelihood.py}
-                \centering
-                \includegraphics[scale=0.8]{figures/gd1/smooth_likelihood.pdf}
-                \caption{Caption}
-                \label{fig:gd1-heatmap}
-            \end{figure*}
-
-            \variable{output/gd1/member_table_select.tex}
+        \variable{output/gd1/member_table_select.tex}
 
 
-    % subsection gd1 (end)
+% subsection gd1 (end)
 
-    \subsection{Palomar 5} \label{sub:pal5}
+\section{Palomar 5} \label{sec:results_pal5}
 
-        Content
+    Content
 
-    % subsection pal5 (end)
+% section pal5 (end)
 
 % section results (end)
 
