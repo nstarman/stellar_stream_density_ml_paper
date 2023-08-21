@@ -476,7 +476,7 @@
                 &\cmp{S,m}{\pdf}(\nth{\mbs{m}} | \mbs{\theta}(\phi_1)) = \\
                 &\ \int\limits_{\gamma=0}^{1} \mcal{N}(\nth{\mbs{m}} | \{\mcal{I(\gamma)} + \mu(\phi_1), \mbs{\Sigma}_{\mcal{I}}^2(\gamma) + \mathds{1}\sigma_\mu^2(\phi_1) + {\cmp{m}{\nth{\mbs{\Sigma}}}}^2 \}) \nonumber
                 \\
-                &\qquad \times \prior(\gamma, \nth{\mbs{m}}, \phi_1) \rm{d}\gamma. \nonumber
+                &\qquad \times \prior(\gamma, \nth{\mbs{m}} | \phi_1) \rm{d}\gamma. \nonumber
             \end{align}
             \end{small}
             Then, for a given $\phi_1$ we can obtain a distribution over the distance modulus using 
@@ -489,21 +489,33 @@
                 \delta \rm{dist}(\phi_1) &\simeq \frac{\ln{10}}{5} \rm{dist}(\phi_1) \ \sigma_\mu(\phi_1) & \quad\unit{pc}.
             \end{align}
 
-            Let $\cmp{S,m}{\mbs{\theta}}(\phi_1)$ represent the feed-forward neural network which outputs a vector of parameters characterizing the stream's photometric distribution at a given $\phi_1$. The network has 2 outputs -- $\mu, \Sigma_\mu$ -- as we only consider the distance track of the isochrone, holding fixed stellar population parameters internal to modeling the isochrone, such as its age and metallicity.
+            Let $\cmp{S,m}{\mbs{\theta}}(\phi_1)$ represent the feed-forward neural network which outputs a vector of parameters characterizing the stream's photometric distribution at a given $\phi_1$. The network has 2 outputs -- $\mu, \sigma_\mu$ -- as we only consider the distance track of the isochrone, holding fixed stellar population parameters internal to modeling the isochrone, such as its age and metallicity.
             In principle we might include parameters of the isochrone in the model, now $\mcal{I}(\mbs{\theta}, \gamma)$, where $\theta = {a, Z, ...}$ and any other generating parameters of the isochrone.
             % FIXME! DO this Likewise, the dust map may be treated as a prior and it's errors incorporated into the data errors.
             However, stellar streams are generally poorly fit by theoretic isochrones, at least ones with realistic ages and metallicities.
             Consequently including the age and metallicity as model parameters
-            does not meaningfully contribute to constraining results on the stream's stellar population. Moreover, age and metallicity are partially degenerate with the distance modulus. An alternate approach is to use data-driven isochrones instead of theoretic ones. In some forms of this approach the age and metallicity are not meaningful quantities. In others, e.g. with a suite of models or a trained emulator, the data-driven isochrones might have realistic ages and metallicities and thus meaningfully contribute to the model.
+            does not meaningfully contribute to constraining results on the stream's stellar population. Moreover, age and metallicity are partially degenerate with the distance modulus, working counter to the goal of fitting a distance track to the stream. An alternate approach is to use data-driven isochrones instead of theoretic ones.  the age and metallicity are not meaningful quantities. In others, e.g. with a suite of models or a trained emulator, the data-driven isochrones might have realistic ages and metallicities and thus meaningfully contribute to the model.
             % Is this true? re-read Uniform Modeling of 13 streams
             We defer this to a future work.
 
-            The photometric probability, \autoref{eq:photometric_probability}, includes the term $\prior(\gamma, \nth{\mbs{m}}, \phi_1)$, which encodes all priors on both the isochrone as well as observational constraints. We assume that the properties of the isochrone are conditionally independent from observational constraints; namely
+            The photometric probability, \autoref{eq:photometric_probability} encodes the photometric distribution -- the ``track" -- of the isochrone model at each point along the track, as well as the amplitudes, the relative probability of points along the track. This is the term $\prior(\gamma, \nth{\mbs{m}}, \phi_1)$, which encodes all priors on both the isochrone as well as observational constraints. We assume that the properties of the isochrone are conditionally independent from observational constraints; namely
             \begin{equation} \label{eq:isochrone_prior_components}
-                \prior(\gamma, \nth{\mbs{m}}, \phi_1) = \prior_{\cal{I}}(\gamma, \phi_1) \prior_{obs}(\nth{\mbs{m}}, \phi_1)
+                \prior(\gamma, \nth{\mbs{m}} | \phi_1) = \prior_{\cal{I}}(\gamma | \phi_1) \prior_{obs}(\nth{\mbs{m}} | \phi_1)
             \end{equation}
             where $\prior_{\cal{I}}$ and $\prior_{obs}$ are the isochrone and observational priors, respectively.
-            \autoref{eq:photometric_probability} already encodes the photometric distribution -- the ``track" -- of the isochrone model at each point along the track, but not the amplitudes, the relative probability of points. Physically, this amplitude is the the present-day mass function (PDMF). We The PDMF $\prior_{\cal{I}}(\gamma, \phi_1)$ is a joint distribution, depending on $\gamma$ since it is the $\gamma$-dependent distribution amplitude, and also on $\phi_1$. This latter dependence is confusingly termed the ``mass function of the stream", which is the expected variation in the stellar mass distrubion along the stream, arising due to e.g. mass segregation in the progenitor \TODO{[cite]}. To date this variation along the stream has not been observed \TODO{[cite]}, so in practice we drop the $\phi_1$ dependence -- $\prior_{\cal{I}}(\gamma, \phi_1) = \prior_{\cal{I}}(\gamma)$ -- assuming that the PDMF is constant along the stream.
+            
+            The second term in \autoref{eq:isochrone_prior_components} -- $\prior_{obs}(\nth{\mbs{m}} | \phi_1)$ -- encodes all observational effects in the photometric dataset. Some effects are easily modeled, e.g. datasets have magnitude limits, both faint and bright. Other effects are not, e.g, complex location-dependent completeness issues.
+            Accounting for the latter is very challenging.
+
+            \citep{GaiaCompleteness}
+
+            \begin{enumerate}
+                \item survey completeness is challenging. We pre-select the dataset so that we don't need to concern ourselves with this. For Gaia this means cutting $G_{ \Gaia} > 20$. Our discussion of the PDMF emphasizes why this isn't a problem for the isochrone.
+                \item we don't actually cut the data, but apply a mask. \autoref{sub:missing_data} explains how this is done. In this case ALL the photometric feature dimensions are masked. This means that the on-stream component is a track of 0-dimensional Gaussians, which means it doesn't enter into the probability. Any astrometric data enters the astrometric model, so the membership likelihood of these stars is driven entirely by the astrometric model.
+            \end{enumerate}
+            
+            
+            Physically, this amplitude is the the present-day mass function (PDMF). The PDMF $\prior_{\cal{I}}(\gamma, \phi_1)$ is a joint distribution, depending on $\gamma$ since it is the $\gamma$-dependent distribution amplitude, and also on $\phi_1$. This latter dependence is confusingly termed the ``mass function of the stream", which is the expected variation in the stellar mass distrubion along the stream, arising due to e.g. mass segregation in the progenitor \TODO{[cite]}. To date this variation along the stream has not been observed \TODO{[cite]}, so in practice we drop the $\phi_1$ dependence -- $\prior_{\cal{I}}(\gamma, \phi_1) = \prior_{\cal{I}}(\gamma)$ -- assuming that the PDMF is constant along the stream.
 
             % link to the code!
             In the code we offer a few ansatz for the PDMF, though any user-defined function may be used instead. The default assumption, known to be non-physical, is a uniform distribution over $\gamma$. Similarly non-physical are truncated uniform distributions, considering only a segment of the isochrone, e.g. the main sequence turnoff (MSTO). We include also a Kroupa initial mass function (IMF) \citep{2001MNRAS.322..231K}. The Kroupa IMF, and all physically-motivated IMFs,
@@ -515,33 +527,22 @@
             are not well fit \TODO{[cite]}. Moreover, for many streams, e.g. those lacking known progenitors, the PDMF is observationally poorly constrained.
             In short, using any fixed distribution is simple in implementation, however the choice of distribution is not.
 
-            Rather than using a fixed \textit{a priori} 
-            Similarly, the PDMF might be incorporated into the model,
+            Rather than using a fixed \textit{a priori} ansatz, another approach to the PDMF is to incorporate it into the model,
             parameterized by some distribution and fit simultaneously to the distance modulus and other $\cmp{m}{\mbs{\theta}}$.
-            Using a fixed distribution is a simple matter, however 
-            \TODO{[cite]}
-            
-            characterizing the stream PDMF, and the 
+            We find this, like incorporating $a, Z$ into the isochrone model, to be interesting avenues by which to develop the model. However the resulting significant increase in model flexibility necessitates careful regulation,
+            and we leave this to a future work.
 
-            % Mention uniform modeling?
-            An alternative approach to the PDMF issue is to restrict the mass range of the isochrone such that the PDMF is unimportant.
-            This restriction means we are not modeling the full range of the 
-            photometric data and not
+            \todo[inline]{I don't think this is necessary}
+            The last approach to the issue of the PDMF, and the one we take in this work, is to render it unimportant. The purpose of the 
+            We restrict the mass range of the isochrone such that we are modeling only a region of interest in the
+            isochrone. For streams with observable main sequence turn-offs we model
+            this region.
 
             \todo[inline]{More on the PDMF}
             \begin{enumerate}
                 \item could parameterize a more general distribution and fit for the PDMF
                 \item Alternatively, we are interested in the photometric model for a number of reasons, but an important one is that we can fit the distance modulus of the stream, for this only a subsection of the isochrone is needed. The best section is the MS turnoff.
                 Consequently, if we focus on the MS turnoff then the variation in the PDMF is much smaller and we can use a flat distribution. (Maybe need a plot demonstrating this?)
-            \end{enumerate}
-
-            The second term in \autoref{eq:isochrone_prior_components} -- $\prior_{obs}(\nth{\mbs{m}}, \phi_1)$ -- encodes all observational effects in the photometric dataset. In particular we are
- 
-            \todo[inline]{discussion of the $\prior_{obs}(\nth{\mbs{m}}, \phi_1)$}
-
-            \begin{enumerate}
-                \item survey completeness is challenging. We pre-select the dataset so that we don't need to concern ourselves with this. For Gaia this means cutting $G_{ \Gaia} > 20$. Our discussion of the PDMF emphasizes why this isn't a problem for the isochrone.
-                \item we don't actually cut the data, but apply a mask. \autoref{sub:missing_data} explains how this is done. In this case ALL the photometric feature dimensions are masked. This means that the on-stream component is a track of 0-dimensional Gaussians, which means it doesn't enter into the probability. Any astrometric data enters the astrometric model, so the membership likelihood of these stars is driven entirely by the astrometric model.
             \end{enumerate}
 
             \todo[inline]{Dust}
