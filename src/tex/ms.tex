@@ -17,6 +17,7 @@
 \renewcommand{\subsectionautorefname}{\S\!\!}%
 \renewcommand{\subsubsectionautorefname}{\S\!}%
 \renewcommand{\equationautorefname}{Eq.}
+\renewcommand{\tableautorefname}{Tab.}
 
 \newcommand{\package}[1]{\textsc{#1}}
 \newcommand{\stream}[1]{#1}
@@ -262,7 +263,7 @@
     We take the parameters of the mixture model -- the mixing coefficients and component distribution parameters -- to be general (continuous) functions of the conditioning variable, $\phi_1$. This is done using feed-forward neural network that takes the conditioning variable as its input and output the parameter value. Mixture models of conditional probability distributions using neural networks are called Mixture Density Networks (MDNs). Since the model coefficients may evolve with $\phi_1$, MNDs are well suited to characterize streams (and the background) with all their
     variations in position, width, and linear density.
 
-    % subsection framing_the_data (end)
+    % sub: framing_the_data (end)
 
 
     \subsection{Framing the Data} \label{sub:framing_the_data}
@@ -393,7 +394,7 @@
         Notwithstanding, we include a quality flag on our calculations indicating the number of missing features.
         We leave incorporating priors on the data mask distribution to future work. 
 
-    % subsection likelihood_setup (end)
+    % sub: likelihood_setup (end)
 
     \vspace{10pt}
     \subsection{Determination of the Mixture Weight} \label{sub:mixture_weight}
@@ -547,7 +548,7 @@
 
         % ssub: on_stream (end)
 
-        \subsubsection{Linking to Astrometrics: the Distance Modulus and the Parallax}
+        \subsubsection{Linking to Astrometrics: the Distance Modulus and the Parallax} \label{ssub:linking_to_astrometrics}
 
             % TODO: rephrase
             By modeling jointly the astrometrics and photometrics we may tie together components of the models.
@@ -567,6 +568,8 @@
     
             In practice, at the distance of many streams the errors in the parallaxes are of order 1 and we exclude the feature from the model.
             % TODO! 
+
+        % ssub: linking_to_astrometrics (end)
     
         \subsubsection{Off-stream} \label{sub:photometric_model_off_stream}
             In this section we introduce our model for the distribution of backgrounds in photometric coordinates. 
@@ -585,8 +588,6 @@
         % ssub: off_stream (end)
     
     % sub: photometric_model (end)
-
-    % subsection photmetric background (end)
 
     \subsection{Priors} \label{sub:priors}
 
@@ -618,7 +619,7 @@
             Alternatively, priors parameter may be separated into pieces, dealing with different modeling needs, e.g. defining broad parameter bounds as was done in this section.
             We introduce a different piece subsequently.
 
-        % subsection subsubsection parameter_bounds (end)
+        % ssub: parameter_bounds (end)
 
         \subsubsection{Region Prior} \label{sub:track_region_prior}
 
@@ -652,35 +653,48 @@
             $-\ln\left(\sqrt{\frac{\pi}{\tau}} \left(\frac{1}{2}\text{erf}\left(2 \sqrt{\tau } w\right)+1\right)\right)$. In this form we see that $\tau$ may be increased to strengthen the prior and encourage $\theta$ to lie within
             the desired region. It is important that the region be set large enough that we may be confident the prior is not driving the final result on small scales. As an added measure, it is often useful to turn off this prior after the stream lies within the desired regions.
 
-    \subsection{Model Implementation, aka the code} \label{sub:model_implementation}
+        % ssub: region_prior (end)
 
-        In prior sections we 
-        
-        Thus far we have described the mathematical model.
-        Now we describe 
+    % sub: priors (end)
+
+    \vspace{5pt}
+    \subsection{Model Implementation, aka the code} \label{sub:model_implementation}
 
         \todo[inline]{TODO: how much should be included here?}
 
-        \begin{enumerate}
-            \item A network per model component, e.g. one for the weights, one for the stream track and width, one for the background distribution.
-            \item MLP for the components - lin / tanh + dropout
-            \item Normalizing flow - specific pieces
-            \item connective priors
-            \item 
-            \item Architecture in the Appendix
-        \end{enumerate}
+        In prior sections we discussed the mathematical implementation of each component of the Mixture Density Network. Here we make brief remarks on the code implementation and architecture of the neural networks.
+        % Rephrase: I don't like this topic sentence.
+
+        The neural networks are built with the \package{PyTorch} stack \TODO{[cite]}. We wrap the network \texttt{pytorch.Module} in a custom framework, allowing the Bayesian likelihood, prior, evidence, etc. to be bundled with the network's forward step. This framework allows for a high degree of modularity. Component models, e.g. the stream model, of the mixture are easily added to (and moved from) as items in the larger mixture model. Probability methods understand how to traverse the mixture model, calling and combining the appropriate methods of the constituent models, so it unnecessary to write custom loss functions. 
+        Another benefit of the modular framework is the ease of building and experimenting with different mixture models. Furthermore, each model component may be saved and serialized separately from the other components, allowing for
+        portability of the components between models. For example, if a stream has a prominent extra-tidal feature, e.g. the spur of \stream{GD-1}, a fiducial model of just the thin stream may be trained, then the stream (and background) model components may be saved and used as the initialization to the stream (and background) of a more complete model that includes the spur. This modularity also has a cost: by allowing each model component (including the categorical mixture model itself) to contain its own network we decrease the cross-talk between nodes in separated networks. The networks communicate only through the backwards propagation of the loss function, increasing the required training time of the models. We note that the code framework, being built on \package{PyTorch}, easily permits a single model with single network. Having found a good model by experimenting with the modular layout, the model may be reproduced and re-trained as a single network. Alternatively, though we leave this to a future version of the code, it is possible to ``fuse" the mixture, providing one network whose outputs are apportioned appropriately to each constituent model.
+
+        The models permit user-defined priors to be passed at model instantiation.
+        Priors specific to a single model are contained on that model, while priors connecting two (or more) models are held on the mixture model object. As an example of the latter, see \autoref{ssub:linking_to_astrometrics}, which connects the distance component of the astrometric and photometric stream models.
+
+        The custom model framework combines for each model a neural network with Bayesian probability functions. The latter are set by the model type, e.g. the Gaussian model has a Gaussian likelihood function, but the former, the neural network, is set and determined by the user. So long as the network has the correct number of inputs (e.g. one for $\phi_1$) and outputs (one per parameter), any feed-forward network may be used. Our default choice, and for which we provide a helper function, is an MLP with a sequence of (\texttt{Linear} \textrightarrow \texttt{Tanh} \textrightarrow \texttt{Dropout}) blocks. This is illustrated in \autoref{table:mlp_structure}.
+        % FIXME! reference not being picked up correctly.
+        One model for which the lin-tanh network cannot be used is the normalizing flow
+        used in the photometric background model (\autoref{sub:photometric_model_off_stream}). Here we use the \package{nflows} package, with a conditional diagonal normal base distribution and composite transform network of a reverse permutation and masked affine auto-regressive transform layers. As noted in our data availability statement, all the codes used in this paper are bundled by \href{https://github.com/showyourwork/showyourwork}{\package{showyourwork}} in a public repository at $\GitHubURL{}$. We will describe for each stream model specifics relevant to that stream but refer readers to the publicly-available code itself for code implementation details.
+        % TODO: Maybe more details in the Appendix?
 
         \begin{table}
             \centering
-            \caption{MLP structure}
+            \caption{\todo[inline]{MLP structure}}
+            \label{table:mlp_structure}
             \begin{tabular}{@{}rrcl@{}}
             \toprule
             & Layer & Shape & Param \# \\
             \midrule
-            & Linear & (None, 1, F) & 1  \\
-            & Tanh & (None, 1, F) & 1  \\
-            & Dropout & (None, 1, F) & 0  \\
-            & Linear & (None, 1, F) & 1  \\
+            & Linear & (None, 1, H) & 1  \\
+            & Tanh & (None, H, H) & 1  \\
+            & Dropout & (None, H, H) & 0  \\
+            & Linear & (None, H, H) & 1  \\
+            & Tanh & (None, H, H) & 1  \\
+            & Dropout & (None, H, H) & 0  \\
+            & Linear & (None, H, F) & 1  \\
+            & Tanh & (None, F, F) & 1  \\
+            & Dropout & (None, F, F) & 0  \\
             \bottomrule
             \end{tabular}
         \end{table}
@@ -757,7 +771,7 @@
     
         In the bottom two rows of \autoref{fig:mock_data_result} we illustrate the synthetic data color-coded by stream membership probability (top) and background membership probability (background) for different $\phi_1$ slices. Importantly, the photometric portion of the mixture model successfully identifies the stream in magnitude space, showing a high stream membership probability where the stream is present, and a low probability ($\sim 0$) where the stream is absent.  
     
-    % subsection test_on_a_synthetic_stream (end)
+    % sub: test_on_a_synthetic_stream (end)
 
 \section{Results: GD-1} \label{sec:results_gd1}
 
@@ -862,7 +876,7 @@
         \variable{output/gd1/member_table_select.tex}
 
 
-% subsection gd1 (end)
+% sub: gd1 (end)
 
 \section{Palomar 5} \label{sec:results_pal5}
 
@@ -881,19 +895,19 @@
     
             Assumes a potential
     
-        % subsection streamfinder (end)
+        % sub: streamfinder (end)
     
         \subsubsection{VIA MACHINAE}{\cite{2022MNRAS.509.5992S}}
 
             Only astrometric.
     
-        % subsection via_machinae (end)
+        % sub: via_machinae (end)
     
         \subsubsection[Uniform Modeling of 13 Stellar Streams]{\cite{PatrickEtAl2022}}
 
             Doesn't do simultaneous modeling.
     
-        % subsection uniform_modeling_of_13_stellar_streams (end)
+        % sub: uniform_modeling_of_13_stellar_streams (end)
 
 
 \section{Conclusions} \label{sec:conclusions}
