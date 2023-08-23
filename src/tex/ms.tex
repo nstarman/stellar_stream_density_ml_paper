@@ -235,7 +235,7 @@
         The paper is organized as follows.
         In \autoref{sec:method} we introduce our method for characterizing stream tracks and computing stellar membership.
         We discuss the data in \autoref{sub:framing_the_data} and build a probabilistic framework to model the stream and background in \autoref{sub:likelihood_setup}-\autoref{sub:priors}.
-        In \autoref{sec:results_mock} we apply our method to simulated data (\autoref{sub:mock_data}) to demonstrate the model with a known ground truth dataset,
+        In \autoref{sec:results_mock} we apply our method to simulated data to demonstrate the model with a known ground truth dataset,
         then to the stellar streams \stream{GD-1} (\autoref{sec:results_gd1}) and \stream{Pal\,5} (\autoref{sec:results_pal5}).
         We compare our approach to characterizing stellar streams to other methods in \autoref{sec:comparison}.
         We conclude in \autoref{sec:conclusions}, discussing the results of this work and future directions.
@@ -562,7 +562,7 @@
             The widths are similarly constrained. The distance and first-order error conversion are given by
             \begin{align}
                 \mu_I(\parallax) &= 10 - 5\log_{10}(\parallax) \\
-                \sigma_I(\sigma_\parallax)  &= \frac{5}{\ln{10}} \mu_I \lvert\sigma_\parallax\rvert + \mcal{O}.
+                \sigma_I(\sigma_\parallax)  &\approxeq \frac{5}{\ln{10}} \mu_I \lvert\sigma_\parallax\rvert.
             \end{align}
     
             In practice, at the distance of many streams the errors in the parallaxes are of order 1 and we exclude the feature from the model.
@@ -597,21 +597,21 @@
 
             For each parameter in $\mbs{\theta}$ of the model we implement priors on its range.
             Uninformative, e.g. uniform $\mcal{U}(a, b)$, priors are often assumed where little is known about a parameter (except that $(a,b]$ contain the correct $\theta$ and its distribution). Where more is known about $\theta$, for instance that it is a categorical, more informative priors like the Dirichlet distribution \citep{Bishop_Christopher_M_2016-08-23} may be used. Our code permits any user-defined prior, and we include $\mcal{U}(a, b)$.
-            The default choice of bounds is the limits of the dataset in each feature dimension.
+            The default choice of prior and bounds $\mcal{U}$ set to the limits of the dataset in each feature dimension.
             % ⬆ where should this sentence be?
 
-            The choice of prior is important, not only for the information it adds to the model, but also for how optimizers explore the parameter space. Simple optimizers, like MCMC \TODO{[cite]}, propose a parameter vector then compute its likelihood given the data. Priors with compact support  $\theta \sim \mcal{D}((a, b])$, e.g. $\mcal{U}(a, b)$, may be very dangerous as the optimizer can be initialized in a region with zero probability and has no means but blind luck to find the region of support, with non-zero likelihood. More sophisticated optimizers, like gradient-based descent \TODO{[cite]}, are susceptible to a similar initialization problem, requiring a non-zero gradient to make informed updates to the optimizers state.
+            The choice of prior is important, not only for the information it adds to the model, but also for how optimizers explore the parameter space. Simple optimizers, like MCMC \TODO{[cite]}, propose a parameter vector then compute its likelihood given the data. Priors with compact support  $\theta \sim \mcal{D}((a, b])$, e.g. $\mcal{U}(a, b)$, may be very dangerous as the optimizer can be initialized in a region with zero probability and has no means but blind luck to find the region of support -- the region with non-zero likelihood. More sophisticated optimizers, like gradient-based descent \TODO{[cite]}, are susceptible to a similar initialization problem, allowing zero-probability regions, but requiring at least a non-zero gradient to make informed updates to the optimizers state. Outside the  support the gradient can be zero.
             With MDNs, model parameters are neural network outputs. Unlike for conventional models where an informed initial parameter state may be chosen by hand, it is impractical and undesirable to initialize by hand a neural network's output by setting all its internal weights. One might imagine accomplishing a desired initial output by pre-training the network with a toy model that forces convergence on a set output vector. However,
             neural networks are highly non-linear in their response to internal state changes (a desirable property). It is quite possible that when switching from the toy to real model's loss function the pre-trained network is in 
             a local probability island from which the global optimum is unreachable.  
             Therefore, with the MDN neural networks, initialization is mostly for checking the dependence of the results on the initial state -- though even this dependence may instead be done using parameter dropout. Rather than 
             focusing on initializing to a particular parameter vector, for neural networks it is instead important that the initial state, whatever it is, has non-zero probability (or non-zero gradient, depending on the optimizer).
-            Neural networks have some intrinsic phase-space range that depends on the architecture of the network. Therefore the network architecture must be chosen such that the outputs match well with priors. For example, with a
-            uniform prior $\theta \sim \mcal{U}(a,b)$, the network should be restricted such that $\theta \in (a, b]$, e.g. by a scaled logistic function.
+            Neural networks have some intrinsic phase-space range that depends on the architecture of the network. Therefore the network architecture must be chosen such that the outputs match well with the priors. For example, with a
+            uniform prior $\theta \sim \mcal{U}(a,b)$, the network should be restricted such that $\theta \in (a, b]$, e.g. by ending the network's $\theta$ channel with a scaled logistic function.
             \begin{equation}\label{eq:scaled_logistic}
                   \sigma(x, \{a,b\}) = a + (b - a) * \sigma(x)
             \end{equation}
-            Therefore, we pair every parameter bound with a bound in the network architecture.
+            Therefore, we pair every parameter bound with a matching bound in the network architecture.
 
             % ⬇ where should this sentence be?
             The parameter bounds may be independent of $\phi_1$, as is implicit to the above discussion, or conditionally dependent and vary as any user-defined function of $\phi_1$.
@@ -627,7 +627,7 @@
             stream is known for significant portions of its length \citep[e.g. see the atlas in][]{Mateu2022}. It makes sense, then, to provide this information to the model. Care must be taken that this prior information does not dominate the model.
             % A good balance between these two goals is to have a prior that only influences the track on large scales.
             We introduce a region prior to encourage the stream model to pass through a user-defined control region, while also remaining compatible with the data.
-            We refer to the prior as a ``split" Gaussian prior: a Gaussian split and separated at the peak and pieced back together with a flat region connecting the halves. The un-normalized PDF is given by:
+            We refer to the prior as a ``split"-Normal prior: a Gaussian split and separated at the peak and pieced back together with a flat region connecting the halves. The un-normalized PDF is given by:
             \begin{small}
             \begin{equation}
                 \pdf(\theta,\mu,\sigma,w) \propto \begin{cases} 
@@ -637,8 +637,8 @@
                 \end{cases}.
             \end{equation}\end{small}
             The piecewise PDF is smooth up to the first derivative and can be used with gradient-based optimizers.
-    
-            Since this prior is equi-probable in the region $\mu - w < x < \mu + w$, the impact is to encourage the stream to fall anywhere within this region. 
+
+            The Gaussian portions of the prior encourage the network towards the central region $\mu - w < x < \mu + w$. Since the prior is equi-probable in the region, the stream may lie anywhere as preferred by the data and the stream model.
             It is convenient to reparametrize, with $\tau = \frac{1}{\sigma}$. Namely,
             \begin{small}
             \begin{equation}
@@ -650,10 +650,12 @@
             \end{equation}\end{small}
             where the additive normalization is 
             $-\ln\left(\sqrt{\frac{\pi}{\tau}} \left(\frac{1}{2}\text{erf}\left(2 \sqrt{\tau } w\right)+1\right)\right)$. In this form we see that $\tau$ may be increased to strengthen the prior and encourage $\theta$ to lie within
-            the desired region.
+            the desired region. It is important that the region be set large enough that we may be confident the prior is not driving the final result on small scales. As an added measure, it is often useful to turn off this prior after the stream lies within the desired regions.
 
     \subsection{Model Implementation, aka the code} \label{sub:model_implementation}
 
+        In prior sections we 
+        
         Thus far we have described the mathematical model.
         Now we describe 
 
