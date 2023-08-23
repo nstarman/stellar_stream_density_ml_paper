@@ -602,7 +602,7 @@
 
             The choice of prior is important, not only for the information it adds to the model, but also for how optimizers explore the parameter space. Simple optimizers, like MCMC \TODO{[cite]}, propose a parameter vector then compute its likelihood given the data. Priors with compact support  $\theta \sim \mcal{D}((a, b])$, e.g. $\mcal{U}(a, b)$, may be very dangerous as the optimizer can be initialized in a region with zero probability and has no means but blind luck to find the region of support, with non-zero likelihood. More sophisticated optimizers, like gradient-based descent \TODO{[cite]}, are susceptible to a similar initialization problem, requiring a non-zero gradient to make informed updates to the optimizers state.
             With MDNs, model parameters are neural network outputs. Unlike for conventional models where an informed initial parameter state may be chosen by hand, it is impractical and undesirable to initialize by hand a neural network's output by setting all its internal weights. One might imagine accomplishing a desired initial output by pre-training the network with a toy model that forces convergence on a set output vector. However,
-            neural networks are highly non-linear in their response to internal state changes (a desirable property). It is quite possible that when switching form the toy to real model's loss function the pre-trained network is in 
+            neural networks are highly non-linear in their response to internal state changes (a desirable property). It is quite possible that when switching from the toy to real model's loss function the pre-trained network is in 
             a local probability island from which the global optimum is unreachable.  
             Therefore, with the MDN neural networks, initialization is mostly for checking the dependence of the results on the initial state -- though even this dependence may instead be done using parameter dropout. Rather than 
             focusing on initializing to a particular parameter vector, for neural networks it is instead important that the initial state, whatever it is, has non-zero probability (or non-zero gradient, depending on the optimizer).
@@ -667,7 +667,6 @@
             \item 
             \item Architecture in the Appendix
         \end{enumerate}
-
 
         \begin{table}
             \centering
