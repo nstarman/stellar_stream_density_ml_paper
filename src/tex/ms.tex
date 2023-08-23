@@ -558,13 +558,13 @@
                 % \prior(\{\sigma_I, \sigma_\parallax \}(\phi_1)) &= \delta( \rm{dist}(\mu_I) - \rm{dist}(\parallax) )(\phi_1) \label{eq:distance_width_prior}
             \end{align}
             % TODO: should we show that these are different distance functions? or is it obvious
-            where $\delta$ is the Dirac delta function \citep{1947pqm..book.....D}, and simply expresses that the distance modulus track and parallax track must be equal (when converted to the actual distance) as a function of $\phi_1$.
-            The widths are similarly constrained.
+            where $\delta$ is the Dirac delta function \citep{1947pqm..book.....D}, and enforces that the distance modulus track and parallax track must be equal (when converted to the actual distance) as a function of $\phi_1$.
+            The widths are similarly constrained. The distance and first-order error conversion are given by
             \begin{align}
                 \mu_I(\parallax) &= 10 - 5\log_{10}(\parallax) \\
-                \sigma_I(\sigma_\parallax)  &= \frac{5}{\ln{10}} \mu_I \lvert\sigma_\parallax\rvert
+                \sigma_I(\sigma_\parallax)  &= \frac{5}{\ln{10}} \mu_I \lvert\sigma_\parallax\rvert + \mcal{O}.
             \end{align}
-
+    
             In practice, at the distance of many streams the errors in the parallaxes are of order 1 and we exclude the feature from the model.
             % TODO! 
     
