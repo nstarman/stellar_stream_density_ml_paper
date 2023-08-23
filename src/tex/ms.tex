@@ -533,18 +533,12 @@
             We find this, like incorporating $a, Z$ into the isochrone model, to be interesting avenues by which to develop the model. However the resulting significant increase in model flexibility necessitates careful regulation,
             and we leave this to a future work.
 
-            \todo[inline]{I don't think this is necessary}
-            The last approach to the issue of the PDMF, and the one we take in this work, is to render it unimportant. The purpose of the 
-            We restrict the mass range of the isochrone such that we are modeling only a region of interest in the
-            isochrone. For streams with observable main sequence turn-offs we model
-            this region.
-
-            \todo[inline]{More on the PDMF}
-            \begin{enumerate}
-                \item could parameterize a more general distribution and fit for the PDMF
-                \item Alternatively, we are interested in the photometric model for a number of reasons, but an important one is that we can fit the distance modulus of the stream, for this only a subsection of the isochrone is needed. The best section is the MS turnoff.
-                Consequently, if we focus on the MS turnoff then the variation in the PDMF is much smaller and we can use a flat distribution. (Maybe need a plot demonstrating this?)
-            \end{enumerate}
+            % TODO? expand this section.
+            The last approach to the issue of the PDMF, and the one we take in this work, is to render it unimportant. 
+            With fixed age, metallicity, and other isochrone model parameters, the primary purpose of the isochrone is to allow the model to determine the distance modulus of the stream. For this, only a portion of the stream need be modeled.
+            For streams with observable main sequence turn-offs, like \stream{GD-1} in \gaia, this portion of the isochrone has both many stars and a relatively small range in masses. Thus, we restrict the mass range of the isochrone such that we are modeling only a region of interest over which the PDMF does not contribute to the final result.
+            % TODO? work in something to the effect of:
+            % The PDMF doesn't have an enormous impact, regardless as the isochrone model is very thin and stars close to the isochrone photometrically are generally quite far astrometrically. This is an advantange of simultaneous modeling, where errors in one model are balanced by other parts of the model.
 
         % ssub: on_stream (end)
 
@@ -672,34 +666,37 @@
         The models permit user-defined priors to be passed at model instantiation.
         Priors specific to a single model are contained on that model, while priors connecting two (or more) models are held on the mixture model object. As an example of the latter, see \autoref{ssub:linking_to_astrometrics}, which connects the distance component of the astrometric and photometric stream models.
 
-        The custom model framework combines for each model a neural network with Bayesian probability functions. The latter are set by the model type, e.g. the Gaussian model has a Gaussian likelihood function, but the former, the neural network, is set and determined by the user. So long as the network has the correct number of inputs (e.g. one for $\phi_1$) and outputs (one per parameter), any feed-forward network may be used. Our default choice, and for which we provide a helper function, is an MLP with a sequence of (\texttt{Linear} \textrightarrow \texttt{Tanh} \textrightarrow \texttt{Dropout}) blocks. This is illustrated in \autoref{table:mlp_structure}.
+        The custom model framework combines for each model a neural network with Bayesian probability functions. The latter are set by the model type, e.g. the Gaussian model has a Gaussian likelihood function, but the former, the neural network, is set and determined by the user. So long as the network has the correct number of inputs (e.g. one for $\phi_1$) and outputs (one per parameter), any feed-forward network may be used. Our default choice, and for which we provide a helper function, is an MLP with a sequence of \texttt{Linear} \!\!\textrightarrow \texttt{Tanh} \!\!\textrightarrow \texttt{Dropout} blocks. This is illustrated in \autoref{table:mlp_structure}.
         % FIXME! reference not being picked up correctly.
-        One model for which the lin-tanh network cannot be used is the normalizing flow
+        Dropout layers are used to prevent network co-adaptation and over-fitting. Dropout works by randomly zeroing out nodes in the network, decreasing the importance of any single node, encouraging instead emergent patterns across the network.
+        One model for which the lin-tanh-dropout network cannot be used is the normalizing flow
         used in the photometric background model (\autoref{sub:photometric_model_off_stream}). Here we use the \package{nflows} package, with a conditional diagonal normal base distribution and composite transform network of a reverse permutation and masked affine auto-regressive transform layers. As noted in our data availability statement, all the codes used in this paper are bundled by \href{https://github.com/showyourwork/showyourwork}{\package{showyourwork}} in a public repository at $\GitHubURL{}$. We will describe for each stream model specifics relevant to that stream but refer readers to the publicly-available code itself for code implementation details.
         % TODO: Maybe more details in the Appendix?
 
         \begin{table}
             \centering
-            \caption{\todo[inline]{MLP structure}}
+            \caption{
+            Example neural network structure consisting of 1 input block mapping a $\phi_1$ scalar to the $H$ nodes of the hidden blocks, the number of which determines the depth of the network. The hidden blocks map to the $F$ outputs in the output block. Each block consists of a \texttt{Linear} \!\!\textrightarrow \texttt{Tanh} \!\!\textrightarrow \texttt{Dropout} sequence. Vector $\phi_1$ inputs are supported as an element-wise application of the network.
+            }
             \label{table:mlp_structure}
             \begin{tabular}{@{}rrcl@{}}
             \toprule
-            & Layer & Shape & Param \# \\
+            & Layer & Shape & Parameters \\
             \midrule
-            & Linear & (None, 1, H) & 1  \\
-            & Tanh & (None, H, H) & 1  \\
-            & Dropout & (None, H, H) & 0  \\
-            & Linear & (None, H, H) & 1  \\
-            & Tanh & (None, H, H) & 1  \\
-            & Dropout & (None, H, H) & 0  \\
-            & Linear & (None, H, F) & 1  \\
-            & Tanh & (None, F, F) & 1  \\
-            & Dropout & (None, F, F) & 0  \\
+            & Linear & (1, H) & 2H  \\
+            & Tanh & (H, H) & 0  \\
+            & Dropout & (H, H) & 0  \\
+            \hline
+            & Linear & (H, H) & $2H^2$  \\
+            $N_{\rm hidden} \times$ & Tanh & (H, H) & 0  \\
+            & Dropout & (H, H) & 0  \\
+            \hline
+            & Linear & (H, F) & $2HF$  \\
+            & Tanh & (F, F) & 0 \\
+            & Dropout & (F, F) & 0  \\
             \bottomrule
             \end{tabular}
         \end{table}
-
-        Dropout layers were used to prevent network co-adaptation and over-fitting. Dropout works by randomly zeroing out nodes in the network, decreasing the importance of any single node, encouraging instead emergent patterns across the network.
 
         
 % section method (end)
