@@ -93,12 +93,12 @@ phi1 = stream_table["phi1"].to_value("deg")
 
 Hs, bin_edges = np.histogram(phi1, bins=75)
 Ht, bin_edges = np.histogram(data["phi1"], bins=bin_edges)
-ax01.hist(
+ax01.bar(
     bin_edges[:-1],
     Hs / Ht,
     width=bin_edges[1] - bin_edges[0],
-    c="k",
-    histtype="step",
+    edgecolor="k",
+    color="none",
     label="Ground Truth",
 )
 
