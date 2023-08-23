@@ -9,6 +9,7 @@
 \usepackage{booktabs}
 \usepackage{dsfont}
 \usepackage[inline]{enumitem}
+\usepackage{cleveref}
 \usepackage{todonotes}
 
 % Change the section names
@@ -498,23 +499,22 @@
             % Is this true? re-read Uniform Modeling of 13 streams
             We defer this to a future work.
 
-            The photometric probability, \autoref{eq:photometric_probability} encodes the photometric distribution -- the ``track" -- of the isochrone model at each point along the track, as well as the amplitudes, the relative probability of points along the track. This is the term $\prior(\gamma, \nth{\mbs{m}}, \phi_1)$, which encodes all priors on both the isochrone as well as observational constraints. We assume that the properties of the isochrone are conditionally independent from observational constraints; namely
+            The photometric probability, \autoref{eq:photometric_probability} encodes the photometric distribution -- the ``track" -- of the isochrone model at each point along the track, as well as the amplitudes, the relative probability of points along the track. This is the term $\prior(\gamma, \nth{\mbs{m}} | \phi_1)$, which describes all priors on both the isochrone as well as observational constraints. We assume that the properties of the isochrone are conditionally independent from observational constraints; namely
             \begin{equation} \label{eq:isochrone_prior_components}
                 \prior(\gamma, \nth{\mbs{m}} | \phi_1) = \prior_{\cal{I}}(\gamma | \phi_1) \prior_{obs}(\nth{\mbs{m}} | \phi_1)
             \end{equation}
-            where $\prior_{\cal{I}}$ and $\prior_{obs}$ are the isochrone and observational priors, respectively.
+            where $\prior_{\mcal{I}}$ and $\prior_{obs}$ are the isochrone and observational priors, respectively.
             
-            The second term in \autoref{eq:isochrone_prior_components} -- $\prior_{obs}(\nth{\mbs{m}} | \phi_1)$ -- encodes all observational effects in the photometric dataset. Some effects are easily modeled, e.g. datasets have magnitude limits, both faint and bright. Other effects are not, e.g, complex location-dependent completeness issues.
-            Accounting for the latter is very challenging.
+            The second term in \autoref{eq:isochrone_prior_components} -- $\prior_{obs}(\nth{\mbs{m}} | \phi_1)$ -- encodes all observational effects in the photometric dataset. Some effects are easily modeled, e.g. instruments have well-characterized magnitude limits, both faint and bright. Other effects are not easily modeled, e.g, complex location-dependent completeness issues \citep{GaiaCompleteness}.
+            Accounting for the completeness is very challenging. In practice we avoid
+            the contribution of completeness to $\prior_{obs}$, masking data for which it is relevant. \Gaia, for instance, is complete from $12 < G < 17$ and has high completeness up to $G ~20$, thus we mask $G > 20$.
+            The masks are easily modeled as magnitude limits and replace the complex completeness model in $\prior_{obs}$.
+            \autoref{sub:missing_data} explains how masking is implemented in the models, though in this case every feature is masked, not only a few feature dimensions. With every featured masked, the photometric model in \autoref{eq:photometric_probability} reduces from an $F_m$-dimensional Gaussian to a 0-D Gaussian, which is a null distribution and does not enter into the likelihood.
+            In photometric coordinates completeness depends on a stars apparent magnitude; vied in in astrometric coordinates, the completeness cannot be described so simply. \Gaia, for instance has scanning law residuals in the density field. When photometric coordinates are masked due to completeness, we do not mask the corresponding  astrometric features, so that the stars  membership probability is determined solely by the astrometric model. This practice allows us to include stars with good astrometric measurements, not penalizing those stars for which the photometric model is insufficient.
+            We examine the results to confirm that the scan pattern does not impact the
+            membership distribution.
 
-            \citep{GaiaCompleteness}
-
-            \begin{enumerate}
-                \item survey completeness is challenging. We pre-select the dataset so that we don't need to concern ourselves with this. For Gaia this means cutting $G_{ \Gaia} > 20$. Our discussion of the PDMF emphasizes why this isn't a problem for the isochrone.
-                \item we don't actually cut the data, but apply a mask. \autoref{sub:missing_data} explains how this is done. In this case ALL the photometric feature dimensions are masked. This means that the on-stream component is a track of 0-dimensional Gaussians, which means it doesn't enter into the probability. Any astrometric data enters the astrometric model, so the membership likelihood of these stars is driven entirely by the astrometric model.
-            \end{enumerate}
-            
-            
+            The first term in \autoref{eq:isochrone_prior_components} -- $\prior_{\mcal{I}}$ -- encodes the point-wise amplitude of the isochrone.
             Physically, this amplitude is the the present-day mass function (PDMF). The PDMF $\prior_{\cal{I}}(\gamma, \phi_1)$ is a joint distribution, depending on $\gamma$ since it is the $\gamma$-dependent distribution amplitude, and also on $\phi_1$. This latter dependence is confusingly termed the ``mass function of the stream", which is the expected variation in the stellar mass distrubion along the stream, arising due to e.g. mass segregation in the progenitor \TODO{[cite]}. To date this variation along the stream has not been observed \TODO{[cite]}, so in practice we drop the $\phi_1$ dependence -- $\prior_{\cal{I}}(\gamma, \phi_1) = \prior_{\cal{I}}(\gamma)$ -- assuming that the PDMF is constant along the stream.
 
             % link to the code!
@@ -545,10 +545,6 @@
                 Consequently, if we focus on the MS turnoff then the variation in the PDMF is much smaller and we can use a flat distribution. (Maybe need a plot demonstrating this?)
             \end{enumerate}
 
-            \todo[inline]{Dust}
-            We use \package{dustmaps} Bayestar 19 for the dust modeling. We treat it as known. Include as a source of error in $\Sigma_n$
-            % TODO: actually implement that in the model
-
         % ssub: on_stream (end)
 
         \subsubsection{Linking to Astrometrics: the Distance Modulus and the Parallax}
@@ -556,14 +552,13 @@
             % TODO: rephrase
             By modeling jointly the astrometrics and photometrics we may tie together components of the models.
             In particular, the distance modulus in the photometric model and the parallax in the astrometric model are both measures of the distance track of the stream.
-
             We introduce a prior to connect these components of the model:
             \begin{align}
                 \prior(\{\mu_I, \mu_\parallax \} | \phi_1) &= \delta( \rm{dist}(\mu_I) - \rm{dist}(\parallax) )(\phi_1), \label{eq:distance_track_prior}
                 % \prior(\{\sigma_I, \sigma_\parallax \}(\phi_1)) &= \delta( \rm{dist}(\mu_I) - \rm{dist}(\parallax) )(\phi_1) \label{eq:distance_width_prior}
             \end{align}
             % TODO: should we show that these are different distance functions? or is it obvious
-            where $\delta$ is the Dirac delta function, and simply expresses that the distance modulus track and parallax track must be equal (when converted to the actual distance) as a function of $\phi_1$.
+            where $\delta$ is the Dirac delta function \citep{1947pqm..book.....D}, and simply expresses that the distance modulus track and parallax track must be equal (when converted to the actual distance) as a function of $\phi_1$.
             The widths are similarly constrained.
             \begin{align}
                 \mu_I(\parallax) &= 10 - 5\log_{10}(\parallax) \\
@@ -575,7 +570,7 @@
     
         \subsubsection{Off-stream} \label{sub:photometric_model_off_stream}
             In this section we introduce our model for the distribution of backgrounds in photometric coordinates. 
-            In general, the distribution of stars in color (i.e., $g-r$) and magnitude (i.e., $g$) is a complicated function of location in the galaxy \TODO{(e.g. [cite])}. Even within a field centered on the stream of interest, the color-magnitude diagram (CMD) is a combination of stellar populations distributed over a range in distances. Because of this, we do not expect an analytic density to provide a realistic description of the data. In this work we take a data-driven approach, and represent the CMD using a normalizing flow model.
+            The distribution of stars in color (i.e., $g-r$) and magnitude (i.e., $g$) is a complicated function of location in the galaxy \TODO{(e.g. [cite])}. Even within a field centered on the stream of interest, the color-magnitude diagram (CMD) is a combination of stellar populations distributed over a range in distances. Because of this, we do not expect an analytic density to provide a realistic description of the data. In this work we take a data-driven approach, and represent the CMD using a normalizing flow model.
 
             Normalizing flows provide a flexible description of a probability density, by transforming samples generated from a simple base distribution (i.e., a Gaussian) to the more complicated target distribution. The transformations are typically non-linear outputs of a neural neural network, whose parameters are optimized until the target density accurately characterizes the data. The neural network transformation is differentiable, so that jacobian factors can be combined to ensure that the the target distribution remains a valid probability density (i.e., integrates to one) \TODO{[cite]}.  
 
@@ -595,60 +590,72 @@
 
     \subsection{Priors} \label{sub:priors}
 
-        \todo[inline]{intro sentences}
+        In \autoref{sub:likelihood_setup} we introduced the likelihood setup. In \autoref{sub:photometric_model_on_stream} we added priors in the form of the isochrone's PDMF and photometric observational constraints. In this section we
+        introduce and develop more priors that are important for training the BMDN's parameters' neural network(s).
 
-        \subsubsection{Parameter Bounds}
+        \subsubsection{Parameter Bounds} \label{ssub:parameter_bounds}
 
-            We implement hard bounds on the range of each parameter $\theta$.
+            For each parameter in $\mbs{\theta}$ of the model we implement priors on its range.
+            Uninformative, e.g. uniform $\mcal{U}(a, b)$, priors are often assumed where little is known about a parameter (except that $(a,b]$ contain the correct $\theta$ and its distribution). Where more is known about $\theta$, for instance that it is a categorical, more informative priors like the Dirichlet distribution \citep{Bishop_Christopher_M_2016-08-23} may be used. Our code permits any user-defined prior, and we include $\mcal{U}(a, b)$.
+            The default choice of bounds is the limits of the dataset in each feature dimension.
+            % ⬆ where should this sentence be?
 
-            
+            The choice of prior is important, not only for the information it adds to the model, but also for how optimizers explore the parameter space. Simple optimizers, like MCMC \TODO{[cite]}, propose a parameter vector then compute its likelihood given the data. Priors with compact support  $\theta \sim \mcal{D}((a, b])$, e.g. $\mcal{U}(a, b)$, may be very dangerous as the optimizer can be initialized in a region with zero probability and has no means but blind luck to find the region of support, with non-zero likelihood. More sophisticated optimizers, like gradient-based descent \TODO{[cite]}, are susceptible to a similar initialization problem, requiring a non-zero gradient to make informed updates to the optimizers state.
+            With MDNs, model parameters are neural network outputs. Unlike for conventional models where an informed initial parameter state may be chosen by hand, it is impractical and undesirable to initialize by hand a neural network's output by setting all its internal weights. One might imagine accomplishing a desired initial output by pre-training the network with a toy model that forces convergence on a set output vector. However,
+            neural networks are highly non-linear in their response to internal state changes (a desirable property). It is quite possible that when switching form the toy to real model's loss function the pre-trained network is in 
+            a local probability island from which the global optimum is unreachable.  
+            Therefore, with the MDN neural networks, initialization is mostly for checking the dependence of the results on the initial state -- though even this dependence may instead be done using parameter dropout. Rather than 
+            focusing on initializing to a particular parameter vector, for neural networks it is instead important that the initial state, whatever it is, has non-zero probability (or non-zero gradient, depending on the optimizer).
+            Neural networks have some intrinsic phase-space range that depends on the architecture of the network. Therefore the network architecture must be chosen such that the outputs match well with priors. For example, with a
+            uniform prior $\theta \sim \mcal{U}(a,b)$, the network should be restricted such that $\theta \in (a, b]$, e.g. by a scaled logistic function.
+            \begin{equation}\label{eq:scaled_logistic}
+                  \sigma(x, \{a,b\}) = a + (b - a) * \sigma(x)
+            \end{equation}
+            Therefore, we pair every parameter bound with a bound in the network architecture.
 
-            \todo[inline]{this section is very rough}
-    
-            We implement a hard bound on the range of all parameters.
-            Hard cutoffs can be an unwise choice of prior, but we set the ranges to larger than the data prefers and check that the trained parameters are never ``up against" the bounds.
-            This makes the priors safe.
-            We require these priors for training the neural network. It helps to have a well-bounded problem. Simple hard priors have advantages and disadvantages in this regard.
-            An advantage is that in the allowed region the prior does not not contribute to the posterior at all. We don't want it to. We want to keep the posterior as simple as possible, driven as much as possible by the likelihood and not any priors.
-            A marked disadvantage is that outside the bounded region the prior does not contribute a gradient to the loss function the optimizer can use in the fitting.
-            However, we sidestep this issue by encoding the prior bounds into the ``geometry" \TODO{(What is this called?)} of the neural network, so that the network can never
-            produce outputs outside the hard bounds. This is a standard technique in ML to ensure that the neural network is efficient, only covering the required region of the output space \TODO{[cite]}. 
+            % ⬇ where should this sentence be?
+            The parameter bounds may be independent of $\phi_1$, as is implicit to the above discussion, or conditionally dependent and vary as any user-defined function of $\phi_1$.
+            Alternatively, priors parameter may be separated into pieces, dealing with different modeling needs, e.g. defining broad parameter bounds as was done in this section.
+            We introduce a different piece subsequently.
 
+        % subsection subsubsection parameter_bounds (end)
 
         \subsubsection{Region Prior} \label{sub:track_region_prior}
 
-            \todo[inline]{this section is very rough}
-
-            Region priors encourage the model to pass through a user-defined control region, while also remaining compatible with the data.
-
-            The overall track of the stream is known, so it makes sense to give this information to the system. However, we don't want the prior to dominate the results on small scales. A good balance between these two goals is to have a prior that only influences the track on large scales.
-            We introduce the ``split" Gaussian prior, which is a Gaussian split at the peak and pieced back together with a flat region connecting the halves. 
-            It is smooth up to the first derivative, so works well in an auto-grad setting.
-            The unnormalized PDF is described by:
+            In \autoref{ssub:astrometric_model_on_stream} the stream model's parameters were unconstrained. Bounds on the parameters and the neural network architecture were introduced in \autoref{ssub:parameter_bounds} to ensure the initial state of the model and network were compatible with the optimizer. Now we provide known information about physical systems, particular the track of the stream.
+            Our density modeling is aimed at characterization of \textit{known} streams, not stream discovery. From previous studies, the broad track of a
+            stream is known for significant portions of its length \citep[e.g. see the atlas in][]{Mateu2022}. It makes sense, then, to provide this information to the model. Care must be taken that this prior information does not dominate the model.
+            % A good balance between these two goals is to have a prior that only influences the track on large scales.
+            We introduce a region prior to encourage the stream model to pass through a user-defined control region, while also remaining compatible with the data.
+            We refer to the prior as a ``split" Gaussian prior: a Gaussian split and separated at the peak and pieced back together with a flat region connecting the halves. The un-normalized PDF is given by:
             \begin{small}
             \begin{equation}
-                \pdf(x,\mu,\sigma,w) \propto  \frac{1}{\sigma \sqrt{2 \pi}} \begin{cases} 
+                \pdf(\theta,\mu,\sigma,w) \propto \begin{cases} 
                    \Exp{-\frac{1}{2}\left(\frac{x-(\mu-w)}{\sigma}\right)^2} & \phantom{\mu - w <}\ x < \mu - w \\
                     1 & \mu - w \leq x < \mu + w \\
                     \Exp{-\frac{1}{2}\left(\frac{x-(\mu+w)}{\sigma}\right)^2} & \mu + w < x
                 \end{cases}.
             \end{equation}\end{small}
+            The piecewise PDF is smooth up to the first derivative and can be used with gradient-based optimizers.
     
-            Since this prior is equi-probable in the region $\mu - w < x < \mu + w$, the  impact is to encourage the stream to fall anywhere within this region. 
-            It is convenient to reparametrize, with $\tau = \frac{1}{\sigma}$.
+            Since this prior is equi-probable in the region $\mu - w < x < \mu + w$, the impact is to encourage the stream to fall anywhere within this region. 
+            It is convenient to reparametrize, with $\tau = \frac{1}{\sigma}$. Namely,
             \begin{small}
             \begin{equation}
-                \ln \pdf(x,\mu,w) \propto \tau \begin{cases} 
+                \ln \pdf(\theta,\mu,w) \propto \tau \begin{cases} 
                     -\left(x-(\mu-w)\right)^2 & \phantom{\mu - w <}\ x < \mu - w \\
                     0 & \mu - w \leq x < \mu + w \\
                     -\left(x-(\mu+w)\right)^2 & \mu + w \leq x
                 \end{cases},
             \end{equation}\end{small}
             where the additive normalization is 
-            $-\ln\left(\sqrt{\frac{\pi}{\tau}} \left(\frac{1}{2}\text{erf}\left(2 \sqrt{\tau } w\right)+1\right)\right)$. In this form we see that $\tau$ may be increased to strengthen the prior and encourage $\mbs{\theta}$ to pass through 
-
+            $-\ln\left(\sqrt{\frac{\pi}{\tau}} \left(\frac{1}{2}\text{erf}\left(2 \sqrt{\tau } w\right)+1\right)\right)$. In this form we see that $\tau$ may be increased to strengthen the prior and encourage $\theta$ to lie within
+            the desired region.
 
     \subsection{Model Implementation, aka the code} \label{sub:model_implementation}
+
+        Thus far we have described the mathematical model.
+        Now we describe 
 
         \todo[inline]{TODO: how much should be included here?}
 
@@ -677,7 +684,6 @@
             \end{tabular}
         \end{table}
 
-
         Dropout layers were used to prevent network co-adaptation and over-fitting. Dropout works by randomly zeroing out nodes in the network, decreasing the importance of any single node, encouraging instead emergent patterns across the network.
 
         
@@ -686,9 +692,10 @@
 %\newpage
 \section{Results: Mock} \label{sec:results_mock}
 
-    In this section we present an application of our model to a synthetic stream with known ground truths, and demonstrate the model's ability to characterize stream density variations and membership probabilities in an unsupervised manner. We then apply the method to real stellar streams in \autoref{sec:results_gd1} and \autoref{sec:results_pal5}.
+    In this section we present an application of our model to a synthetic stream with known ground truths, and demonstrate the model's ability to characterize stream density variations and membership probabilities in an unsupervised manner.
+    % We then apply the method to real stellar streams in \autoref{sec:results_gd1} and \autoref{sec:results_pal5}.
 
-    \subsection{Test on a Synthetic Stream} \label{sub:mock_data}
+    % \subsection{Test on a Synthetic Stream} \label{sub:mock_data}
     
         In this section we apply our model to a synethic stream in order to demonstrate an accurate recovery of stream members and density variations.
     
@@ -770,6 +777,10 @@
         We utilize data from {\it Gaia} DR3 for the astrometric coordinates of each star, and Pan-STARRS1 to obtain more accurate color information. We adopt broad cuts on the cross-matched data to limit the field to a region known to contain GD-1. We perform these rough cuts by requiring \JN{fill in what the cuts are and reference proper motion figure and CMD figure.} 
 
         The result is a field populated by \JN{x} stars, from which we would like to identify stream members.
+
+        \todo[inline]{Dust}
+            We use \package{dustmaps} Bayestar 19 for the dust modeling. We treat it as known. Include as a source of error in $\Sigma_n$
+            % TODO: actually implement that in the model
 
     \subsection{Model Specification}\label{sec:GD_1_ModelSpecification}
     
