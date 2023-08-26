@@ -654,8 +654,6 @@
     \vspace{5pt}
     \subsection{Model Implementation, aka the code} \label{sub:model_implementation}
 
-        \todo[inline]{TODO: how much should be included here?}
-
         In prior sections we discussed the mathematical implementation of each component of the Mixture Density Network. Here we make brief remarks on the code implementation and architecture of the neural networks.
         % Rephrase: I don't like this topic sentence.
 
@@ -705,70 +703,77 @@
 \section{Results: Mock} \label{sec:results_mock}
 
     In this section we present an application of our model to a synthetic stream with known ground truths, and demonstrate the model's ability to characterize stream density variations and membership probabilities in an unsupervised manner.
-    % We then apply the method to real stellar streams in \autoref{sec:results_gd1} and \autoref{sec:results_pal5}.
 
     % \subsection{Test on a Synthetic Stream} \label{sub:mock_data}
     
-        In this section we apply our model to a synethic stream in order to demonstrate an accurate recovery of stream members and density variations.
-    
-        We generate synthetic observations by sampling points from a third degree polynomial \JN{check this} with a constant scatter. Density variations are then simulated by evaluating the stream density with two Gaussian distributions centered at different values of $\phi_1$ with random amplitudes (which sum to $1$) and widths. Stream stars are then removed using random sampling, weighted by their likelihood of belonging to the density. The background astrometric  points in are generated from exponential distributions at each $\phi_1$. The number of stream stars is $\variable{output/mock/nstream_variable.txt}$, while the number of background stars is $\variable{output/mock/nbackground_variable.txt}$.
+    In this section we apply our model to a synethic stream in order to demonstrate an accurate recovery of stream members and density variations.
 
-        \begin{figure}
-            \script{mock/plot/photometric_background_selection.py}
-            \centering
-            \includegraphics[width=1\linewidth]{figures/mock/photometric_background_selection.pdf}
-            \caption{
-                % 
-                \textbf{Top panel:} Astrometric coordinates ($\phi_1$, $\phi_2$) for the mock data set.
-                Light blue points are the stream and background within an ``on"-stream region. Black points are in the ``off"-stream region used to train the background photometric model.
-                % 
-                \textbf{Bottom panel:} Astrometric coordinates ($\phi_1$, $\phi_2$) for the mock data set.
-                Black points are in the ``off"-stream region from the region defined in the astrometric coordinates.
-                Light blue points are the stream and background from the on-stream region. The stream's isochrone is apparent as an overdensity around (g-r, g)$\approx (0, 20)$.
-            }
-            \label{fig:mock_data_photometric_background_selection}
-        \end{figure}
-    
-        The synthetic stream is also simulated in magnitudes using a 12~Gyr isochrone with [Fe/H] = -1.35~dex. The isochrone truncates just short of the giant branch, and sampled from uniformly (i.e., the initial mass function, $P(\gamma)$, is uniform). The background photometric coordinates are generated as a 2-dimensional Gaussian with non-zero covariance. The distance modulus is derived from a polynomial parallax track with uniform thickness. Thus, the synthetic data scenario described here generates a mock stream in astrometric coordinates and photometric coordinates, with density variations, a distance gradient which is consistent in parallax and distance modulus (i.e., magnitudes), all superimposed over a noisy field of background points in each astrometric and photometric dimension.
+    We generate synthetic observations by sampling points from a third degree polynomial \JN{check this} with a constant scatter. Density variations are then simulated by evaluating the stream density with two Gaussian distributions centered at different values of $\phi_1$ with random amplitudes (which sum to $1$) and widths. Stream stars are then removed using random sampling, weighted by their likelihood of belonging to the density. The background astrometric  points in are generated from exponential distributions at each $\phi_1$. The number of stream stars is $\variable{output/mock/nstream_variable.txt}$, while the number of background stars is $\variable{output/mock/nbackground_variable.txt}$.
 
-        \begin{figure*}
-            \script{mock/plot/results.py}
-            \centering
-            \includegraphics[width=1\linewidth]{figures/mock/results.pdf}
-            \caption{
-                %
-                \textbf{Top panel:}%
-                The stream mixture coefficient $f(\phi_1)$ 
-                Stream fraction.
-                %
-                \textbf{Middle panel:}%
-                $\phi_2(\phi_1)$
-                %
-                \textbf{Lower panel 3:}%
-                %
-                \textbf{Upper Histograms:}%
-                %
-                \textbf{Upper Middle Histograms:}%
-                %
-                \textbf{Lower Middle Histograms:}%
-                %
-                \textbf{Lower Histograms:}%
-            }
-            TODO:
-            \begin{enumerate}
-                \item the linear density in the stream-fraction plot
-            \end{enumerate}
-            \label{fig:mock_data_result}
-        \end{figure*}
+    \begin{figure}
+        \script{mock/plot/photometric_background_selection.py}
+        \centering
+        \includegraphics[width=1\linewidth]{figures/mock/photometric_background_selection.pdf}
+        \caption{
+            % 
+            \textbf{Top panel:} Astrometric coordinates ($\phi_1$, $\phi_2$) for the mock data set.
+            Light blue points are the stream and background within an ``on"-stream region. Black points are in the ``off"-stream region used to train the background photometric model.
+            % 
+            \textbf{Bottom panel:} Astrometric coordinates ($\phi_1$, $\phi_2$) for the mock data set.
+            Black points are in the ``off"-stream region from the region defined in the astrometric coordinates.
+            Light blue points are the stream and background from the on-stream region. The stream's isochrone is apparent as an overdensity around (g-r, g)$\approx (0, 20)$.
+        }
+        \label{fig:mock_data_photometric_background_selection}
+    \end{figure}
 
+    The synthetic stream is also simulated in magnitudes using a 12~Gyr isochrone with [Fe/H] = -1.35~dex. The isochrone truncates just short of the giant branch, and sampled from uniformly (i.e., the initial mass function, $P(\gamma)$, is uniform). The background photometric coordinates are generated as a 2-dimensional Gaussian with non-zero covariance. The distance modulus is derived from a polynomial parallax track with uniform thickness. Thus, the synthetic data scenario described here generates a mock stream in astrometric coordinates and photometric coordinates, with density variations, a distance gradient which is consistent in parallax and distance modulus (i.e., magnitudes), all superimposed over a noisy field of background points in each astrometric and photometric dimension.
+
+    \begin{figure*}
+        \script{mock/plot/results.py}
+        \centering
+        \includegraphics[width=1\linewidth]{figures/mock/results.pdf}
+        \caption{
+            %
+            \textbf{Top panel:}%
+                The stream mixture coefficient $f(\phi_1)$ (black dotted line) predicted by the model, overplotted on the true stream fraction (black-outlined histogram),
+                calculated as the ratio of stream stars to total stars in 55 bins
+                over the $\phi_1$ range of the isochrone.
+            \textbf{Middle panel: }%
+                $\phi_2(\phi_1)$ over the full range of $\phi_1$. The data color and transparency is set by the model's MLE stream probability (with dropout turned off). Plotted behind the data are the true labels for the stream stars (large black circles).
+                The true labels exactly limn the model-identified stream stars.
+                The MLE stream track (black dashed line) is over-plotted on the probability-colored data.
+            %
+            \textbf{Lower panel 3: }%
+                $\varpi_2(\phi_1)$ over the full range of $\phi_1$. Like for $\phi_2$, the data color and transparency is set by the MLE probability, with the true labels (large black circles) under-plotted and MLE track (black dashed line) over-plotted.
+            %
+            \textbf{Upper Histograms: }%
+                $\phi_2$ histograms for each model component (blue background, red stream), in 4 $\phi_1$ ranges across the data set.
+                The height of each bin is the probability-weighted density.
+                The background is a uniform distribution, while the stream is a Gaussian. In projection across the $\phi_1$ range it can appear multi-modal (panel 2) if there are large gaps or `smeared' out if the Gaussian's mean changes significantly over the range.
+            %
+            \textbf{Upper Middle Histograms: }%
+                Parallax $\varpi$ histograms for each model component (blue background, red stream), in 4 $\phi_1$ ranges across the data set.
+                The height of each bin is the probability-weighted density.
+            %
+            \textbf{Lower Middle and Lower Histograms:}%
+                Photometric coordinate $(g, r)$ plots for each model component in 4 $\phi_1$ ranges across the data set. The top row plots the stream stars (red) over the background. The lower row plots the background stars (blue) over the stream stars to show that the
+                how the two distributions mix.
+        }
+        TODO:
+        \begin{enumerate}
+            \item the linear density in the stream-fraction plot
+        \end{enumerate}
+        \label{fig:mock_data_result}
+    \end{figure*}
+
+
+    The result of applying our density model to the synthetic data is illustrated in \autoref{fig:mock_data_result}. The top panel shows the weight parameter that controls membership probability as a function of $\phi_1$. The dashed curve represents the output of our data-driven model, while the solid curve is the ground truth. The second panel shows the stream and background in the $(\phi_1,\phi_2)$ plane, and the third panel shows the stream and background in the $(\phi_1,\parallax)$ plane. Points are color-coded according to their membership probability \autoref{eq:membership_prob}. The weight parameter clearly shows that the model has captured the two prominent density variations along the stream. The are additional variations  mostly around the edges of the stream, though re-sampling the neural network weights with dropout reveals that these variations represent regions of higher model uncertainty. 
     
-        The result of applying our density model to the synthetic data is illustrated in \autoref{fig:mock_data_result}. The top panel shows the weight parameter that controls membership probability as a function of $\phi_1$. The dashed curve represents the output of our data-driven model, while the solid curve is the ground truth. The second panel shows the stream and background in the $(\phi_1,\phi_2)$ plane, and the third panel shows the stream and background in the $(\phi_1,\parallax)$ plane. Points are color-coded according to their membership probability \autoref{eq:membership_prob}. The weight parameter clearly shows that the model has captured the two prominent density variations along the stream. The are additional variations  mostly around the edges of the stream, though re-sampling the neural network weights with dropout reveals that these variations represent regions of higher model uncertainty. 
-        
-        We find that the stream is successfully recovered in both astrometric and photometric coordinates, with $x\%$ stream stars being recovered with membership probability greater than $y$. The false positive rate (i.e., stars misidentified as stream members) for this test is found to be $z\%$ when cutting on this threshold. 
-    
-        In the bottom two rows of \autoref{fig:mock_data_result} we illustrate the synthetic data color-coded by stream membership probability (top) and background membership probability (background) for different $\phi_1$ slices. Importantly, the photometric portion of the mixture model successfully identifies the stream in magnitude space, showing a high stream membership probability where the stream is present, and a low probability ($\sim 0$) where the stream is absent.  
-    
-    % sub: test_on_a_synthetic_stream (end)
+    We find that the stream is successfully recovered in both astrometric and photometric coordinates, with $x\%$ stream stars being recovered with membership probability greater than $y$. The false positive rate (i.e., stars misidentified as stream members) for this test is found to be $z\%$ when cutting on this threshold. 
+
+    In the bottom two rows of \autoref{fig:mock_data_result} we illustrate the synthetic data color-coded by stream membership probability (top) and background membership probability (background) for different $\phi_1$ slices. Importantly, the photometric portion of the mixture model successfully identifies the stream in magnitude space, showing a high stream membership probability where the stream is present, and a low probability ($\sim 0$) where the stream is absent.  
+
+% sec: test_on_a_synthetic_stream (end)
 
 \section{Results: GD-1} \label{sec:results_gd1}
 
