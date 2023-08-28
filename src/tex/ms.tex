@@ -1299,7 +1299,7 @@
 
     We generate synthetic stream observations by sampling uniformly in $\phi_1$
     In $\phi_2$ we sample from a quadratic in $\phi_1$ with normally-distributed
-    $0.15\degree$ scatter.  The distances are sampled from a linear funciton in
+    $0.15^{\circ}$ scatter.  The distances are sampled from a linear funciton in
     $\phi_1$ with normally-distributed $0.25 \unit{kpc}$ scatter, then
     transformed to the parallax $\parallax$.  Non-poissonian density variations
     are then simulated by evaluating the stream density with two Gaussian
@@ -1348,7 +1348,7 @@
     We pre-train a normalizing flow (see
     \autoref{sub:method:photometric_model:off_stream}) on an off-stream
     selection.  We train on the photometry.  You can see the selection in
-    \auroref{fig:mock_data_photometric_background_selection}.  You can see both
+    \autoref{fig:mock_data_photometric_background_selection}.  You can see both
     the on-stream and off-stream labels, blue and black respectively.  We select
     using an astrometric selection. In the photometry you can see that the
     on-stream selection has two populations, drawn from the isochrone and drawn
