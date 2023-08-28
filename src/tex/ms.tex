@@ -1297,19 +1297,33 @@
     characterize stream density variations and membership probabilities in an
     unsupervised manner.
 
-    In this section we apply our model to a synethic stream in order to
-    demonstrate an accurate recovery of stream members and density variations.
-
-    We generate synthetic observations by sampling points from a third degree
-    polynomial \JN{check this} with a constant scatter. Density variations are
-    then simulated by evaluating the stream density with two Gaussian
+    We generate synthetic stream observations by sampling uniformly in $\phi_1$
+    In $\phi_2$ we sample from a quadratic in $\phi_1$ with normally-distributed
+    $0.15\degree$ scatter.  The distances are sampled from a linear funciton in
+    $\phi_1$ with normally-distributed $0.25 \unit{kpc}$ scatter, then
+    transformed to the parallax $\parallax$.  Non-poissonian density variations
+    are then simulated by evaluating the stream density with two Gaussian
     distributions centered at different values of $\phi_1$ with random
-    amplitudes (which sum to $1$) and widths. Stream stars are then removed
+    amplitudes (which sum to $1$) and widths.  Stream stars are then removed
     using random sampling, weighted by their likelihood of belonging to the
-    density. The background astrometric  points in are generated from
-    exponential distributions at each $\phi_1$. The number of stream stars is
+    density. The background astrometric points in are generated from exponential
+    distributions at each $\phi_1$.  The number of stream stars is
     $\variable{output/mock/nstream_variable.txt}$, while the number of
     background stars is $\variable{output/mock/nbackground_variable.txt}$.
+    
+    The synthetic stream's photometry is also simulated using a 12~Gyr, [Fe/H] =
+    -1.35~dex NMIST isochrone \TODO{[cite brutus]}. The isochrone truncates just
+    short of the giant branch, and is sampled from uniformly along the isochrone
+    (i.e., the initial mass function, $P(\gamma)$, is uniform) as well as with
+    an intrinsic uniform 0.2~dex scatter orthogonal to the isochrone track. The
+    isochrone is shifted by the stream's parallax modulus, which is derived from
+    the astrometric distance track.  The background photometric coordinates are
+    generated as a 2-dimensional Gaussian with non-zero covariance.  Thus, the
+    synthetic data scenario described here generates a mock stream in
+    astrometric coordinates and photometric coordinates, with density
+    variations, a distance gradient which is consistent in parallax and distance
+    modulus (i.e., magnitudes), all superimposed over a noisy field of
+    background points in each astrometric and photometric dimension.
 
     \begin{figure}
         \script{mock/plot/photometric_background_selection.py}
@@ -1331,17 +1345,16 @@
         \label{fig:mock_data_photometric_background_selection}
     \end{figure}
 
-    The synthetic stream is also simulated in magnitudes using a 12~Gyr
-    isochrone with [Fe/H] = -1.35~dex. The isochrone truncates just short of the
-    giant branch, and sampled from uniformly (i.e., the initial mass function,
-    $P(\gamma)$, is uniform). The background photometric coordinates are
-    generated as a 2-dimensional Gaussian with non-zero covariance. The distance
-    modulus is derived from a polynomial parallax track with uniform thickness.
-    Thus, the synthetic data scenario described here generates a mock stream in
-    astrometric coordinates and photometric coordinates, with density
-    variations, a distance gradient which is consistent in parallax and distance
-    modulus (i.e., magnitudes), all superimposed over a noisy field of
-    background points in each astrometric and photometric dimension.
+    We pre-train a normalizing flow (see
+    \autoref{sub:method:photometric_model:off_stream}) on an off-stream
+    selection.  We train on the photometry.  You can see the selection in
+    \auroref{fig:mock_data_photometric_background_selection}.  You can see both
+    the on-stream and off-stream labels, blue and black respectively.  We select
+    using an astrometric selection. In the photometry you can see that the
+    on-stream selection has two populations, drawn from the isochrone and drawn
+    from the background The off-stream selection, meanwhile, has only the
+    background population. Next we train the full model.
+
 
     \begin{figure*}
         \script{mock/plot/results.py}
@@ -1770,14 +1783,17 @@
 
 \section{Probability Distributions} \label{app:distributions}
 
-    A variety of probability distributions are used when modeling the stream and Galactic background. This appendix presents relevant mathematical details of these distributions.
-    In particular, observational errors are modeled as Gaussian distributions, which requires modifying each distribution to account for the Gaussian noise.
+    A variety of probability distributions are used when modeling the stream and
+    Galactic background. This appendix presents relevant mathematical details of
+    these distributions.  In particular, observational errors are modeled as
+    Gaussian distributions, which requires modifying each distribution to
+    account for the Gaussian noise.
 
     \vspace{10pt}
 
-    Let $x \sim X$ be distributed as some specified distribution
-    and $\delta \sim \Delta \equiv \mcal{N}(0, \sigma_*)$ as an independent, centered Gaussian.
-    An observation $Y$ is distributed as
+    Let $x \sim X$ be distributed as some specified distribution and $\delta
+    \sim \Delta \equiv \mcal{N}(0, \sigma_*)$ as an independent, centered
+    Gaussian.  An observation $Y$ is distributed as
     \begin{equation}
         Z = X + \Delta,
     \end{equation}
@@ -1788,13 +1804,14 @@
             &= \int_{-\infty}^{\infty} \rm{d}\tau \, \pdf(x; \mbs{\theta})\mcal{N}(x-\tau; 0, \sigma)
     \end{align}
 
-    In the following subsections we work through the distributions $\pdf(x,\mbs{\theta})$ and the convolutions with $\mcal{N}(x,0,\sigobs)$.
+    In the following subsections we work through the distributions
+    $\pdf(x,\mbs{\theta})$ and the convolutions with $\mcal{N}(x,0,\sigobs)$.
 
     \vspace{5pt}
     \subsection{Flat Distribution} \label{sub:flat_distribution}
 
-        The simplest distribution is that of the univariate uniform distribution.
-        For a domain $x \in [a, b]$ the PDF is given by
+        The simplest distribution is that of the univariate uniform
+        distribution.  For a domain $x \in [a, b]$ the PDF is given by
         \begin{equation}\label{eq:pdf_flat_univariate}
             P_{\mcal{U}}(x|a,b) = \begin{cases}
                 (b-a)^{-1} & a < x \leq b \\
