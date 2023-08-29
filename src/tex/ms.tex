@@ -275,7 +275,7 @@
         Centered on a track, not an orbit.
 
         This defines an astrometric phase-space hyper-tube
-        \cite{2018MNRAS.477.4063M}, with a distribution radial to the track.
+        \cite{STREAMFINDER}, with a distribution radial to the track.
 
         Instead of characterizing the stream by its orbit, we characterize it by
         it's track and the distribution around that track.  Computing membership
@@ -315,7 +315,7 @@
         members from the vast background of field stars 
     
         \begin{enumerate}
-            \item Streamfinder \citep{2018MNRAS.477.4063M}. This method requires the potential
+            \item Streamfinder \citep{STREAMFINDER}. This method requires the potential
             \item VIA MACHINAE \citep{2022MNRAS.509.5992S}
             \item Kiyan and Adrian
             \item Matched Filter
@@ -555,7 +555,7 @@
 
         Streams have a diversity of measurement coverage: several have full 6-D
         astrometrics as well as photometrics and chemical abundances available
-        \citep[e.g.,][]{Koposov2019, 2020A&A...635L...3A, 2022ApJ...928...30L},
+        \citep[e.g.,][]{Koposov2019, Antoja2020, 2022ApJ...928...30L},
         while most have partial coverage, lacking some feature dimensions.
         % TODO: terminology ND-phase-space vs feature columns
         Most streams in \Gaia {\color{red} [cite]}, for instance, have proper
@@ -951,7 +951,7 @@
             \end{align}
             % TODO: should we show that these are different distance functions? or is it obvious
             where $\delta$ is the Dirac delta function
-            \citep{1947pqm..book.....D}, and enforces that the distance modulus
+            \citep{Dirac1947}, and enforces that the distance modulus
             track and parallax track must be equal (when converted to the actual
             distance) as a function of $\phi_1$.  The widths are similarly
             constrained. The distance and first-order error conversion are given
@@ -1060,7 +1060,7 @@
             (except that $(a,b]$ contain the correct $\theta$ and its
             distribution). Where more is known about $\theta$, for instance that
             it is a categorical, more informative priors like the Dirichlet
-            distribution \citep{Bishop_Christopher_M_2016-08-23} may be used.
+            distribution \citep{Christopher2016} may be used.
             Our code permits any user-defined prior, and we include $\mcal{U}(a,
             b)$.  The default choice of prior and bounds $\mcal{U}$ set to the
             limits of the dataset in each feature dimension.
@@ -1675,7 +1675,7 @@
 
     \subsection{Comparison to Other Methods} \label{sec:comparison}
 
-        \subsubsection[STREAMFINDER]{\cite{2018MNRAS.477.4063M}}
+        \subsubsection[STREAMFINDER]{\cite{STREAMFINDER}}
     
             Assumes a potential
     
