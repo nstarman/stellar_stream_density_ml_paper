@@ -23,7 +23,7 @@
 \newcommand{\stream}[1]{#1}
 \newcommand{\dataarchive}[1]{\texttt{#1}}
 \newcommand{\Gaia}{\dataarchive{Gaia}}
-\newcommand{\gaia}{\dataarchive{gaia}}
+\newcommand{\PanStarrs}{\dataarchive{Pan-STARRS1}}
 
 % Math fonts
 \newcommand{\mrm}[1]{\mathrm{#1}}
@@ -558,7 +558,7 @@
         \citep[e.g.,][]{Koposov2019, 2020A&A...635L...3A, 2022ApJ...928...30L},
         while most have partial coverage, lacking some feature dimensions.
         % TODO: terminology ND-phase-space vs feature columns
-        Most streams in \gaia {\color{red} [cite]}, for instance, have proper
+        Most streams in \Gaia {\color{red} [cite]}, for instance, have proper
         motions but not radial velocities nor reliable parallax measurements.
         Followup surveys, like \dataarchive{S5} {\color{red} [cite]}, add many
         feature dimensions, however only for a select set of streams. Given the
@@ -923,7 +923,7 @@
             purpose of the isochrone is to allow the model to determine the
             distance modulus of the stream. For this, only a portion of the
             stream need be modeled.  For streams with observable main sequence
-            turn-offs, like \stream{GD-1} in \gaia, this portion of the
+            turn-offs, like \stream{GD-1} in \Gaia, this portion of the
             isochrone has both many stars and a relatively small range in
             masses. Thus, we restrict the mass range of the isochrone such that
             we are modeling only a region of interest over which the PDMF does
@@ -1515,10 +1515,18 @@
         %     \item extinction corrected with bayestar2019
         % \end{enumerate}
 
-        We utilize data from {\it Gaia} DR3 for the astrometric coordinates of
-        each star, and Pan-STARRS1 to obtain more accurate color information. We
+        We utilize data from \Gaia{} DR3 for the astrometric coordinates of
+        each star, and \PanStarrs{} to obtain more accurate color information.
+        
+        We cross-match the \Gaia{} field on \PanStarrs{} using the provided
+        \texttt{Best-neighbors} catalog.
+
         adopt broad cuts on the cross-matched data to limit the field to a
-        region known to contain GD-1. We perform these rough cuts by requiring
+        region known to contain GD-1. We perform these rough cuts by requiring...
+
+        We use the \texttt{GD1Koposov10} frame defined in Gala \TODO{[cite gala and Koposov10]}
+        
+        
         \JN{fill in what the cuts are and reference proper motion figure and CMD
         figure.} 
 
