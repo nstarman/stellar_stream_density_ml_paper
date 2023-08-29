@@ -1386,7 +1386,10 @@
     does not have its own network, using instead the outputs
     $[\mu_{\varpi}, \sigma_{\varpi}](\phi_1)$.
     The background model is split in two components, the first is a uniform distribution
-    in $\phi_2$, the second an exponential.
+    in $\phi_2$, the second is an exponential distribution for $\varpi$.
+    The uniform distribution does not have any parameters, and thus no neural network.
+    The exponential distribution has only the slope parameter and we use a 3-layer 
+    (\texttt{LinTanh} with shape (1, 32, 1) and 15\% dropout.
 
     \begin{figure*}
         \script{mock/plot/results.py}
