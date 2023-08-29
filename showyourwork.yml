@@ -39,6 +39,8 @@ dependencies:
     - src/data/brutus/nn_c3k.h5
   src/scripts/mock/data/variable_isochrone_age.py:
     - src/data/mock/data.asdf
+  src/scripts/mock/data/variable_isochrone_feh.py:
+    - src/data/mock/data.asdf
   src/scripts/mock/data/variable_nbackground.py:
     - src/data/mock/data.asdf
   src/scripts/mock/data/variable_nstream.py:

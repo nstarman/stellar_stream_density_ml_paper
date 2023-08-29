@@ -88,6 +88,19 @@ rule mock_isochrone_age_variable:
         "src/scripts/mock/data/variable_isochrone_age.py"
 
 
+rule mock_isochrone_feh_variable:
+    output:
+        "src/tex/output/mock/isochrone_feh_variable.txt"
+    input:
+        "src/data/mock/data.asdf"
+    conda:
+        "environment.yml"
+    cache:
+        True
+    script:
+        "src/scripts/mock/data/variable_isochrone_feh.py"
+
+
 rule mock_train_flow:
     output:
         "src/data/mock/flow_model.pt"

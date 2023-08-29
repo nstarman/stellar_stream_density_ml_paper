@@ -1,4 +1,4 @@
-"""write variable 'isochrone_age_variable.txt' to disk."""
+"""write variable 'isochrone_feh_variable.txt' to disk."""
 
 import asdf
 from showyourwork.paths import user as Paths  # noqa: N812
@@ -11,5 +11,5 @@ paths = Paths()
 
 with asdf.open(
     paths.data / "mock" / "data.asdf", lazy_load=False, copy_arrays=True
-) as af, (paths.output / "mock" / "isochrone_age_variable.txt").open("w") as f:
-    f.write(f"{af['isochrone_age'].value:g} {af['isochrone_age'].unit}")
+) as af, (paths.output / "mock" / "isochrone_feh_variable.txt").open("w") as f:
+    f.write(f"{af['isochrone_feh']:g}")
