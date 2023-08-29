@@ -1429,7 +1429,7 @@
                 background is a uniform distribution, while the stream is a
                 Gaussian. In projection across the $\phi_1$ range it can appear
                 multi-modal (panel 2) if there are large gaps or `smeared' out
-                if the Gaussian's mean changes significantly over the range.
+                (panel 3) if the Gaussian's mean changes significantly over the range.
             %
             \textbf{Upper Middle Histograms: }%
                 Parallax $\varpi$ histograms for each model component (blue
@@ -1468,28 +1468,35 @@
 
     We find that the stream is successfully recovered in both astrometric and
     photometric coordinates, with $\variable{output/mock/ncorrect_variable.txt}\%$ stream
-    stars being recovered with membership probability greater than $80\%$. The false
-    positive rate (i.e., stars misidentified as stream members) for this test is
-    found to be $\variable{output/mock/falseident_variable.txt}\%$ when cutting on
-    this threshold. 
-
+    stars being recovered with membership probability greater than $80\%$.
     In the bottom two rows of \autoref{fig:mock_data_result} we illustrate the
     synthetic data color-coded by stream membership probability (top) and
     background membership probability (background) for different $\phi_1$
     slices. Importantly, the photometric portion of the mixture model
     successfully identifies the stream in magnitude space, showing a high stream
     membership probability where the stream is present, and a low probability
-    ($\sim 0$) where the stream is absent.  
+    ($\sim 0$) where the stream is absent.
+    The false positive rate (i.e., stars misidentified as stream members) for this test
+    is found to be $\variable{output/mock/falseident_variable.txt}\%$ when cutting on
+    the 80\% membership probability threshold.
+    % The perfect recovery rate and low false identification rate demonstrate the efficacy
+    % of this method.
+
+    % Discussion why not finding the small-scale fluctuations?
+    
 
 % sec: test_on_a_synthetic_stream (end)
 
 \section{Results: GD-1} \label{sec:results_gd1}
 
-    We now apply our density modeling approach to the stellar stream GD-1. We
-    discuss the data selection in \autoref{sub:results_gd1_data} and results in
-    \autoref{ssub:trained_gd1}.
+    Having successful applied the modeling framework to a mock stream,
+    we now apply our density modeling approach to the stellar stream GD-1.
+    We
+    discuss the data selection in \autoref{sub:results_gd1:data},
+    model specifics in \autoref{sub:results_gd1:model},
+    and the results in \autoref{sub:results_gd1:results}.
     
-    \subsection{Data Selection} \label{sub:results_gd1_data}
+    \subsection{Data Selection} \label{sub:results_gd1:data}
 
         \begin{enumerate}
             \item Gaia data.
@@ -1515,7 +1522,7 @@
             We use \package{dustmaps} Bayestar 19 for the dust modeling. We treat it as known. Include as a source of error in $\Sigma_n$
             % TODO: actually implement that in the model
 
-    \subsection{Model Specification}\label{sec:GD_1_ModelSpecification}
+    \subsection{Model Specification}\label{sub:results_gd1:model}
     
         We model GD-1 as a three-component mixture consisting of a main stream
         component, a spur, and background. In order to guide our model towards
@@ -1530,7 +1537,7 @@
         The weight parameter is also set to truncate to $0$ at $\phi_1 < X$ and $\phi_1 > Y$. This ensures that we do not model stream stars that fall 
     
         
-    \subsection{Trained Density Model}\label{ssub:trained_gd1}
+    \subsection{Trained Density Model}\label{sub:results_gd1:results}
     
         In this section we present results from our model applied to real {\it
         Gaia} and Pan-STARRS data of GD-1. 
