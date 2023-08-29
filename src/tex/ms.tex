@@ -739,7 +739,7 @@
 
     \subsection{Photometric Model} \label{sub:method:photometric_model}
 
-        \subsubsection{On-Stream} \label{sub:method:photometric_model:on_stream}
+        \subsubsection{On-Stream} \label{ssub:method:photometric_model:on_stream}
 
             In photometric coordinates we model the stream as a
             single-population isochrone with the possibility of a non-zero
@@ -1047,7 +1047,7 @@
     \subsection{Priors} \label{sub:methods:priors}
 
         In \autoref{sub:method:likelihood_setup} we introduced the likelihood
-        setup. In \autoref{sub:method:photometric_model:on_stream} we added
+        setup. In \autoref{ssub:method:photometric_model:on_stream} we added
         priors in the form of the isochrone's PDMF and photometric observational
         constraints. In this section we introduce and develop more priors that
         are important for training the BMDN's parameters' neural network(s).
@@ -1235,7 +1235,7 @@
         and outputs (one per parameter), any feed-forward network may be used.
         Our default choice, and for which we provide a helper function, is an
         MLP with a sequence of \texttt{Linear} \!\!\textrightarrow \texttt{Tanh}
-        \!\!\textrightarrow \texttt{Dropout} blocks. This is illustrated in
+        \!\!\textrightarrow \texttt{Dropout} (hereafter \texttt{LinTanh}) blocks. This is illustrated in
         \autoref{table:mlp_structure}.
         % FIXME! reference not being picked up correctly.
         Dropout layers are used to prevent network co-adaptation and
@@ -1311,8 +1311,10 @@
     $\variable{output/mock/nbackground_variable.txt}$ background astrometric points
     are generated from exponential distributions at each $\phi_1$.
 
-    The synthetic stream's photometry is also simulated using a \variable{output/mock/isochrone_age_variable.txt},
-    [Fe/H] = \variable{output/mock/isochrone_feh_variable.txt} MIST isochrone \TODO{[cite brutus]}. The isochrone is truncated just
+    The synthetic stream's photometry is also simulated using a
+    \variable{output/mock/isochrone_age_variable.txt},
+    [Fe/H] = \variable{output/mock/isochrone_feh_variable.txt} MIST isochrone
+    \TODO{[cite brutus]}. The isochrone is truncated just
     short of the giant branch, and is sampled from uniformly along the isochrone
     (i.e., the initial mass function, $P(\gamma)$, is uniform) as well as with
     an intrinsic uniform 0.2~dex scatter orthogonal to the isochrone track. The
@@ -1346,25 +1348,45 @@
     \end{figure}
 
     We select on-stream and off-stream regions using the known $\phi_1, \phi_2$
-    range of the mock stream. The upper panel of
+    range of the mock stream.  The upper panel of
     \autoref{fig:mock_data_photometric_background_selection} shows these
-    selections blue and black, respectively. The lower panel shows the on and
-    off-stream selections in photometric coordinates. In this space it is
+    selections blue and black, respectively.  The lower panel shows the on and
+    off-stream selections in photometric coordinates.  In this space it is
     apparent that the on-stream region has two populations, drawn from the
     isochrone and from background points included in the simple $\phi_1, \phi_2$
-    box. In contrast the off-stream region, has only the the background population.
+    box.  In contrast the off-stream region, has only the the background population.
     We use the off-stream population to train a conditional normalizing flow
     (see \autoref{sub:method:photometric_model:off_stream}) on the magnitudes
-    $g$ and $r$ and conditioned on $\phi_1$. The normalizing flow is now a
+    $g$ and $r$ and conditioned on $\phi_1$.  The normalizing flow is now a
     non-parametric distribution characterizing the photometric background,
-    including its variation over $\phi_1$. For this mock stream the flexibility
+    including its variation over $\phi_1$.  For this mock stream the flexibility
     of the normalizing flow greatly exceeds necessity: the background is
     drawn from a $\phi_1$-invariant multivariate normal, essentially the base
-    distribution of the normalizing flow. It is therefore no surprise that
+    distribution of the normalizing flow.  It is therefore no surprise that
     the trained normalizing flow provides an excellent characterization of
-    the background. We will later see that the flow performs similarly well
-    on complex distributions. Having trained the background photometric model
-    we proceed to train the full model.
+    the background.  We will later see that the flow performs similarly well
+    on complex distributions.  Having trained the background photometric model
+    we proceed to build and train the full model.
+
+    Per \autoref{eq:stream_and_bkg_prob} the stream is a conditionally independent
+    addition of both astrometric and photometric models.
+    In astrometrics the stream is a Gaussian track in $\phi_2$ and
+    parallax $\varpi$, using the model defined in
+    \autoref{ssub:method:astrometric_model:on_stream}. We use a 4-layer 
+    (\texttt{LinTanh} with shape (1 input, 64 hidden, 4 output), where the 4 outputs
+    are $[\mu_{\phi_2}, \sigma_{\phi_2}, \mu_{\varpi}, \sigma_{\varpi}](\phi_1)$.
+    The network is small, but sufficiently large to permit 15\% dropout and retain
+    robust predictions.
+    The photometric model is a distance modulus-shifted isochrone, using the model
+    outlined in  \autoref{ssub:method:photometric_model:on_stream}. We use the
+    same isochrone parameters as were used to simulate the stream. For this mock
+    stream we demonstrate simultaneous astrometric and photometric modeling, linking
+    the distance modulus and parallax track, as explained in
+    \autoref{ssub:method:linking_to_astrometrics}. Thus the photometric model
+    does not have its own network, using instead the outputs
+    $[\mu_{\varpi}, \sigma_{\varpi}](\phi_1)$.
+    The background model is split in two components, the first is a uniform distribution
+    in $\phi_2$, the second an exponential.
 
     \begin{figure*}
         \script{mock/plot/results.py}
