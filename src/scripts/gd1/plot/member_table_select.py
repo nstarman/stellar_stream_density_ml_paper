@@ -188,7 +188,7 @@ We include as interesting cases:
 For convenience we round the likelihoods to 2 decimal places, and only show the
 value and uncertainty when it is non-zero.
 \\
-\textit{The full table is available online.}
+\textit{The full table, including source ids, is available online.}
 """  # noqa: E501
 
 write_kwargs = {
