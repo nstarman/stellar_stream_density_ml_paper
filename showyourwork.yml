@@ -37,6 +37,12 @@ dependencies:
   src/scripts/mock/data/make.py:
     - src/data/brutus/MIST_1.2_iso_vvcrit0.0.h5
     - src/data/brutus/nn_c3k.h5
+  src/scripts/mock/data/variable_isochrone_age.py:
+    - src/data/mock/data.asdf
+  src/scripts/mock/data/variable_nbackground.py:
+    - src/data/mock/data.asdf
+  src/scripts/mock/data/variable_nstream.py:
+    - src/data/mock/data.asdf
   src/scripts/mock/define_model.py:
     - src/data/mock/data.asdf
   src/scripts/mock/model/1-train_flow.py:
