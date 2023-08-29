@@ -120,12 +120,14 @@ stream_tbl["parallax"] = stream_tbl["distance"].to(u.mas, equivalencies=u.parall
 # ---- Photometrics ----
 
 isochrone = brutus.seds.Isochrone(filters=filters, nnfile=nnfile, mistfile=mistfile)
+isochrone_age = 12 * u.Gyr
+isochrone_feh = -1.35
 abs_mags_, *_ = isochrone.get_seds(
     eep=np.linspace(202, 600, 5000),  # EEP grid: MS to RGB
     apply_corr=True,
-    feh=-1.35,
+    feh=isochrone_feh,
     dist=10,
-    loga=np.log10(12e9),
+    loga=np.log10(isochrone_age.to_value(u.yr)),
 )
 stream_abs_mags = u.Quantity(abs_mags_[np.all(np.isfinite(abs_mags_), axis=1)], u.mag)
 stream_cmd = sample_magnitudes_from_isochrone(
@@ -215,6 +217,8 @@ af["table"] = tot_table
 af["n_stream"] = keep.sum()
 af["stream_table"] = tot_table[tot_table["label"] == "stream"]
 af["stream_abs_mags"] = stream_abs_mags
+af["isochrone_age"] = isochrone_age
+af["isochrone_feh"] = isochrone_feh
 
 # background
 af["n_background"] = N_BACKGROUND
