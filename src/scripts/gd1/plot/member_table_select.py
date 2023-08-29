@@ -167,7 +167,7 @@ This table includes a selection of candidate member stars for the GD-1 stream,
 based on the membership likelihoods.  For each star we include the Gaia DR3
 source ID and astrometric solution, the Pan-STARRS1 photometry, and the
 membership likelihoods for the stream, spur, and background. The likelihoods are
-computed using the trained model described in \autoref{ssub:trained_gd1} and we
+computed using the trained model described in \autoref{sub:results_gd1:results} and we
 include a quality flag ${\rm dim}(\boldsymbol{x})$, indicating the number of
 features used by the model.  For most stars all features are measured. We use
 dropout regularization to estimate the uncertainty in the likelihoods, and
