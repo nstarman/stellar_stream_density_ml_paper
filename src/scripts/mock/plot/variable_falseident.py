@@ -48,4 +48,4 @@ numstream = sum(table["label"] == "stream")
 falseident = (sum(stream_prob.numpy() > 0.8) - numstream) / numstream * 100
 
 with (paths.output / "mock" / "falseident_variable.txt").open("w") as f:
-    f.write(f"{falseident:g}")
+    f.write(f"{falseident:2g}")
