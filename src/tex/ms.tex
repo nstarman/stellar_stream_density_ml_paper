@@ -1300,19 +1300,19 @@
     We generate synthetic stream observations by sampling uniformly in $\phi_1$
     In $\phi_2$ we sample from a quadratic in $\phi_1$ with normally-distributed
     $0.15^{\circ}$ scatter.  The distances are sampled from a linear funciton in
-    $\phi_1$ with normally-distributed $0.25 \unit{kpc}$ scatter, then
+    $\phi_1$ with normally-distributed $0.25 \ \unit{kpc}$ scatter, then
     transformed to the parallax $\parallax$.  Non-poissonian density variations
     are then simulated by evaluating the stream density with two Gaussian
     distributions centered at different values of $\phi_1$ with random
     amplitudes (which sum to $1$) and widths.  Stream stars are then removed
     using random sampling, weighted by their likelihood of belonging to the
-    density. The background astrometric points in are generated from exponential
-    distributions at each $\phi_1$.  The number of stream stars is
-    $\variable{output/mock/nstream_variable.txt}$, while the number of
-    background stars is $\variable{output/mock/nbackground_variable.txt}$.
-    
+    density. Post removal, the number of stream stars is
+    $\variable{output/mock/nstream_variable.txt}$.
+    $\variable{output/mock/nbackground_variable.txt}$ background astrometric points
+    are generated from exponential distributions at each $\phi_1$.
+
     The synthetic stream's photometry is also simulated using a 12~Gyr, [Fe/H] =
-    -1.35~dex NMIST isochrone \TODO{[cite brutus]}. The isochrone truncates just
+    -1.35~dex NMIST isochrone \TODO{[cite brutus]}. The isochrone is truncated just
     short of the giant branch, and is sampled from uniformly along the isochrone
     (i.e., the initial mass function, $P(\gamma)$, is uniform) as well as with
     an intrinsic uniform 0.2~dex scatter orthogonal to the isochrone track. The
@@ -1345,15 +1345,26 @@
         \label{fig:mock_data_photometric_background_selection}
     \end{figure}
 
-    We pre-train a normalizing flow (see
-    \autoref{sub:method:photometric_model:off_stream}) on an off-stream
-    selection.  We train on the photometry.  You can see the selection in
-    \autoref{fig:mock_data_photometric_background_selection}.  You can see both
-    the on-stream and off-stream labels, blue and black respectively.  We select
-    using an astrometric selection. In the photometry you can see that the
-    on-stream selection has two populations, drawn from the isochrone and drawn
-    from the background The off-stream selection, meanwhile, has only the
-    background population. Next we train the full model.
+    We select on-stream and off-stream regions using the known $\phi_1, \phi_2$
+    range of the mock stream. The upper panel of
+    \autoref{fig:mock_data_photometric_background_selection} shows these
+    selections blue and black, respectively. The lower panel shows the on and
+    off-stream selections in photometric coordinates. In this space it is
+    apparent that the on-stream region has two populations, drawn from the
+    isochrone and from background points included in the simple $\phi_1, \phi_2$
+    box. In contrast the off-stream region, has only the the background population.
+    We use the off-stream population to train a conditional normalizing flow
+    (see \autoref{sub:method:photometric_model:off_stream}) on the magnitudes
+    $g$ and $r$ and conditioned on $\phi_1$. The normalizing flow is now a
+    non-parametric distribution characterizing the photometric background,
+    including its variation over $\phi_1$. For this mock stream the flexibility
+    of the normalizing flow greatly exceeds necessity: the background is
+    drawn from a $\phi_1$-invariant multivariate normal, essentially the base
+    distribution of the normalizing flow. It is therefore no surprise that
+    the trained normalizing flow provides an excellent characterization of
+    the background. We will later see that the flow performs similarly well
+    on complex distributions. Having trained the background photometric model
+    we proceed to train the full model.
 
 
     \begin{figure*}
