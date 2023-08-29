@@ -198,7 +198,7 @@ write_kwargs = {
     "latexdict": {
         "tabletype": "table*",
         "preamble": preamble[1:],
-        "col_align": r"@{}r<{\hspace{7pt}}*{4}{c<{\hspace{7pt}}}*{2}{c<{\hspace{7pt}}}c<{\hspace{7pt}}*{3}{l<{\hspace{7pt}}}@{}",  # noqa: E501
+        "col_align": r"@{}c<{\hspace{7pt}}*{4}{c<{\hspace{7pt}}}*{2}{c<{\hspace{7pt}}}c<{\hspace{7pt}}*{3}{l<{\hspace{7pt}}}@{}",  # noqa: E501
         "header_start": "\n".join(  # noqa: FLY002
             (
                 r"\toprule",
