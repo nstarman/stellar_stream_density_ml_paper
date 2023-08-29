@@ -53,7 +53,9 @@ subselect = rng.choice(np.arange(len(prob_idx)), size=3, replace=False, shuffle=
 rows.extend(prob_idx[subselect])
 
 table = QTable()
-table[r"\texttt{source\_id}"] = data_table["source_id"][sel][rows]
+# yada yada the source_id column
+# table[r"\texttt{source\_id}"] = [f"...{str(sid)[-4:]}" for sid in table[r"\texttt{source\_id}"]]  # noqa: E501
+table[r"\texttt{source\_id}"] = ["---"] * len(rows)
 
 # Astrometry
 table[r"$\alpha$ [$\mathrm{{}^{\circ}}$]"] = data_table["ra"][sel][rows].to_value("deg")
@@ -215,9 +217,6 @@ write_kwargs = {
 
 # -----------------------------------------------------------------------------
 # Save the table
-
-# yada yada the source_id column
-table[r"\texttt{source\_id}"] = [f"...{str(sid)[-4:]}" for sid in table[r"\texttt{source\_id}"]]  # noqa: E501
 
 # Serialize to a string
 out = StringIO()
