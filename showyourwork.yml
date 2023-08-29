@@ -61,6 +61,14 @@ dependencies:
     - src/data/mock/data.asdf
     - src/scripts/mock/define_model.py
     - src/data/mock/model.pt
+  src/scripts/mock/plot/variable_ncorrect.py:
+    - src/data/mock/data.asdf
+    - src/scripts/mock/define_model.py
+    - src/data/mock/model.pt
+  src/scripts/mock/plot/variable_falseident.py:
+    - src/data/mock/data.asdf
+    - src/scripts/mock/define_model.py
+    - src/data/mock/model.pt
   # GD1
   src/scripts/gd1/data/2-combine_data.py:
     - src/data/gd1/gaia_ps1_xm_polygons.asdf

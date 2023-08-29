@@ -145,6 +145,36 @@ rule mock_train_model:
     script:
         "src/scripts/mock/model/2-train_model.py"
 
+
+rule mock_ncorrect_variable:
+    output:
+        "src/tex/output/mock/ncorrect_variable.txt"
+    input:
+        "src/data/mock/data.asdf",
+        "src/data/mock/model.pt",
+    conda:
+        "environment.yml"
+    cache:
+        True
+    script:
+        "src/scripts/mock/plot/variable_ncorrect.py"
+
+
+rule mock_falseident_variable:
+    output:
+        "src/tex/output/mock/falseident_variable.txt"
+    input:
+        "src/data/mock/data.asdf",
+        "src/data/mock/model.pt",
+    conda:
+        "environment.yml"
+    cache:
+        True
+    script:
+        "src/scripts/mock/plot/variable_falseident.py"
+
+
+
 # ==============================================================================
 # Dustmaps
 
