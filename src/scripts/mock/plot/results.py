@@ -102,25 +102,6 @@ ax01.bar(
     label="Ground Truth",
 )
 
-# Model
-# TODO: in a diagnostic plot
-# with xp.no_grad():
-#     helper.manually_set_dropout(model, 0.15)
-#     weights = xp.stack(
-#         [model.unpack_params(model(data))["stream.weight",] for i in range(100)], 1
-#     )
-#     helper.manually_set_dropout(model, 0)
-#     weight_percentiles = np.c_[
-#         np.percentile(weights, 5, axis=1), np.percentile(weights, 95, axis=1)
-#     ]
-# ax01.fill_between(
-#     data["phi1"],
-#     weight_percentiles[:, 0],
-#     weight_percentiles[:, 1],
-#     color="k",
-#     alpha=0.25,
-#     label=r"Model (15% dropout)",
-# )
 ax01.plot(data["phi1"], weight, c="k", ls="--", lw=2, label="Model (MLE)")
 
 ax01.legend(loc="upper left")
@@ -154,17 +135,6 @@ line = ax02.scatter(
 )
 ax02.set_rasterization_zorder(0)
 
-# with xp.no_grad():
-#     helper.manually_set_dropout(model, 0.15)
-#     n = ("stream.astrometric.phi2", "mu")
-#     mus = xp.stack([model.unpack_params(model(data))[n] for i in range(100)], 1)
-#     mu_percentiles = np.c_[
-#         np.percentile(mus, 5, axis=1), np.percentile(mus, 95, axis=1)
-#     ]
-#     helper.manually_set_dropout(model, 0)
-# ax02.fill_between(
-#     data["phi1"], mu_percentiles[:, 0], mu_percentiles[:, 1], color="k", alpha=0.25
-# )
 ax02.plot(
     data["phi1"][where],
     mpa["phi2", "mu"][where],
@@ -214,18 +184,6 @@ ax03.scatter(
 )
 ax03.set_rasterization_zorder(0)
 
-# with xp.no_grad():
-#     helper.manually_set_dropout(model, 0.15)
-#     n = ("stream.astrometric.parallax", "mu")
-#     mus = xp.stack([model.unpack_params(model(data))[n] for i in range(100)], 1)
-#     mu_percentiles = np.c_[
-#         np.percentile(mus, 5, axis=1), np.percentile(mus, 95, axis=1)
-#     ]
-#     helper.manually_set_dropout(model, 0)
-# ax03.fill_between(
-#     data["phi1"], mu_percentiles[:, 0], mu_percentiles[:, 1], color="k", alpha=0.25
-# )
-
 ax03.plot(
     data["phi1"][where],
     mpa[k_dist, "mu"][where],
@@ -249,7 +207,7 @@ legend1 = plt.legend(
     ],
     ncols=3,
     loc="upper right",
-    bbox_to_anchor=(1, -0.05),
+    bbox_to_anchor=(1, -0.08),
 )
 ax03.add_artist(legend1)
 
