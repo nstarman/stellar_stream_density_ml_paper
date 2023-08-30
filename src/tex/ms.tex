@@ -1536,13 +1536,13 @@
         approximation  we simply translate the ($\phi_1, \phi_2$) sub-region boxes to ICRS.
         We correct the \PanStarrs{} photometry for dust extinction
         using the \textit{Bayestar19} \citep{Green+2019} models in the \package{dustmaps} package \citep{Green2018}.
-        \textit{Bayestar19 is a three-dimensional dust map of the Milky Way
+        \textit{Bayestar19} is a three-dimensional dust map of the Milky Way
         for which we use \Gaia's parallax distance information.
         We include the $1-\sigma$ errors as a source of uncertainty
         in $\Sigma_n$, the per-star photometric uncertainty.
         % TODO: actually implement that in the model
-        The result is a field populated by \variable{output/gd1/ndata_variable.txt} stars, from which we would
-        like to identify stream members.
+        The result is a field populated by \variable{output/gd1/ndata_variable.txt} stars,
+        from which we would like to identify stream members.
 
         In \autoref{fig:gd1-data_selection} we create data masks for a more refined
         selection around the stream.
