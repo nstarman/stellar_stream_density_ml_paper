@@ -20,7 +20,8 @@
 \renewcommand{\equationautorefname}{Eq.}
 \renewcommand{\tableautorefname}{Tab.}
 
-\newcommand{\package}[1]{\textsc{#1}}
+\newcommand{\code}[1]{\textsc{#1}}
+\newcommand{\package}[1]{\code{#1}}
 \newcommand{\stream}[1]{#1}
 \newcommand{\dataarchive}[1]{\texttt{#1}}
 \newcommand{\Gaia}{\dataarchive{Gaia}}
@@ -97,14 +98,13 @@
     remnants of globular clusters and satellite galaxies, and their census has
     grown extensively in the Milky Way thanks to all-sky astrometric missions
     like {\it Gaia} and low-surface brightness photometric surveys (\JN{cite}).
-    The formation of streams can be traced back to a progenitor cluster (i.e., a
-    satellite galaxy or globular cluster), whose stars are gradually lost to the
+    The formation of streams can be traced back to a progenitor cluster, whose stars are gradually lost to the
     tidal field of the host galaxy and extend along a series of similar orbits
-    producing tidal tails, which can sometimes span many tens of degrees across
-    the sky. This orbital proximity of stars belonging to a stream makes them
+    producing tidal tails, which can sometimes span several tens of degrees across
+    the sky. The orbital proximity of stars belonging to a stream makes them
     sensitive tracers of the mass distribution of galaxies, sourced by both the
     baryonic and dark matter components.
-    % 
+
     The average properties of a stream (e.g., the mean position and velocity
     track of the tidal tails) can be used to reconstruct the global dark matter
     distribution of the stellar halo (e.g., \JN{cite}), while local variations
@@ -112,68 +112,61 @@
     stream's encounters with baryonic structures such as (e.g.) the stellar bar
     (\JN{cite}), and non-luminous structures like dark matter subhalos
     (\JN{cite}). Importantly, these galactic components span orders of magnitude
-    in mass, highlighting the importance of characterizing a population of
-    stellar streams both in morphology and kinematics. 
-    % 
+    in mass and spatial extent, highlighting the sensitivity of streams in constraining the structure of the galaxy.
+    
     While several methods have been developed to model stream properties as a
-    function of global halo properties (e.g., flattening and
+    function of global halo characteristics (e.g., flattening and
     orientation;\JN{cite}) and local substructures (e.g., the bar's pattern
-    speed and the mass of subhalo perturbers; \JN{cite}), these methods and
-    insights often rely on the existence of a homogenized stream-tracer
-    population that characterizes the stream across each of the observable
+    speed and the mass of subhalo perturbers; \JN{cite}), these methods often rely on the existence of a homogenized stream-tracer
+    population that characterizes a given stream across each of the observable
     phase-space dimensions. Additionally, because even the fine-grain properties
-    of streams are influenced by the detailed mass distribution of galaxies, it
+    of streams are influenced by the detailed mass distribution of its host galaxy, it
     is important to propagate errors both in measurement uncertainty and
     membership uncertainty (i.e., which stars belong to the stream versus the
-    background) when attempting to model the galaxy. Otherwise, a stream that
-    has been poorly characterized could bias constraints on (e.g.) the total
+    background) when attempting to model a stream. Otherwise, a poorly characterized stream could bias constraints on (e.g.) the total
     mass of the galaxy, the dark matter halo shape, and the mass of subhalo
     perturbers. In order to generate more precise constraints on the structure
     of the galaxy, it is therefore imperative that a statistically sound and
-    homogenized catalog of stellar streams is produced so that theoretical
-    models for the gravitational potential of the galaxy across a large range of
-    spatial scales can be constrained. 
-    %
+    homogenized catalog of stellar streams is produced. 
+
     While streams are well described in (e.g.) action angle coordinates or
-    $N-$body simulations, these methods relying on prior assumptions about the
-    galaxy and its underlying potential. Therefore, it is important to devise
+    $N-$body simulations, these methods rely on prior assumptions about the
+    galaxy and its underlying gravitational potential. Therefore, it is necessary to devise
     data-driven methods to characterize stellar streams without appealing to
     strong prior assumptions about the galaxy's structure. 
-    % 
+    
     There are a few previous works which have modeled stellar streams in this
     context. \citet{Patrick+2022} developed a data-driven spline-based
-    model for modeling the photometric qualities of previously identified
+    method for modeling the photometric properties and on-sky positions of previously identified
     streams. Their method works by fitting the stream's stellar surface density
     with a series of splines, capturing both surface brightness variations along
     the stream and changes in the position of the stream track and width. Their
-    method also utilize a simultaneous ischorone fit to the stream, from which a
-    distance modulus can be derived by assuming that the entire stream
-    originates from the same stellar population. While this method is very
+    method also utilize a simultaneous isochrone fit to a given stream, from which a
+    distance modulus can be derived. While this method is very
     successful at characterizing the photometric properties of a stream, it does
-    not consider the kinematic dimensions which have become increasing
+    not consider the kinematic dimensions which have become increasingly
     well-measured with successive data releases from {\it Gaia}, as well as
     targeted observations. From a population of RR Lyrae stars,
     \citet{Price-Whelan+2019} utilized a mixture model to fit the globular
     cluster stream Pal-5 in the space of proper motions and heliocentric
     distances. The mixture modeling approach enables a simultaneous fit to both
-    the stream and background density, enabling better separation of a coherent
-    stream from an otherwise noisy background distribution. However, the track
+    the stream and background density, allowing for better separation of the stream from the background distribution. However, the track
     of the stream in on-sky coordinates is not fit. The method identified 27 RR
     Lyrae stars consistent with being members of the stream. While useful for
-    determining the average properties of the stream (e.g., its mean distance
+    determining the average properties of a stream (e.g., its mean distance
     track), a limited population of RR Lyrae stars are not sufficient to capture
-    the fine-grained properties of streams expected to inform constraints on
+    the small-scale properties of streams expected to inform constraints on
     (e.g.) a population of perturbers in the galaxy. \JN{are there other
     methods?}
-    % 
+
     Other methods for extracting stellar streams from the data include
     matched-filter approaches, where over-densities in color-magnitude space are
     inspected as possible clusters undergoing tidal stripping \JN{cite the many
     key papers using this method}. While the matched-filter technique has been
-    extremely successful at stream discovery, it is not equipped to characterize
+    extremely successful in stream discovery, it is not equipped to characterize
     streams at the level of detailed necessary to inform precise constraints on
     the potential of the galaxy and its substructure.
-    % 
+
     In order to address the need for a flexible model of stellar streams both in
     photometric and kinematic spaces, in this work we develop a new method for
     characterizing streams and quantifying the membership probability of
@@ -182,7 +175,7 @@
     model the kinematic and photometric properties of streams simultaneously.
     Furthermore, our method is well-suited to fitting streams with only partial
     or incomplete phase-space or photometric observations, enabling a full
-    characterization of streams insofar as the available data allows. 
+    characterization of streams insofar as the available data allows. We do not rely on assumptions about the potential of the galaxy, and utilize mixture density nextworks to flexibly capture the qualities of a stream.
 
     \begin{quotation}
 
@@ -1413,7 +1406,7 @@
             \includegraphics[width=1\linewidth]{figures/mock/results.pdf}
             \caption{
                 %
-                \textbf{Top panel:}%
+                \textbf{Top panel: }%
                     The stream mixture coefficient $f(\phi_1)$ (black dotted line)
                     predicted by the model, overplotted on the true stream fraction
                     (black-outlined histogram), calculated as the ratio of stream
@@ -1488,7 +1481,7 @@
         membership probability where the stream is present, and a low probability
         ($\sim 0$) where the stream is absent.
         The false positive rate (i.e., stars misidentified as stream members) for this test
-        is found to be $\variable{output/mock/falseident_variable.txt}\%$ when cutting on
+        is found to be $\variable{output/mock/falseident_variable.txt}\%$ (3 stars) when cutting on
         the 80\% membership probability threshold.
         % The perfect recovery rate and low false identification rate demonstrate the efficacy
         % of this method.
@@ -1514,7 +1507,7 @@
         To obtain more accurate color information, we cross-match the \Gaia{}
         field on \PanStarrs{} \citep{PanSTARRS1} using 
         \Gaia's provided \texttt{Best-neighbors} catalog.
-        To limit the field to a region known to contain GD-1 we adopt broad cuts
+        To limit the field to a region known to contain \stream{GD-1} we adopt broad cuts
         on the cross-matched data. We perform these rough cuts by requiring
         the data lie within the phase-space cube:
         \begin{itemize}
@@ -1524,7 +1517,7 @@
             \item $\rm{bp-rp} \in [-1, 3] \ \rm{mag}$
             \item $g, r \in [0, 50] \ \rm{mag}$, and not \texttt{null}.
         \end{itemize}
-        where, we use Gala's \citep{gala, galav1.3} \texttt{GD1Koposov10} frame
+        where, we use \package{gala}'s \citep{gala, galav1.3} \code{GD1Koposov10} frame
         \citep{Koposov+2010} to define $\phi_1$, $\phi_2$, and associated proper motions.
         For downloading purposes, we split the query into 10 sub-regions,
         in even $\phi_1$ increments. A plot of the $\phi_1, \phi_2$ regions is included
@@ -1532,23 +1525,31 @@
         Stream-specific coordinates ($\phi_1, \phi_2$) are not included in \Gaia.
         One could embed the coordinate transform in the ADQL \citep{ADQL2.0},
         or define great-circle arcs in ICRS \citep{ICRS1997}. Since only rough
-        cuts are required and since the boxes are sufficiently small for a reasonable flat-sky
-        approximation  we simply translate the ($\phi_1, \phi_2$) sub-region boxes to ICRS.
+        cuts are required and since the sub-region boxes are sufficiently small for a reasonable flat-sky
+        approximation  we simply translate the ($\phi_1, \phi_2$) boxes to ICRS.
         We correct the \PanStarrs{} photometry for dust extinction
         using the \textit{Bayestar19} \citep{Green+2019} models in the \package{dustmaps} package \citep{Green2018}.
         \textit{Bayestar19} is a three-dimensional dust map of the Milky Way
         for which we use \Gaia's parallax distance information.
         We include the $1-\sigma$ errors as a source of uncertainty
-        in $\Sigma_n$, the per-star photometric uncertainty.
+        in $\mbs{\Sigma}_n$, the per-star photometric uncertainty.
         % TODO: actually implement that in the model
         The result is a field populated by \variable{output/gd1/ndata_variable.txt} stars,
         from which we would like to identify stream members.
 
-        In \autoref{fig:gd1-data_selection} we create data masks for a more refined
-        selection around the stream.
-
-        We make proper motion selection boxes at box corners $(\mu_{\phi_1}, \mu_{\phi_2}) = [(-15,-10) (-4.5, -2)] \ \unit{mas/yr}$, and $(\mu_{\phi_1}, \mu_{\phi_2}) = [(-15,-5) (-5, -1)] \ \unit{mas/yr}$, 
-        
+        We create data masks for a more refined selection around \stream{GD-1}.
+        The two mask types, proper motion and photometric,
+        are show in \autoref{fig:gd1-data_selection}.
+        The proper motion masks select rectangular regions, containing the primary overdensity
+        of \stream{GD-1} and a surrounding area following the tail of the distribution.
+        The tighter mask (red) has corners $(\mu_{\phi_1}, \mu_{\phi_2}) = [(-15,-10) (-4.5, -2)] \ \unit{mas/yr}$, while the larger mask (yellow) has $(\mu_{\phi_1}, \mu_{\phi_2}) = [(-15,-5) (-5, -1)] \ \unit{mas/yr}$.
+        In photometric coordinates we define a mask around
+        % TODO: make these variables, like in mock
+        a 12 Gyr, [Fe/H] = -1.3 isochrone at a distance of 7.8 kpc. The selection region is a 0.2 dex orthogonal buffer around the MIST isochrone \citep[using]{brutus}, which
+        is illustrated in the 2nd-from-the-top-left plot in \autoref{fig:gd1-data_selection}.
+        In addition, to avoid detailed modeling of the completeness as a term in $\prior_{obs}$ (from \autoref{isochrone_prior_components}) we mask out photometry with $G_{\Gaia{}} > 20$.
+        With combinations of these masks the stream has much larger signal-to-noise, though
+        is still only a small percent of the total data.
 
         \begin{figure*}[h]
             \script{gd1/plot/data_selection.py}
@@ -1560,19 +1561,27 @@
                 %
                 \textbf{Row 1 Panels:}
                 Proper motion selection boxes in red and yellow.
-                The right plot
+                The right plot shows the application of these selections.
+                \stream{GD-1} is apparent from around $-60$ to $-10$ deg in the red
+                selection and present, if less clearly, in the yellow selection.
                 %
                 \textbf{Row 2 Panels:}
                 Photometric selection (blue curve). The selection is based on
                 a 12 Gyr, [Fe/H] = -1.3 MIST isochrone, buffered by 0.2 dex.
+                The right plot shows the application of this selection. By eye, the stream
+                is a small overdensity extending from $-50$ to $0$ deg.
                 % 
                 \textbf{Row 3 Panels:}
-                Applying the red astrometric and blue photometric selections, plotted
-                for astrometric coordinates $\phi_2, \varpi, \mu_{\phi_1}, \mu_{\phi_2}$.
+                Applying the combination of red astrometric and blue photometric selections,
+                plotted for astrometric coordinates $\phi_2, \varpi, \mu_{\phi_1}, \mu_{\phi_2}$.
+                The stream is an identifiable overdensity in all phase-space coordinates
+                except $\varpi$ where the errors are significant.
                 % 
                 \textbf{Row 4 Panels:}
                 Applying the yellow astrometric and blue photometric selections, plotted
                 for the same astrometric coordinates as the above row.
+                In these coordinates the stream is clearly observable in $\phi_2$ and very
+                faintly in $\mu_{\phi_1}^*$.
             }
             \label{fig:gd1-data_selection}
         \end{figure*}
@@ -1691,6 +1700,7 @@
             \centering
             \includegraphics[width=1\linewidth]{figures/gd1/results_full.pdf}
             \caption{CAPTION}
+            \label{fig:gd1-results-full}
             TODO:
             \begin{itemize}
                 \item Add plot of the stream linear density
@@ -1699,7 +1709,6 @@
                 \item rerun model with larger pmphi2 sigma
                 \item add the isochrones to the cmd plots
             \end{itemize}
-            \label{fig:gd1-results-full}
         \end{figure*}
 
         \begin{figure*}[h]
