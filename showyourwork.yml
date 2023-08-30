@@ -72,6 +72,8 @@ dependencies:
   # GD1
   src/scripts/gd1/data/2-combine_data.py:
     - src/data/gd1/gaia_ps1_xm_polygons.asdf
+  src/scripts/gd1/data/2.5-variable_ndata.py:
+    - src/data/gd1/gaia_ps1_xm.asdf
   src/scripts/gd1/data/3.3-masks.py:
     - src/data/gd1/gaia_ps1_xm.asdf
   src/scripts/gd1/model/1-info.py:

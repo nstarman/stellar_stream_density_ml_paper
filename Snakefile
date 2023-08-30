@@ -226,6 +226,19 @@ rule gd1_combine_data:
         "src/scripts/gd1/data/2-combine_data.py"
 
 
+rule gd1_variable_ndata:
+    output:
+        "src/tex/output/gd1/ndata_variable.txt",
+    input:
+        "src/data/gd1/gaia_ps1_xm.asdf",
+    conda:
+        "environment.yml"
+    cache:
+        True
+    script:
+        "src/scripts/gd1/data/2.5-variable_ndata.py"
+
+
 rule gd1_masks_pm:
     output:
         "src/data/gd1/pm_edges.ecsv"

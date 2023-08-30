@@ -128,7 +128,7 @@ ax10.hist2d(
     bins=100,
     label="GD-1",
     norm=mpl.colors.LogNorm(),
-    cmap="Blues",
+    cmap="Greys",
 )
 
 # Isochrone
