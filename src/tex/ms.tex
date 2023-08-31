@@ -1628,20 +1628,36 @@
 
     \subsection{Model Specification}\label{sub:results_gd1:model}
 
-        \autoref{sec:results_mock:model}
+        The modeling framework, detailed in the \autoref{sec:method} sections, is
+        modular, allowing many model components to be combined, nested, added
+        to the mixture, and linked via priors.
+        The model we require for \stream{GD-1} is similar to 
+        the model built for the mock stream in \autoref{sec:results_mock:model},
+        but has additional components for \stream{GD-1}'s spur.
+        In this section we will discuss how the total model is built, noting 
+        similarities to the example mocks-stream model.
 
-        \todo[inline]{rephrase, this is quoting from the mock stream}
-        We select on-stream and off-stream regions using the known
-        $\phi_1,\phi_2$ range of the stream. The upper panel of
-        \autoref{fig:gd1-photometric_background_selection} shows these
-        selections in blue and black, respectively.  The lower panel shows the
-        on and off-stream selections in photometric coordinates. An isochrone is
-        apparent in the distribution.  We use the off-stream population to train
-        a conditional normalizing flow (see
-        \autoref{sub:method:photometric_model:off_stream}) on the magnitudes $g$
-        and $r$ and conditioned on $\phi_1$.  The normalizing flow is now a
-        non-parametric distribution characterizing the photometric background,
-        including its variation over $\phi_1$.
+        All full Bayesian stream models necessarily include a background model,
+        which we model in both astrometric and photometric spaces.
+        The photometric background is too complex to capture with simple analytic
+        distributions. Instead, we train a normalizing flow on the magnitudes $g, r$,
+        conditioned on $\phi_1$. We refer readers to
+        \autoref{sub:method:photometric_model:off_stream} for discussion of the photometric distribution and how a normalizing flow
+        can characterize this complex distribution, including its variation over $\phi_1$.
+        The flow's flexibility, while necessary in this context, also poses
+        a problem: the flow captures the stream as easily as the background.
+        Consequently we select on-stream and off-stream regions using the known
+        $\phi_1,\phi_2$ range of the stream, as shown in the
+        upper panel of \autoref{fig:gd1-photometric_background_selection}.
+        In the lower panel are plotted these selections in photometric coordinates,
+        where an isochrone is apparent in the on-stream selection.
+        The normalizing flow is trained on the off-stream selection, and will be
+        fixed when incorporated into the larger model.
+
+        One part of the larger model is the astrometric component of the background.
+        Unlike for the photometry, the background may be fit with simple analytic
+        distributions. We use an exponential distribution (see \autoref{sub:exponential_distribution})
+        
 
         \begin{figure}
             \script{gd1/plot/photometric_background_selection.py}
