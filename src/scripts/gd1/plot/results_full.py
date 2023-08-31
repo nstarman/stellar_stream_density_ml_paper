@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch as xp
 from astropy.coordinates import Distance
+from matplotlib.colors import to_rgba
 from matplotlib.gridspec import GridSpec
 
 # Add the parent directory to the path
@@ -38,6 +39,34 @@ with xp.no_grad():
     bkg_lik = model.component_posterior("background", mpars, data, where=where)
     tot_lik = model.posterior(mpars, data, where=where)
 
+# Also evaluate the model with dropout on
+with xp.no_grad():
+    # turn dropout on
+    model = model.train()
+    manually_set_dropout(model, 0.15)
+    # evaluate the model
+    dmpars = [model.unpack_params(model(data)) for i in range(100)]
+    # weights
+    weights = xp.stack([mp["stream.weight",] for mp in dmpars], 1)
+    weight_percentiles = np.c_[
+        np.percentile(weights, 5, axis=1), np.percentile(weights, 95, axis=1)
+    ]
+    phi2_mu = xp.stack([mp["stream.astrometric.phi2", "mu"] for mp in dmpars], 1)
+    phi2_lnsigma = xp.stack(
+        [mp["stream.astrometric.phi2", "ln-sigma"] for mp in dmpars], 1
+    )
+    pmphi1_mu = xp.stack([mp["stream.astrometric.pmphi1", "mu"] for mp in dmpars], 1)
+    pmphi1_lnsigma = xp.stack(
+        [mp["stream.astrometric.pmphi1", "ln-sigma"] for mp in dmpars], 1
+    )
+    pmphi2_mu = xp.stack([mp["stream.astrometric.pmphi2", "mu"] for mp in dmpars], 1)
+    pmphi2_lnsigma = xp.stack(
+        [mp["stream.astrometric.pmphi2", "ln-sigma"] for mp in dmpars], 1
+    )
+
+    # turn dropout back off
+    manually_set_dropout(model, 0)
+    model = model.eval()
 
 stream_weight = mpars[("stream.weight",)]
 stream_cutoff = stream_weight > 2e-2
@@ -81,26 +110,17 @@ ax01 = fig.add_subplot(gs[1, :])
 ax01.set(ylabel="Stream fraction", ylim=(0, 0.35))
 ax01.set_xticklabels([])
 
-with xp.no_grad():
-    model = model.train()
-    manually_set_dropout(model, 0.15)
-    weights = xp.stack(
-        [model.unpack_params(model(data))["stream.weight",] for i in range(100)], 1
-    )
-    weight_percentiles = np.c_[
-        np.percentile(weights, 5, axis=1), np.percentile(weights, 95, axis=1)
-    ]
-    manually_set_dropout(model, 0)
-    model = model.eval()
 ax01.fill_between(
     data["phi1"],
     weight_percentiles[:, 0],
     weight_percentiles[:, 1],
-    color="k",
-    alpha=0.25,
+    facecolor="none",
+    edgecolor=to_rgba("tab:gray", 0.5),
+    hatch="XX",
     label=r"Model (15% dropout)",
 )
-ax01.plot(data["phi1"], stream_weight, c="k", ls="--", lw=2, label="Model (MLE)")
+ax01.plot(data["phi1"], weights.mean(1), c="k", ls="--", lw=1, label="Model (mean)")
+# ax01.plot(data["phi1"], stream_weight, c="k", ls="--", lw=2, label="Model (MLE)")
 ax01.legend(loc="upper left")
 
 # ---------------------------------------------------------------------------
@@ -121,13 +141,21 @@ ax02.scatter(
     zorder=-10,
 )
 ax02.set_rasterization_zorder(0)
+# ax02.fill_between(
+#     data["phi1"][stream_cutoff],
+#     (mpa["phi2", "mu"] - xp.exp(mpa["phi2", "ln-sigma"]))[stream_cutoff],
+#     (mpa["phi2", "mu"] + xp.exp(mpa["phi2", "ln-sigma"]))[stream_cutoff],
+#     color="k",
+#     alpha=0.25,
+#     label="Model (MLE)",
+# )
 ax02.fill_between(
     data["phi1"][stream_cutoff],
-    (mpa["phi2", "mu"] - xp.exp(mpa["phi2", "ln-sigma"]))[stream_cutoff],
-    (mpa["phi2", "mu"] + xp.exp(mpa["phi2", "ln-sigma"]))[stream_cutoff],
+    (phi2_mu.mean(1) - np.exp(phi2_lnsigma.mean(1)))[stream_cutoff],
+    (phi2_mu.mean(1) + np.exp(phi2_lnsigma.mean(1)))[stream_cutoff],
     color="k",
     alpha=0.25,
-    label="Model (MLE)",
+    label=r"Model (mean)",
 )
 ax02.legend(loc="upper left")
 
@@ -147,13 +175,23 @@ ax03.scatter(
     zorder=-10,
 )
 ax03.set_rasterization_zorder(0)
+# ax03.fill_between(
+#     data["phi1"][stream_cutoff],
+#     (mpa["pmphi1", "mu"] - xp.exp(mpa["pmphi1", "ln-sigma"]))[stream_cutoff],
+#     (mpa["pmphi1", "mu"] + xp.exp(mpa["pmphi1", "ln-sigma"]))[stream_cutoff],
+#     color="k",
+#     alpha=0.25,
+#     label="Model (MLE)",
+# )
+# ax03.plot(data["phi1"], np.mean(pmphi1_mu.numpy(), 1), c="blue", label="Model
+# (mean)")
 ax03.fill_between(
     data["phi1"][stream_cutoff],
-    (mpa["pmphi1", "mu"] - xp.exp(mpa["pmphi1", "ln-sigma"]))[stream_cutoff],
-    (mpa["pmphi1", "mu"] + xp.exp(mpa["pmphi1", "ln-sigma"]))[stream_cutoff],
+    (pmphi1_mu.mean(1) - np.exp(pmphi1_lnsigma.mean(1)))[stream_cutoff],
+    (pmphi1_mu.mean(1) + np.exp(pmphi1_lnsigma.mean(1)))[stream_cutoff],
     color="k",
     alpha=0.25,
-    label="Model (MLE)",
+    label=r"Model (mean)",
 )
 ax03.legend(loc="upper left")
 
@@ -173,14 +211,24 @@ ax04.scatter(
     zorder=-10,
 )
 ax04.set_rasterization_zorder(0)
+# ax04.fill_between(
+#     data["phi1"][stream_cutoff],
+#     (mpa["pmphi2", "mu"] - xp.exp(mpa["pmphi2", "ln-sigma"]))[stream_cutoff],
+#     (mpa["pmphi2", "mu"] + xp.exp(mpa["pmphi2", "ln-sigma"]))[stream_cutoff],
+#     color="k",
+#     alpha=0.25,
+#     label="Model (MLE)",
+# )
 ax04.fill_between(
     data["phi1"][stream_cutoff],
-    (mpa["pmphi2", "mu"] - xp.exp(mpa["pmphi2", "ln-sigma"]))[stream_cutoff],
-    (mpa["pmphi2", "mu"] + xp.exp(mpa["pmphi2", "ln-sigma"]))[stream_cutoff],
+    (pmphi2_mu.mean(1) - np.exp(pmphi2_lnsigma.mean(1)))[stream_cutoff],
+    (pmphi2_mu.mean(1) + np.exp(pmphi2_lnsigma.mean(1)))[stream_cutoff],
     color="k",
     alpha=0.25,
-    label="Model (MLE)",
+    label=r"Model (mean)",
 )
+# ax04.plot(data["phi1"], np.mean(pmphi2_mu.numpy(), 1), c="blue", label="Model
+# (mean)")
 ax04.legend(loc="upper left")
 
 
