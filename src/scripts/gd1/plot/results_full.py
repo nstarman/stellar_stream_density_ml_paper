@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch as xp
 from astropy.coordinates import Distance
+from astropy.table import QTable
 from matplotlib.colors import to_rgba
 from matplotlib.gridspec import GridSpec
 
@@ -79,6 +80,12 @@ allstream_prob = (stream_lik + spur_lik) / tot_lik
 psort = np.argsort(allstream_prob)
 pmax = allstream_prob.max()
 pmin = allstream_prob.min()
+
+# =============================================================================
+# Load Control Points
+
+stream_cp = QTable.read(paths.data / "gd1" / "stream_control_points.ecsv")
+spur_cp = QTable.read(paths.data / "gd1" / "spur_control_points.ecsv")
 
 
 # =============================================================================
@@ -157,7 +164,28 @@ ax02.fill_between(
     alpha=0.25,
     label=r"Model (mean)",
 )
-ax02.legend(loc="upper left")
+
+# Control points
+ax02.errorbar(
+    stream_cp["phi1"],
+    stream_cp["phi2"],
+    yerr=stream_cp["w_phi2"],
+    fmt=".",
+    c="royalblue",
+    capsize=2,
+    label="Stream Control Points",
+)
+ax02.errorbar(
+    spur_cp["phi1"],
+    spur_cp["phi2"],
+    yerr=spur_cp["w_phi2"],
+    fmt=".",
+    c="gold",
+    capsize=2,
+    label="Spur Control Points",
+)
+
+ax02.legend(loc="lower right")
 
 # ---------------------------------------------------------------------------
 # PM-Phi1
@@ -193,7 +221,31 @@ ax03.fill_between(
     alpha=0.25,
     label=r"Model (mean)",
 )
-ax03.legend(loc="upper left")
+
+# Control points
+ax03.errorbar(
+    stream_cp["phi1"],
+    stream_cp["pm_phi1"],
+    yerr=stream_cp["w_pm_phi1"],
+    fmt=".",
+    c="royalblue",
+    capsize=2,
+    label="Stream Control Points",
+)
+# The spur control points are very large and we need to cut the canvas size down
+# back to the data.
+ax03.errorbar(
+    spur_cp["phi1"],
+    spur_cp["pm_phi1"],
+    yerr=spur_cp["w_pm_phi1"],
+    fmt=".",
+    c="gold",
+    capsize=2,
+    label="Spur Control Points",
+)
+
+ax03.legend(loc="lower right")
+ax03.set_ylim(data["pmphi1"].min(), data["pmphi1"].max())
 
 # ---------------------------------------------------------------------------
 # PM-Phi2
