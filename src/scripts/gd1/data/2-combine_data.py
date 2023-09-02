@@ -98,7 +98,7 @@ cov_icrs[:, 1, 1] = table["pmdec_error"].value ** 2
 
 cov_gd1 = gc.transform_pm_cov(c_icrs, cov_icrs, frame)
 
-# TODO: what to do about negative errors?
+# TODO: what do negative errors mean?
 table["phi1_error"] = np.sqrt(table["ra_error"] ** 2 + table["dec_error"] ** 2) * u.deg
 table["phi2_error"] = np.sqrt(table["ra_error"] ** 2 + table["dec_error"] ** 2) * u.deg
 table["pm_phi1_error"] = np.sqrt(np.abs(cov_gd1[:, 0, 0])) * u.mas / u.yr
@@ -127,18 +127,35 @@ for _m in (
 # ---------------------------------------
 # Photometrics
 
+# Set the NaN distances to 8.5 kpc
+c_icrs.data.distance[np.isnan(c_icrs.data.distance)] = 8.5 * u.kpc
+
 dustmap = dustmaps.bayestar.BayestarQuery(
     map_fname=None, max_samples=None, version="bayestar2019"
 )
 
 table["E(B-V)"] = dustmap.query(c_icrs, mode="best")
 
+# Add the 1-sigma errors (+1sigma - -1sigma) / 2
+table["E(B-V)_error"] = (
+    np.diff(dustmap.query(c_icrs, mode="percentile", pct=[15.87, 84.13])).flatten() / 2
+) * u.mag
+
 # numbers from https://ui.adsabs.harvard.edu/abs/2019ApJ...887...93G
 table["g0"] = table["ps1_g"] - 3.158 * table["E(B-V)"] * u.mag
+table["g0_error"] = np.hypot(table["ps1_g_error"], (3.158 * table["E(B-V)_error"]))
+
 table["r0"] = table["ps1_r"] - 2.617 * table["E(B-V)"] * u.mag
+table["r0_error"] = np.hypot(table["ps1_r_error"], (2.617 * table["E(B-V)_error"]))
+
 table["i0"] = table["ps1_i"] - 1.971 * table["E(B-V)"] * u.mag
+table["i0_error"] = np.hypot(table["ps1_i_error"], (1.971 * table["E(B-V)_error"]))
+
 table["z0"] = table["ps1_z"] - 1.549 * table["E(B-V)"] * u.mag
+table["z0_error"] = np.hypot(table["ps1_z_error"], (1.549 * table["E(B-V)_error"]))
+
 table["y0"] = table["ps1_y"] - 1.263 * table["E(B-V)"] * u.mag
+table["y0_error"] = np.hypot(table["ps1_y_error"], (1.263 * table["E(B-V)_error"]))
 
 # Metadata
 table.meta["E(B-V)"] = "Bayestar 2019 exctinction"
@@ -150,7 +167,7 @@ table.meta["y0"] = "extinction-corrected y_mean_psf_mag"
 
 # Add colors
 table["g0-r0"] = table["g0"] - table["r0"]
-table["g0-r0_error"] = np.sqrt(table["ps1_g_error"] ** 2 + table["ps1_r_error"] ** 2)
+table["g0-r0_error"] = np.sqrt(table["g0_error"] ** 2 + table["r0_error"] ** 2)
 
 # -----------------------------------------------------------------------------
 
