@@ -99,10 +99,10 @@ cov_icrs[:, 1, 1] = table["pmdec_error"].value ** 2
 cov_gd1 = gc.transform_pm_cov(c_icrs, cov_icrs, frame)
 
 # TODO: what do negative errors mean?
-table["phi1_error"] = np.sqrt(table["ra_error"] ** 2 + table["dec_error"] ** 2) * u.deg
-table["phi2_error"] = np.sqrt(table["ra_error"] ** 2 + table["dec_error"] ** 2) * u.deg
-table["pm_phi1_error"] = np.sqrt(np.abs(cov_gd1[:, 0, 0])) * u.mas / u.yr
-table["pm_phi2_error"] = np.sqrt(np.abs(cov_gd1[:, 1, 1])) * u.mas / u.yr
+table["phi1_error"] = np.hypot(table["ra_error"], table["dec_error"]) << u.deg
+table["phi2_error"] = np.hypot(table["ra_error"], table["dec_error"]) << u.deg
+table["pm_phi1_error"] = np.sqrt(np.abs(cov_gd1[:, 0, 0])) << (u.mas / u.yr)
+table["pm_phi2_error"] = np.sqrt(np.abs(cov_gd1[:, 1, 1])) << (u.mas / u.yr)
 table["pmphi1_pmphi2_corr"] = cov_gd1[:, 0, 1]
 
 # TODO: remove this when asdf can serialize MaskedQuantity
