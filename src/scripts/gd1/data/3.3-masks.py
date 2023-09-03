@@ -22,7 +22,7 @@ SAVE_LOC = paths.data / "gd1" / "masks.asdf"
 try:
     snkmk = snakemake.params
 except NameError:
-    snkmk = {"load_from_static": True}
+    snkmk = {"load_from_static": False}
 
 
 if snkmk["load_from_static"]:
@@ -39,12 +39,12 @@ pm_edges = QTable.read(paths.data / "gd1" / "pm_edges.ecsv")
 pm_edges.add_index("label", unique=True)
 
 with asdf.open(
-    paths.data / "gd1" / "isochrone.asdf", lazy_load=True, copy_arrays=True
+    paths.data / "gd1" / "isochrone.asdf", lazy_load=False, copy_arrays=True
 ) as af:
     isochrone = af["isochrone"]
-    iso_tight = af["iso_tight"]
-    iso_medium = af["iso_medium"]
-    iso_loose = af["iso_loose"]
+    iso_tight = af["isochrone_tight"]
+    iso_medium = af["isochrone_medium"]
+    iso_loose = af["isochrone_loose"]
 
 # Gaia Data
 table = QTable.read(paths.data / "gd1" / "gaia_ps1_xm.asdf")
