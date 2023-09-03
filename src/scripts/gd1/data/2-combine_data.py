@@ -41,7 +41,8 @@ if snkmk["load_from_static"]:
 # -----------------------------------------------------------------------------
 # Initial combination
 
-af = asdf.open(paths.data / "gd1" / "gaia_ps1_xm_polygons.asdf", mode="r")
+# NOTE: need to use the fixed polygons
+af = asdf.open(paths.static / "gd1" / "gaia_ps1_xm_polygons.asdf", mode="r")
 
 combined = vstack(af.search("polygon-*").nodes, metadata_conflicts="silent")
 
