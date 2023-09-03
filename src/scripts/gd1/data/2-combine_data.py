@@ -7,11 +7,11 @@ from pathlib import Path
 from typing import Any
 
 import asdf
-import astropy.coordinates as coords
 import astropy.units as u
 import dustmaps.bayestar
 import gala.coordinates as gc
 import numpy as np
+from astropy.coordinates import ICRS, Distance
 from astropy.table import QTable, vstack
 
 sys.path.append(Path(__file__).parents[3].as_posix())
@@ -65,19 +65,9 @@ table = QTable.read(SAVE_LOC)
 # ---------------------------------------
 # Astrometrics
 
-c_icrs = coords.SkyCoord(
-    ra=table["ra"],
-    dec=table["dec"],
-    distance=coords.Distance(
-        parallax=table["parallax"] << u.arcsecond, allow_negative=True
-    ),
-    pm_ra_cosdec=table["pmra"],
-    pm_dec=table["pmdec"],
-)
-
 # Custom Frame Coordinates. Note that we don't need to specify the distance
 # because NaNs can spread through the transformation.
-c_gd1 = coords.SkyCoord(
+c_gd1 = ICRS(
     ra=table["ra"],
     dec=table["dec"],
     pm_ra_cosdec=table["pmra"],
@@ -97,7 +87,7 @@ cov_icrs[:, 0, 1] = table["pmra_pmdec_corr"]
 cov_icrs[:, 1, 0] = table["pmra_pmdec_corr"]
 cov_icrs[:, 1, 1] = table["pmdec_error"].value ** 2
 
-cov_gd1 = gc.transform_pm_cov(c_icrs, cov_icrs, frame)
+cov_gd1 = gc.transform_pm_cov(c_gd1.transform_to(ICRS()), cov_icrs, frame)
 
 # TODO: what do negative errors mean?
 table["phi1_error"] = np.hypot(table["ra_error"], table["dec_error"]) << u.deg
@@ -129,7 +119,14 @@ for _m in (
 # Photometrics
 
 # Set the NaN distances to 8.5 kpc
-c_icrs.data.distance[np.isnan(c_icrs.data.distance)] = 8.5 * u.kpc
+c_icrs = ICRS(
+    ra=table["ra"],
+    dec=table["dec"],
+    distance=Distance(parallax=table["parallax"] << u.arcsecond, allow_negative=True),
+    pm_ra_cosdec=table["pmra"],
+    pm_dec=table["pmdec"],
+)
+c_icrs.data.distance[np.isnan(c_icrs.distance)] = 8.5 * u.kpc
 
 dustmap = dustmaps.bayestar.BayestarQuery(
     map_fname=None, max_samples=None, version="bayestar2019"
