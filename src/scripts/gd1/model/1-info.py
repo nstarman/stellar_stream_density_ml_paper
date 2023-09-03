@@ -1,4 +1,4 @@
-"""Plot results."""
+"""GD-1 Model Info."""
 
 import sys
 from pathlib import Path
@@ -18,7 +18,13 @@ from scripts import paths
 
 ##############################################################################
 
-snkmk = snakemake.params  # noqa: F821
+try:
+    snkmk = snakemake.params
+except NameError:
+    snkmk = {
+        "pm_mask": "pm_tight",
+        "phot_mask": "cmd_medium",
+    }
 
 
 ##############################################################################
@@ -32,16 +38,12 @@ af = asdf.AsdfFile()
 
 # -----------------------------------------------------------------------------
 # Mask
-# TODO! move this to the data files
+# TODO: move this to the data files
 
 sel = (
-    (table["parallax"] > 0 * u.milliarcsecond)  # FIXME! allow negative parallax
+    (table["parallax"] > 0 * u.milliarcsecond)  # TODO: allow negative parallax
     & masks[snkmk["pm_mask"]]
     & masks[snkmk["phot_mask"]]
-    & ~np.isnan(table["g0"])
-    & ~np.isnan(table["ps1_g_error"])
-    & ~np.isnan(table["r0"])
-    & ~np.isnan(table["ps1_r_error"])
 )
 table = table[sel]
 

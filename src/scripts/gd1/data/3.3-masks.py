@@ -22,7 +22,7 @@ SAVE_LOC = paths.data / "gd1" / "masks.asdf"
 try:
     snkmk = snakemake.params
 except NameError:
-    snkmk = {"load_from_static": False}
+    snkmk = {"load_from_static": False, "save_to_static": False}
 
 
 if snkmk["load_from_static"]:
