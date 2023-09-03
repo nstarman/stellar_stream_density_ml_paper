@@ -11,7 +11,7 @@ import astropy.units as u
 import dustmaps.bayestar
 import gala.coordinates as gc
 import numpy as np
-from astropy.coordinates import ICRS, Distance
+from astropy.coordinates import ICRS, Distance, SkyCoord
 from astropy.table import QTable, vstack
 
 sys.path.append(Path(__file__).parents[3].as_posix())
@@ -119,12 +119,13 @@ for _m in (
 # Photometrics
 
 # Set the NaN distances to 8.5 kpc
-c_icrs = ICRS(
+c_icrs = SkyCoord(
     ra=table["ra"],
     dec=table["dec"],
     distance=Distance(parallax=table["parallax"] << u.arcsecond, allow_negative=True),
     pm_ra_cosdec=table["pmra"],
     pm_dec=table["pmdec"],
+    frame="icrs",
 )
 c_icrs.data.distance[np.isnan(c_icrs.distance)] = 8.5 * u.kpc
 
