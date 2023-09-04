@@ -136,7 +136,7 @@ ax02.legend(loc="upper left")
 # =============================================================================
 # Slice plots
 
-gs1 = gs[1].subgridspec(4, 4, height_ratios=(1, 1, 1, 2), hspace=0)
+gs1 = gs[1].subgridspec(5, 4, height_ratios=(1, 1, 1, 1, 2), hspace=0)
 
 # Legend
 legend1 = plt.legend(
@@ -203,9 +203,39 @@ for i, b in enumerate(np.unique(which_bin)):
         ax11i.set_ylabel("frequency")
 
     # ---------------------------------------------------------------------------
+    # Parallax
+
+    ax11i = fig.add_subplot(gs1[1, i])
+
+    # Connect to top plot(s)
+    for ax in (ax01, ax02):
+        ax.axvline(bins[i], color="gray", ls="--", zorder=-200)
+        ax.axvline(bins[i + 1], color="gray", ls="--", zorder=-200)
+    smlvis._slices.connect_slices_to_top(  # noqa: SLF001
+        fig, ax02, ax11i, left=bins[i], right=bins[i + 1], color="gray"
+    )
+
+    cplxs = np.ones((sel.sum(), 3)) * data_["plx"][:, None].numpy()
+    ws = np.stack((bkg_prob_, stream_prob_, spur_prob_), axis=1)
+    ax11i.hist(
+        cplxs,
+        bins=50,
+        weights=ws,
+        color=[cmap(0.01), cmap(0.99), "tab:olive"],
+        alpha=0.75,
+        density=True,
+        stacked=True,
+        label=["", "Stream Model (MLE)", "Spur Model (MLE)"],
+    )
+
+    ax11i.set_xlabel(r"$\phi_2$ [$\degree$]")
+    if i == 0:
+        ax11i.set_ylabel("frequency")
+
+    # ---------------------------------------------------------------------------
     # PM-Phi1
 
-    ax12i = fig.add_subplot(gs1[1, i])
+    ax12i = fig.add_subplot(gs1[2, i])
 
     # Recovered
     cpmphi1s = np.ones((sel.sum(), 3)) * data_["pmphi1"][:, None].numpy()
@@ -233,7 +263,7 @@ for i, b in enumerate(np.unique(which_bin)):
     # ---------------------------------------------------------------------------
     # PM-Phi2
 
-    ax13i = fig.add_subplot(gs1[2, i])
+    ax13i = fig.add_subplot(gs1[3, i])
     ax13i.hist(
         np.ones((sel.sum(), 3)) * data_["pmphi2"][:, None].numpy(),
         bins=50,
@@ -257,7 +287,7 @@ for i, b in enumerate(np.unique(which_bin)):
     # ---------------------------------------------------------------------------
     # Photometry
 
-    ax14i = fig.add_subplot(gs1[3, i])
+    ax14i = fig.add_subplot(gs1[4, i])
 
     sorter = np.argsort(stream_prob_)
     ax14i.scatter(
