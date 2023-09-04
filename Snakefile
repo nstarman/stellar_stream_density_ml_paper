@@ -403,7 +403,7 @@ rule gd1_member_table_select:
     cache:
         True
     script:
-        "src/scripts/gd1/plot/member_table_select.py"
+        "src/scripts/gd1/table/member_table_select.py"
 
 
 rule gd1_member_table_full:
@@ -416,4 +416,4 @@ rule gd1_member_table_full:
     cache:
         True
     script:
-        "src/scripts/gd1/plot/member_table_full.py"
+        "src/scripts/gd1/table/member_table_full.py"
