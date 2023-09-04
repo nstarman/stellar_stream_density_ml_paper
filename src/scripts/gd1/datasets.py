@@ -36,8 +36,8 @@ data = sml.Data.from_format(
 ).astype(xp.Tensor, dtype=xp.float32)
 
 where = sml.Data(
-    (~xp.isnan(data.array)[:, 1:]),  # True where NOT missing
-    names=data.names[1:],
+    (~xp.isnan(data.array)),  # True where NOT missing
+    names=data.names,
 )
 
 # TODO: it would be nice to keep this as NaN

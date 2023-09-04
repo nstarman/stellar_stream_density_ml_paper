@@ -132,7 +132,7 @@ background_model = sml.IndependentModels(
 gd1_cp = QTable.read(paths.data / "gd1" / "stream_control_points.ecsv")[2:-1]
 
 # Selection of control points
-stream_control_points_prior = sml.prior.ControlRegions(
+stream_strometric_prior = sml.prior.ControlRegions(
     center=sml.Data.from_format(
         gd1_cp, fmt="astropy.table", names=("phi1", "phi2", "pm_phi1"), renamer=renamer
     ).astype(xp.Tensor, dtype=xp.float32),
@@ -191,7 +191,7 @@ stream_astrometric_model = sml.builtin.TruncatedNormal(
             },
         }
     ),
-    priors=(stream_control_points_prior,),
+    priors=(stream_strometric_prior,),
 )
 
 
@@ -216,6 +216,7 @@ abs_mags = sml.Data(_abs_mags, names=[n.removeprefix("PS_") for n in filters])
 
 stream_isochrone_spl = isochrone_spline(abs_mags["g", "r"].array, xp=np)
 
+# concentrating on the MS turnoff
 gamma_edges = xp.concatenate(
     [
         xp.linspace(0, 0.43, 30),
@@ -227,6 +228,21 @@ gamma_edges = xp.concatenate(
 stream_mass_function = sml.builtin.StepwiseMassFunction(
     boundaries=(0, 0.55, 1.01),
     log_probs=(0.0, 0.0),  # TODO: set a value
+)
+
+# Control points
+mag_cp = QTable.read(paths.data / "gd1" / "magnitude_control_points.ecsv")
+stream_photometric_prior = sml.prior.ControlRegions(
+    center=sml.Data.from_format(
+        mag_cp, fmt="astropy.table", names=("phi1", "distmod"), renamer=renamer
+    ).astype(xp.Tensor, dtype=xp.float32),
+    width=sml.Data.from_format(
+        mag_cp,
+        fmt="astropy.table",
+        names=("w_distmod",),
+        renamer={"w_distmod": "distmod"},
+    ).astype(xp.Tensor, dtype=xp.float32),
+    lamda=1_000,
 )
 
 stream_isochrone_model = sml.builtin.IsochroneMVNorm(
@@ -256,6 +272,7 @@ stream_isochrone_model = sml.builtin.IsochroneMVNorm(
             },
         }
     ),
+    priors=(stream_photometric_prior,),
 )
 
 # -----------------------------------------------------------------------------
@@ -366,7 +383,7 @@ spur_model = sml.IndependentModels(
 
 
 # =============================================================================
-# Photometry
+# Mixture
 
 
 def spur_shares_stream_distmod(params: dict) -> dict:

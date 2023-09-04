@@ -49,7 +49,7 @@ figure_path.mkdir(parents=True, exist_ok=True)
 # =============================================================================
 # Train
 
-coord_names = (*model.indep_coord_names, *model.coord_names)
+coord_names = model.indep_coord_names + model.coord_names
 dataset = td.TensorDataset(data[coord_names].array[off_stream])
 loader = td.DataLoader(dataset=dataset, batch_size=500, shuffle=True, num_workers=0)
 optimizer = optim.Adam(model.parameters(), lr=1e-3)
