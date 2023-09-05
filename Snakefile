@@ -417,3 +417,20 @@ rule gd1_member_table_full:
         True
     script:
         "src/scripts/gd1/table/member_table_full.py"
+
+
+# ==============================================================================
+# Palomar 5
+
+rule pal5_query_data:
+    output:
+        protected("src/data/pal5/gaia_ps1_xm_polygons.asdf")
+    params:
+        load_from_static=True,  # set to False to redownload
+        save_to_static=False,
+    conda:
+        "environment.yml"
+    cache:
+        True
+    script:
+        "src/scripts/pal5/data/1-query_data.py"
