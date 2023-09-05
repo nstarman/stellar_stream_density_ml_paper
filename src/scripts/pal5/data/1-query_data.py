@@ -44,6 +44,7 @@ else:  # Log into Gaia for the query
     GAIA_LOGIN = Path(paths.static / "gaia.login").expanduser()
     Gaia.login(credentials_file=GAIA_LOGIN, verbose=False)
 
+Gaia.ROW_LIMIT = -1  # no limit
 
 ##############################################################################
 
