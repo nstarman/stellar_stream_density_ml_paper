@@ -98,23 +98,11 @@ table["pm_phi2_error"] = np.sqrt(np.abs(cov_pal5[:, 1, 1])) << (u.mas / u.yr)
 table["pmphi1_pmphi2_corr"] = cov_pal5[:, 0, 1]
 
 # TODO: remove this when asdf can serialize MaskedQuantity
-for _m in (
-    "ps1_g",
-    "ps1_g_error",
-    "ps1_r",
-    "ps1_r_error",
-    "ps1_i",
-    "ps1_i_error",
-    "ps1_z",
-    "ps1_z_error",
-    "ps1_y",
-    "ps1_y_error",
-    "ag_gspphot",
-    "ebpminrp_gspphot",
-):
-    with contextlib.suppress(AttributeError):
-        table[_m] = table[_m].unmasked
-
+table = QTable(table, masked=False, copy=False)
+with contextlib.suppress(AttributeError):
+    for n, col in table.columns.items():
+        if hasattr(col, "unmasked"):
+            table[n] = table[n].unmasked
 
 # ---------------------------------------
 # Zero Point Correction
@@ -129,6 +117,22 @@ table["parallax_zpt"] = (
         table["astrometric_params_solved"],
     )
     * u.mas
+)
+
+table["parallax_zpt_Q"] = (
+    np.array(
+        (table["gaia_g"] > -6 * u.mag) & (table["gaia_g"] < 21 * u.mag),
+        dtype=int,
+    )
+    + np.array(
+        (table["nu_eff"] > 1 / u.micrometer) & (table["nu_eff"] < 1.9 / u.micrometer),
+        dtype=int,
+    )
+    + np.array(
+        (table["pseudocolour"] > 1.24 / u.micrometer)
+        & (table["pseudocolour"] < 1.72 / u.micrometer),
+        dtype=int,
+    )
 )
 
 table["parallax"] = table["parallax"] + table["parallax_zpt"]
@@ -186,7 +190,7 @@ table.meta["y0"] = "extinction-corrected y_mean_psf_mag"
 
 # Add colors
 table["g0-r0"] = table["g0"] - table["r0"]
-table["g0-r0_error"] = np.sqrt(table["g0_error"] ** 2 + table["r0_error"] ** 2)
+table["g0-r0_error"] = np.hypot(table["g0_error"], table["r0_error"])
 
 # -----------------------------------------------------------------------------
 
