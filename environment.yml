@@ -20,6 +20,7 @@ dependencies:
 
   - pip:
       - daft
+      - gaiadr3-zeropoint>=0.0.4
       - gala>=1.6
       - nflows
       - pre-commit

@@ -13,6 +13,7 @@ import gala.coordinates as gc
 import numpy as np
 from astropy.coordinates import ICRS, Distance, SkyCoord
 from astropy.table import QTable, vstack
+from zero_point import zpt
 
 sys.path.append(Path(__file__).parents[3].as_posix())
 # isort: split
@@ -113,6 +114,21 @@ for _m in (
 ):
     with contextlib.suppress(AttributeError):
         table[_m] = table[_m].unmasked
+
+
+# ---------------------------------------
+# Zero Point Correction
+
+table["parallax_zpt"] = zpt.get_zpt(
+    table["gaia_g"],
+    table["nu_eff"],
+    table["pseudocolour"],
+    table["ecl_lat"],
+    table["astrometric_params_solved"],
+)
+
+table["parallax"] = table["parallax"] + table["parallax_zpt"]
+table.meta["parallax"] = "parallax, zero point corrected."
 
 
 # ---------------------------------------
