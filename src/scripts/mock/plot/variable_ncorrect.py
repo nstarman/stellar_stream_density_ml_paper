@@ -5,7 +5,7 @@ from pathlib import Path
 
 import asdf
 import torch as xp
-from showyourwork.paths import user as Paths  # noqa: N812
+from showyourwork.paths import user as Paths
 
 import stream_ml.pytorch as sml
 

@@ -1,7 +1,7 @@
 """write variable 'nstream_variable.txt' to disk."""
 
 import asdf
-from showyourwork.paths import user as Paths  # noqa: N812
+from showyourwork.paths import user as Paths
 
 paths = Paths()
 (paths.output / "mock").mkdir(parents=True, exist_ok=True)
