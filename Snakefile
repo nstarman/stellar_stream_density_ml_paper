@@ -434,3 +434,20 @@ rule pal5_query_data:
         True
     script:
         "src/scripts/pal5/data/1-query_data.py"
+
+
+rule pal5_combine_data:
+    output:
+        protected("src/data/pal5/gaia_ps1_xm.asdf")
+    input:
+        "src/data/dustmaps/bayestar/bayestar2019.h5",
+        "src/data/pal5/gaia_ps1_xm_polygons.asdf",
+    params:
+        load_from_static=True,  # set to False to recompute
+        save_to_static=False,
+    conda:
+        "environment.yml"
+    cache:
+        True
+    script:
+        "src/scripts/pal5/data/2-combine_data.py"

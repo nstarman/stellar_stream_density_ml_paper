@@ -111,6 +111,9 @@ dependencies:
     - src/data/gd1/data.tmp  # hack
     - src/data/gd1/model.tmp  # hack
     - src/data/gd1/model.pt
+  # Pal5
+  src/scripts/pal5/data/2-combine_data.py:
+    - src/data/pal5/gaia_ps1_xm_polygons.asdf
 
 
 # Name of the `.tex` manuscript and corresponding `.pdf` article
