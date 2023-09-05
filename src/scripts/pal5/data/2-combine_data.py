@@ -119,12 +119,16 @@ for _m in (
 # ---------------------------------------
 # Zero Point Correction
 
-table["parallax_zpt"] = zpt.get_zpt(
-    table["gaia_g"],
-    table["nu_eff"],
-    table["pseudocolour"],
-    table["ecl_lat"],
-    table["astrometric_params_solved"],
+zpt.load_tables()
+table["parallax_zpt"] = (
+    zpt.get_zpt(
+        table["gaia_g"],
+        table["nu_eff"],
+        table["pseudocolour"],
+        table["ecl_lat"],
+        table["astrometric_params_solved"],
+    )
+    * u.mas
 )
 
 table["parallax"] = table["parallax"] + table["parallax_zpt"]
