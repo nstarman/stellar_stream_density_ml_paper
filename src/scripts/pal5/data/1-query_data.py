@@ -85,6 +85,11 @@ gaia_cols = {
     "ruwe": None,
     "ag_gspphot": None,
     "ebpminrp_gspphot": None,
+    # For Zero Point Correction
+    "nu_eff_used_in_astrometry": "nu_eff",
+    "pseudocolour": None,
+    "ecl_lat": None,
+    "astrometric_params_solved": None,
 }
 
 ps1_cols = {
