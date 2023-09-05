@@ -451,3 +451,16 @@ rule pal5_combine_data:
         True
     script:
         "src/scripts/pal5/data/2-combine_data.py"
+
+
+rule pal5_variable_ndata:
+    output:
+        "src/tex/output/pal5/ndata_variable.txt",
+    input:
+        "src/data/pal5/gaia_ps1_xm.asdf",
+    conda:
+        "environment.yml"
+    cache:
+        True
+    script:
+        "src/scripts/pal5/data/2.5-variable_ndata.py"

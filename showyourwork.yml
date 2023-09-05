@@ -114,6 +114,8 @@ dependencies:
   # Pal5
   src/scripts/pal5/data/2-combine_data.py:
     - src/data/pal5/gaia_ps1_xm_polygons.asdf
+  src/scripts/pal5/data/2.5-variable_ndata.py:
+    - src/data/pal5/gaia_ps1_xm.asdf
 
 
 # Name of the `.tex` manuscript and corresponding `.pdf` article

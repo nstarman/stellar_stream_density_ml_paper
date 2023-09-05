@@ -24,6 +24,7 @@ ignore = [
     "ERA001",  # commented-out-code
     # pep8-naming (N)
     "N80",
+    "N812",  # lowercase imported as non lowercase
     "N815", "N816",  # mixedCase
     "N999",  # Invalid module name
     # Refactor (PLR)
