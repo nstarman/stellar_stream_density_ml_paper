@@ -1,7 +1,6 @@
 """Simulate mock stream."""
 
 import os
-import sys
 from pathlib import Path
 
 import asdf
@@ -16,14 +15,11 @@ from scipy import stats
 from shapely.affinity import affine_transform
 from shapely.geometry import Point, Polygon
 from shapely.ops import triangulate
+from showyourwork.paths import user as Paths
 
 import stream_ml.pytorch as sml
 
-# Add the scripts directory to the path
-sys.path.append(Path(__file__).parents[3].as_posix())
-# isort: split
-
-from scripts import paths
+paths = Paths()
 
 ##############################################################################
 # Parameters
