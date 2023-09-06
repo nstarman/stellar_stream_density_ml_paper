@@ -1,10 +1,9 @@
-"""GD-1 Model Info."""
+"""Pal-5 Model Info."""
 
 import sys
 from pathlib import Path
 
 import asdf
-import astropy.units as u
 import numpy as np
 from astropy.table import QTable
 
@@ -41,9 +40,11 @@ af = asdf.AsdfFile()
 # TODO: move this to the data files
 
 sel = (
-    (table["parallax"] > 0 * u.milliarcsecond)  # TODO: allow negative parallax
+    # (table["parallax"] > 0 * u.milliarcsecond)  # TODO: allow negative parallax
+    # & masks[snkmk["phot_mask"]]
+    masks["M5"]
+    & masks["things"]
     & masks[snkmk["pm_mask"]]
-    & masks[snkmk["phot_mask"]]
 )
 table = table[sel]
 

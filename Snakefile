@@ -480,3 +480,30 @@ rule pal5_masks:
         True
     script:
         "src/scripts/pal5/data/3.3-masks.py"
+
+
+rule pal5_info:
+    output:
+        "src/data/pal5/info.asdf"
+    input:
+        "src/data/pal5/gaia_ps1_xm.asdf",
+        "src/data/pal5/masks.asdf",
+    params:
+        pm_mask="pm_tight_icrs",
+    cache:
+        True
+    script:
+        "src/scripts/pal5/model/1-info.py"
+
+
+# NOTE: this is a hacky way to aggregate the dependencies of the data script
+rule pal5_data_script:
+    output:
+        temp("src/data/pal5/data.tmp")
+    input:
+        "src/data/pal5/gaia_ps1_xm.asdf",
+        "src/data/pal5/info.asdf",
+    cache:
+        False
+    script:
+        "src/scripts/pal5/datasets.py"

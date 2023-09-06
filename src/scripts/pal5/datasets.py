@@ -1,4 +1,4 @@
-"""Import data."""
+"""Pal-5 DataSets."""
 
 import sys
 from pathlib import Path
@@ -20,13 +20,13 @@ from scripts import paths
 # Load data table
 
 with asdf.open(
-    paths.data / "gd1" / "info.asdf", lazy_load=False, copy_arrays=True
+    paths.data / "pal5" / "info.asdf", lazy_load=False, copy_arrays=True
 ) as af:
     sel = af["mask"]
     names = tuple(af["names"])
     renamer = af["renamer"]
 
-table = QTable.read(paths.data / "gd1" / "gaia_ps1_xm.asdf")[sel]
+table = QTable.read(paths.data / "pal5" / "gaia_ps1_xm.asdf")[sel]
 
 
 # =============================================================================
@@ -51,16 +51,16 @@ data.array[~where.array] = xp.asarray(
 )
 
 
-# =============================================================================
-# Off-stream selection
+# # =============================================================================
+# # Off-stream selection
 
-off_stream = (data["phi2"] < -1.7) | (data["phi2"] > 2)
+# off_stream = (data["phi2"] < -1.7) | (data["phi2"] > 2)
 
 
 # =============================================================================
 # Save temp file
 
-pth = paths.data / "gd1" / "data.tmp"
+pth = paths.data / "pal5" / "data.tmp"
 if not pth.exists():
     with pth.open("w") as f:
         f.write("hack for snakemake")

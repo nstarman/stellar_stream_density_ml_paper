@@ -118,6 +118,12 @@ dependencies:
     - src/data/pal5/gaia_ps1_xm.asdf
   src/scripts/pal5/data/3.3-masks.py:
     - src/data/pal5/gaia_ps1_xm.asdf
+  src/scripts/pal5/model/1-info.py:
+    - src/data/pal5/gaia_ps1_xm.asdf
+    - src/data/pal5/masks.asdf
+  src/scripts/pal5/datasets.py:
+    - src/data/pal5/gaia_ps1_xm.asdf
+    - src/data/pal5/info.asdf
 
 
 # Name of the `.tex` manuscript and corresponding `.pdf` article
