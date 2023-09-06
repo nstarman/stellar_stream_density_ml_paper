@@ -91,7 +91,7 @@ stream_strometric_prior = sml.prior.ControlRegions(
     width=sml.Data.from_format(
         pal5_cp,
         fmt="astropy.table",
-        names=("w_phi2", "w_pm_phi1"),
+        names=("w_phi2",),
         renamer={"w_phi2": "phi2"},
     ).astype(xp.Tensor, dtype=xp.float32),
     lamda=1_000,
