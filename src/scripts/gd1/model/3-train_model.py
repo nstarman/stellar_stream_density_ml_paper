@@ -90,7 +90,7 @@ for epoch in epoch_iterator:
     for _step, (step_arr, step_where_) in enumerate(loader):
         # Prepare
         step_data = sml.Data(step_arr, names=data.names)
-        step_where = sml.Data(step_where_, names=data.names[1:])
+        step_where = sml.Data(step_where_, names=data.names)
 
         # Forward Step
         pred = model(step_data)
