@@ -46,7 +46,7 @@ Gaia.ROW_LIMIT = -1  # no limit
 
 
 PHI1_EDGES = np.arange(-30, 30 + 5, 5) * u.deg
-PHI2_BOUNDS = (-10, 5) * u.deg
+PHI2_BOUNDS = (-5, 10) * u.deg
 PLX_BOUNDS = (-10, 1) * u.milliarcsecond
 # BP_RP_BOUNDS = (-1, 3) * u.mag
 G_R_BOUNDS = (-0.5, 1.2) * u.mag
