@@ -97,22 +97,11 @@ table["pm_phi2_error"] = np.sqrt(np.abs(cov_gd1[:, 1, 1])) << (u.mas / u.yr)
 table["pmphi1_pmphi2_corr"] = cov_gd1[:, 0, 1]
 
 # TODO: remove this when asdf can serialize MaskedQuantity
-for _m in (
-    "ps1_g",
-    "ps1_g_error",
-    "ps1_r",
-    "ps1_r_error",
-    "ps1_i",
-    "ps1_i_error",
-    "ps1_z",
-    "ps1_z_error",
-    "ps1_y",
-    "ps1_y_error",
-    "ag_gspphot",
-    "ebpminrp_gspphot",
-):
-    with contextlib.suppress(AttributeError):
-        table[_m] = table[_m].unmasked
+table = QTable(table, masked=False, copy=False)
+with contextlib.suppress(AttributeError):
+    for n, col in table.columns.items():
+        if hasattr(col, "unmasked"):
+            table[n] = table[n].unmasked
 
 
 # ---------------------------------------
