@@ -1,12 +1,10 @@
 """Query data from Gaia, crossmatched with PS-1."""
 
-from __future__ import annotations
-
 import shutil
 import sys
 from itertools import combinations, pairwise
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 import asdf
 import astropy.coordinates as coords
@@ -14,6 +12,7 @@ import astropy.units as u
 import matplotlib.pyplot as plt
 import numpy as np
 from astroquery.gaia import Gaia
+from astroquery.utils.tap.model.job import Job
 from tqdm import tqdm
 
 sys.path.append(Path(__file__).parents[3].as_posix())
@@ -21,9 +20,6 @@ sys.path.append(Path(__file__).parents[3].as_posix())
 
 from scripts import paths
 from scripts.pal5.frames import pal5_frame as frame
-
-if TYPE_CHECKING:
-    from astroquery.utils.tap.model.job import Job
 
 ##############################################################################
 # Parameters
