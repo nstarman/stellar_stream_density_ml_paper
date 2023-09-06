@@ -1,6 +1,7 @@
 """Train photometry background flow."""
 
 import sys
+from dataclasses import replace
 from pathlib import Path
 from typing import Any
 
@@ -18,11 +19,11 @@ sys.path.append(Path(__file__).parents[3].as_posix())
 # isort: split
 
 from scripts import paths
-from scripts.mock.define_model import bkg_flow as model
+from scripts.mock.define_model import bkg_flow as model_without_grad
 from scripts.mock.define_model import flow_coords
 
 # =============================================================================
-# Load Data
+# Parameters
 
 snkmk: dict[str, Any]
 try:
@@ -37,6 +38,17 @@ except NameError:
         "lr": 1e-3,
     }
 
+
+if snkmk["load_from_static"]:
+    model_without_grad.load_state_dict(xp.load(paths.static / "mock" / "flow_model.pt"))
+    xp.save(model_without_grad.state_dict(), paths.data / "mock" / "flow_model.pt")
+
+    sys.exit(0)
+
+
+# =============================================================================
+# Load Data
+
 with asdf.open(
     paths.data / "mock" / "data.asdf", lazy_load=False, copy_arrays=True
 ) as af:
@@ -50,21 +62,20 @@ with asdf.open(
 
     off_stream = af["off_stream"]
 
-
-if snkmk["load_from_static"]:
-    model.load_state_dict(xp.load(paths.static / "mock" / "flow_model.pt"))
-    xp.save(model.state_dict(), paths.data / "mock" / "flow_model.pt")
-
-    sys.exit(0)
-
 figure_path = paths.figures / "mock" / "diagnostic" / "flow"
 figure_path.mkdir(parents=True, exist_ok=True)
 
 # =============================================================================
 # Training Parameters
 
+# Turn on gradients for training
+model = replace(model_without_grad, with_grad=True)
+
 loader = td.DataLoader(
-    dataset=td.TensorDataset(data[flow_coords].array[off_stream]),
+    dataset=td.TensorDataset(
+        data[flow_coords].array[off_stream],
+        where[flow_coords].array[off_stream],
+    ),
     batch_size=snkmk["batch_size"],
     shuffle=True,
     num_workers=0,
@@ -76,17 +87,15 @@ optimizer = optim.AdamW(list(model.parameters()), lr=snkmk["lr"])
 # =============================================================================
 # Train
 
-# Turn on gradients for training
-object.__setattr__(model, "with_grad", True)
-
 for epoch in tqdm(range(snkmk["epochs"])):
-    for _step, (data_cur_,) in enumerate(loader):
-        data_cur = sml.Data(data_cur_, names=flow_coords)
+    for data_step_, where_step_ in loader:
+        data_step = sml.Data(data_step_, names=flow_coords)
+        where_step = sml.Data(where_step_, names=flow_coords)
 
         optimizer.zero_grad()
 
-        mpars = model.unpack_params(model(data_cur))
-        loss = -model.ln_posterior_tot(mpars, data_cur)
+        mpars = model.unpack_params(model(data_step))
+        loss = -model.ln_posterior_tot(mpars, data_step, where=where_step)
 
         loss.backward()
         optimizer.step()
@@ -97,7 +106,7 @@ for epoch in tqdm(range(snkmk["epochs"])):
         ):
             with xp.no_grad():
                 mpars = model.unpack_params(model(data))
-                prob = model.posterior(mpars, data)
+                prob = model.posterior(mpars, data, where=where)
 
             fig, ax = plt.subplots()
             im = ax.scatter(data["g-r"], data["g"], s=0.2, c=prob)
@@ -105,8 +114,9 @@ for epoch in tqdm(range(snkmk["epochs"])):
             fig.savefig(figure_path / f"epoch_{epoch:05}.png")
             plt.close(fig)
 
-# Turn off gradients for running
-object.__setattr__(model, "with_grad", False)
+
+# =============================================================================
+# Save
 
 xp.save(model.state_dict(), paths.data / "mock" / "flow_model.pt")
 

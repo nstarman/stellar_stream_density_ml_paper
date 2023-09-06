@@ -6,13 +6,8 @@ from pathlib import Path
 import asdf
 import numpy as np
 import torch as xp
-from nflows.distributions.normal import ConditionalDiagonalNormal
-from nflows.flows.base import Flow
-from nflows.transforms.autoregressive import MaskedAffineAutoregressiveTransform
-from nflows.transforms.base import CompositeTransform
-from nflows.transforms.permutations import ReversePermutation
+import zuko
 from scipy.interpolate import CubicSpline
-from torch import nn
 
 import stream_ml.pytorch as sml
 from stream_ml.core.utils.funcs import pairwise_distance
@@ -87,26 +82,11 @@ bkg_plx_model = sml.builtin.Exponential(
 
 # -----------------------------------------------------------------------------
 
-num_layers = 4
-base_dist = ConditionalDiagonalNormal(shape=[2], context_encoder=nn.Linear(1, 4))
-
-transforms = []
-for _ in range(num_layers):
-    transforms.append(ReversePermutation(features=2))
-    transforms.append(
-        MaskedAffineAutoregressiveTransform(
-            features=2, hidden_features=3, context_features=1
-        )
-    )
-transform = CompositeTransform(transforms)
-
-bkg_flow_net = Flow(transform, base_dist)
-
 flow_coords = ("phi1", "g", "r")
 
 flow_scaler = scaler[flow_coords]  # slice the StandardScaler
-bkg_flow = sml.builtin.compat.FlowModel(
-    net=bkg_flow_net,
+bkg_flow = sml.builtin.compat.ZukoFlowModel(
+    net=zuko.flows.GF(features=2, context=1, transforms=4, hidden_features=[3] * 4),
     jacobian_logdet=-xp.log(xp.prod(flow_scaler.scale[1:])),
     data_scaler=flow_scaler,
     coord_names=phot_names,
