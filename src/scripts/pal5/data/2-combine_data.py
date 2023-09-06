@@ -118,8 +118,7 @@ table["parallax_zpt"] = (
     )
     * u.mas
 )
-
-table["parallax_zpt_Q"] = (
+table["parallax_zpt_Q"] = (  # Quality flag
     np.array(
         (table["gaia_g"] > -6 * u.mag) & (table["gaia_g"] < 21 * u.mag),
         dtype=int,
