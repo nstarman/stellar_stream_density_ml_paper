@@ -482,6 +482,15 @@ rule pal5_masks:
         "src/scripts/pal5/data/3.3-masks.py"
 
 
+rule pal5_stream_control_points:
+    output:
+        "src/data/pal5/stream_control_points.ecsv"
+    cache:
+        True
+    script:
+        "src/scripts/pal5/model/0-stream_control_points.py"
+
+
 rule pal5_info:
     output:
         "src/data/pal5/info.asdf"
