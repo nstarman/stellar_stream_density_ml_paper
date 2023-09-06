@@ -6,7 +6,7 @@ from torch import nn
 from stream_ml.core import ModelAPI
 from stream_ml.core.typing import Array, ArrayNamespace
 from stream_ml.core.utils.funcs import pairwise_distance
-from stream_ml.pytorch.builtin.compat import FlowModel
+from stream_ml.pytorch.builtin.compat._flow import _FlowModel
 
 
 def isochrone_spline(mags: Array, *, xp: ArrayNamespace[Array]) -> CubicSpline:
@@ -25,7 +25,7 @@ def manually_set_dropout(model: ModelAPI, p: float) -> tuple[ModelAPI]:
     for m in model.children():
         if isinstance(m, nn.Dropout):
             m.p = p
-        elif isinstance(m, FlowModel):
+        elif isinstance(m, _FlowModel):
             pass
         else:
             manually_set_dropout(m, p)
