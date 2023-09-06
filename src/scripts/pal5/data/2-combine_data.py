@@ -134,7 +134,7 @@ table["parallax_zpt_Q"] = (  # Quality flag
     )
 )
 
-table["parallax"] = table["parallax"] + table["parallax_zpt"]
+table["parallax"] = table["parallax"] - table["parallax_zpt"]
 table.meta["parallax"] = "parallax, zero point corrected."
 
 
