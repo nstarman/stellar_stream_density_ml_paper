@@ -1,5 +1,6 @@
 """Simulate mock stream."""
 
+import contextlib
 import os
 from pathlib import Path
 
@@ -243,5 +244,6 @@ af.close()
 # Diagnostics
 
 if snkmk["diagnostic_plots"]:
-    nbpath = (Path(__file__).parent / "diagnostics.ipynb").as_posix()
-    os.system(f"jupyter execute {nbpath}")  # noqa: S605
+    with contextlib.suppress(Exception):
+        nbpath = (Path(__file__).parent / "diagnostics.ipynb").as_posix()
+        os.system(f"jupyter execute {nbpath}")  # noqa: S605
