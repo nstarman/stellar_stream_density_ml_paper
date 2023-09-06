@@ -19,6 +19,7 @@ from scripts import paths
 
 SAVE_LOC = paths.data / "gd1" / "masks.asdf"
 
+snkmk: dict[str, bool]
 try:
     snkmk = snakemake.params
 except NameError:
@@ -30,33 +31,21 @@ if snkmk["load_from_static"]:
 
     sys.exit(0)
 
-
-##############################################################################
-# Read tables
-
-# Mask edges
-pm_edges = QTable.read(paths.data / "gd1" / "pm_edges.ecsv")
-pm_edges.add_index("label", unique=True)
-
-with asdf.open(
-    paths.data / "gd1" / "isochrone.asdf", lazy_load=False, copy_arrays=True
-) as af:
-    isochrone = af["isochrone"]
-    iso_tight = af["isochrone_tight"]
-    iso_medium = af["isochrone_medium"]
-    iso_loose = af["isochrone_loose"]
-
 # Gaia Data
 table = QTable.read(paths.data / "gd1" / "gaia_ps1_xm.asdf")
 
+
 ##############################################################################
 # Masks
-
 
 masks_table = QTable()
 
 # =============================================================================
 # Proper motion
+
+# Mask edges
+pm_edges = QTable.read(paths.data / "gd1" / "pm_edges.ecsv")
+pm_edges.add_index("label", unique=True)
 
 # Tight
 pm_tight = pm_edges.loc["tight"]
@@ -88,6 +77,15 @@ masks_table["pm_loose"] = (
 
 # =============================================================================
 # Photometry
+
+
+with asdf.open(
+    paths.data / "gd1" / "isochrone.asdf", lazy_load=False, copy_arrays=True
+) as af:
+    isochrone = af["isochrone"]
+    iso_tight = af["isochrone_tight"]
+    iso_medium = af["isochrone_medium"]
+    iso_loose = af["isochrone_loose"]
 
 mags = np.c_[table["g0"] - table["i0"], table["g0"]]
 
