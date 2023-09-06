@@ -56,10 +56,10 @@ with xp.no_grad():
     phi2_lnsigma = xp.stack(
         [mp["stream.astrometric.phi2", "ln-sigma"] for mp in dmpars], 1
     )
-    plx_mu = xp.stack([mp["stream.astrometric.plx", "mu"] for mp in dmpars], 1)
-    plx_lnsigma = xp.stack(
-        [mp["stream.astrometric.plx", "ln-sigma"] for mp in dmpars], 1
-    )
+    # plx_mu = xp.stack([mp["stream.astrometric.plx", "mu"] for mp in dmpars], 1)
+    # plx_lnsigma = xp.stack(
+    #     [mp["stream.astrometric.plx", "ln-sigma"] for mp in dmpars], 1
+    # )
     pmphi1_mu = xp.stack([mp["stream.astrometric.pmphi1", "mu"] for mp in dmpars], 1)
     pmphi1_lnsigma = xp.stack(
         [mp["stream.astrometric.pmphi1", "ln-sigma"] for mp in dmpars], 1
@@ -192,60 +192,60 @@ ax02.errorbar(
 
 ax02.legend(loc="lower right")
 
-# ---------------------------------------------------------------------------
-# Parallax
+# # ---------------------------------------------------------------------------
+# # Parallax
 
-ax02 = fig.add_subplot(gs[2, :])
-ax02.set_xticklabels([])
-ax02.set(ylabel=r"$\varpi$ [$mas\,yr^{-1}$]")
+# ax02 = fig.add_subplot(gs[2, :])
+# ax02.set_xticklabels([])
+# ax02.set(ylabel=r"$\varpi$ [$mas\,yr^{-1}$]")
 
-ax02.scatter(
-    data["phi1"][psort],
-    data["plx"][psort],
-    c=allstream_prob[psort],
-    alpha=alpha,
-    s=2,
-    zorder=-10,
-)
-ax02.set_rasterization_zorder(0)
+# ax02.scatter(
+#     data["phi1"][psort],
+#     data["plx"][psort],
+#     c=allstream_prob[psort],
+#     alpha=alpha,
+#     s=2,
+#     zorder=-10,
+# )
+# ax02.set_rasterization_zorder(0)
+# # ax02.fill_between(
+# #     data["phi1"][stream_cutoff],
+# #     (mpa["plx", "mu"] - xp.exp(mpa["plx", "ln-sigma"]))[stream_cutoff],
+# #     (mpa["plx", "mu"] + xp.exp(mpa["plx", "ln-sigma"]))[stream_cutoff],
+# #     color="k",
+# #     alpha=0.25,
+# #     label="Model (MLE)",
+# # )
 # ax02.fill_between(
 #     data["phi1"][stream_cutoff],
-#     (mpa["plx", "mu"] - xp.exp(mpa["plx", "ln-sigma"]))[stream_cutoff],
-#     (mpa["plx", "mu"] + xp.exp(mpa["plx", "ln-sigma"]))[stream_cutoff],
+#     (plx_mu.mean(1) - np.exp(plx_lnsigma.mean(1)))[stream_cutoff],
+#     (plx_mu.mean(1) + np.exp(plx_lnsigma.mean(1)))[stream_cutoff],
 #     color="k",
 #     alpha=0.25,
-#     label="Model (MLE)",
+#     label=r"Model (mean)",
 # )
-ax02.fill_between(
-    data["phi1"][stream_cutoff],
-    (plx_mu.mean(1) - np.exp(plx_lnsigma.mean(1)))[stream_cutoff],
-    (plx_mu.mean(1) + np.exp(plx_lnsigma.mean(1)))[stream_cutoff],
-    color="k",
-    alpha=0.25,
-    label=r"Model (mean)",
-)
 
-# Control points
-ax02.errorbar(
-    stream_cp["phi1"],
-    stream_cp["plx"],
-    yerr=stream_cp["w_arallax"],
-    fmt=".",
-    c="royalblue",
-    capsize=2,
-    label="Stream Control Points",
-)
-ax02.errorbar(
-    spur_cp["phi1"],
-    spur_cp["plx"],
-    yerr=spur_cp["w_arallax"],
-    fmt=".",
-    c="gold",
-    capsize=2,
-    label="Spur Control Points",
-)
+# # Control points
+# ax02.errorbar(
+#     stream_cp["phi1"],
+#     stream_cp["plx"],
+#     yerr=stream_cp["w_arallax"],
+#     fmt=".",
+#     c="royalblue",
+#     capsize=2,
+#     label="Stream Control Points",
+# )
+# ax02.errorbar(
+#     spur_cp["phi1"],
+#     spur_cp["plx"],
+#     yerr=spur_cp["w_arallax"],
+#     fmt=".",
+#     c="gold",
+#     capsize=2,
+#     label="Spur Control Points",
+# )
 
-ax02.legend(loc="lower right")
+# ax02.legend(loc="lower right")
 
 # ---------------------------------------------------------------------------
 # PM-Phi1
