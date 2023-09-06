@@ -464,3 +464,19 @@ rule pal5_variable_ndata:
         True
     script:
         "src/scripts/pal5/data/2.5-variable_ndata.py"
+
+
+rule pal5_masks:
+    output:
+        "src/data/pal5/masks.asdf"
+    input:
+        "src/data/pal5/gaia_ps1_xm.asdf",
+    params:
+        load_from_static=True,  # set to False to recompute
+        save_to_static=False,
+    conda:
+        "environment.yml"
+    cache:
+        True
+    script:
+        "src/scripts/pal5/data/3.3-masks.py"
