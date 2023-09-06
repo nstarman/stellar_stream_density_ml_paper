@@ -4,7 +4,6 @@ import sys
 from pathlib import Path
 
 import asdf
-import brutus.seds
 import numpy as np
 import torch as xp
 from astropy.table import QTable
@@ -198,21 +197,8 @@ stream_astrometric_model = sml.builtin.TruncatedNormal(
 # -----------------------------------------------------------------------------
 # Photometry
 
-filters = brutus.filters.ps[:-2]  # (g, r)
-_isochrone = brutus.seds.Isochrone(
-    filters=filters,
-    nnfile=(paths.data / "brutus" / "nn_c3k.h5").resolve(),
-    mistfile=(paths.data / "brutus" / "MIST_1.2_iso_vvcrit0.0.h5").resolve(),
-)
-_abs_mags, *_ = _isochrone.get_seds(
-    eep=np.linspace(202, 600, 5000),
-    apply_corr=True,
-    feh=-1.2,  # NOTE! [FE/H]
-    dist=10,
-    loga=np.log10(12e9),
-)
-_abs_mags = _abs_mags[np.all(np.isfinite(_abs_mags), axis=1)]  # [mag]
-abs_mags = sml.Data(_abs_mags, names=[n.removeprefix("PS_") for n in filters])
+with asdf.open(paths.data / "gd1" / "isochrone.asdf", mode="r") as af:
+    abs_mags = sml.Data(**af["isochrone_data"]).astype(xp.Tensor, dtype=xp.float32)
 
 stream_isochrone_spl = isochrone_spline(abs_mags["g", "r"].array, xp=np)
 
