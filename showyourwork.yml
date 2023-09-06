@@ -116,6 +116,8 @@ dependencies:
     - src/data/pal5/gaia_ps1_xm_polygons.asdf
   src/scripts/pal5/data/2.5-variable_ndata.py:
     - src/data/pal5/gaia_ps1_xm.asdf
+  src/scripts/pal5/data/3.3-masks.py:
+    - src/data/pal5/gaia_ps1_xm.asdf
 
 
 # Name of the `.tex` manuscript and corresponding `.pdf` article
