@@ -56,6 +56,7 @@ IMAG_BOUNDS = (0, 50) * u.mag
 
 gaia_cols = {
     "source_id": None,
+    # Astrometry
     "ra": None,
     "ra_error": None,
     "dec": None,
@@ -66,7 +67,7 @@ gaia_cols = {
     "pmra_error": None,
     "pmdec": None,
     "pmdec_error": None,
-    # correlations
+    #   correlations
     **{
         f"{a}_{b}_corr": None
         for a, b in combinations(("ra", "dec", "parallax", "pmra", "pmdec"), r=2)
@@ -144,8 +145,14 @@ af = asdf.AsdfFile()
 
 # Load in base metadata
 af["base_query"] = base_query
-af["phi1_edges"] = PHI1_EDGES
-af["phi2_bounds"] = PHI2_BOUNDS
+af["query_box"] = {
+    "phi1_edges": PHI1_EDGES,
+    "phi2_bounds": PHI2_BOUNDS,
+    "plx_bounds": PLX_BOUNDS,
+    "bp_rp_bounds": BP_RP_BOUNDS,
+    "gmag_bounds": GMAG_BOUNDS,
+    "imag_bounds": IMAG_BOUNDS,
+}
 af["frame"] = f"{frame.__class__.__module__}.{frame.__class__.__name__}"
 
 # setup for the jobs
@@ -177,6 +184,14 @@ for i, (query, job) in tqdm(enumerate(jobs.values()), total=len(jobs)):
 
     # Add metadata
     tbl.meta["query"] = query
+    tbl.meta["query_box"] = {
+        "phi1_edges": (PHI1_EDGES[i], PHI1_EDGES[i + 1]),
+        "phi2_bounds": PHI2_BOUNDS,
+        "plx_bounds": PLX_BOUNDS,
+        "bp_rp_bounds": BP_RP_BOUNDS,
+        "gmag_bounds": GMAG_BOUNDS,
+        "imag_bounds": IMAG_BOUNDS,
+    }
     tbl.meta["frame"] = f"{frame.__class__.__module__}.{frame.__class__.__name__}"
 
     # Add to ASDF
@@ -192,7 +207,7 @@ if snkmk["save_to_static"]:
     shutil.copyfile(SAVE_LOC, paths.static / "gd1" / "gaia_ps1_xm_polygons.asdf")
 
 
-# -----------------------------------------------------------------------------
+# =============================================================================
 # Diagnostic plot
 
 _p2_bnds = PHI2_BOUNDS.value
