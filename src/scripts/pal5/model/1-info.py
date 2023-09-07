@@ -49,6 +49,7 @@ sel = (
 table = table[sel]
 
 # Save mask
+af["mask_info"] = {"pm_mask": snkmk["pm_mask"]}
 af["mask"] = sel
 
 
