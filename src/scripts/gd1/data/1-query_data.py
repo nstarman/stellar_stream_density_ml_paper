@@ -129,8 +129,6 @@ WHERE
     AND G.parallax BETWEEN {plx_bounds[0].value} AND {plx_bounds[1].value}
     AND G.phot_g_mean_mag BETWEEN {gmag_bounds[0].value} AND {gmag_bounds[1].value}
     AND G.bp_rp BETWEEN {bp_rp[0].value} AND {bp_rp[1].value}
-    AND PS1.g_mean_psf_mag is not NULL
-    AND PS1.r_mean_psf_mag is not NULL
 """
 base_query = base_query.format(
     gaia_columns=a_as_b(gaia_cols, "G."),
