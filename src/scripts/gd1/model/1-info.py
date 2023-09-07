@@ -41,13 +41,14 @@ af = asdf.AsdfFile()
 # TODO: move this to the data files
 
 sel = (
-    (table["parallax"] > 0 * u.milliarcsecond)  # TODO: allow negative parallax
+    (table["parallax"] > 0 * u.mas)  # TODO: allow negative parallax
     & masks[snkmk["pm_mask"]]
     & masks[snkmk["phot_mask"]]
 )
 table = table[sel]
 
 # Save mask
+af["mask_info"] = {"pm_mask": snkmk["pm_mask"], "phot_mask": snkmk["phot_mask"]}
 af["mask"] = sel
 
 
