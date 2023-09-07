@@ -48,10 +48,16 @@ Gaia.ROW_LIMIT = -1  # no limit
 PHI1_EDGES = np.arange(-30, 30 + 5, 5) * u.deg
 PHI2_BOUNDS = (-5, 10) * u.deg
 PLX_BOUNDS = (-10, 1) * u.milliarcsecond
-# BP_RP_BOUNDS = (-1, 3) * u.mag
 G_R_BOUNDS = (-0.5, 1.2) * u.mag
 GMAG_BOUNDS = (0, 30) * u.mag
 IMAG_BOUNDS = (0, 30) * u.mag
+
+
+def a_as_b(cols: dict[str, str | None], /, prefix: str) -> str:
+    """Convert a dictionary of column names to a string of "a as b" pairs."""
+    return ", ".join(
+        tuple(prefix + (k if v is None else f"{k} as {v}") for k, v in cols.items())
+    )
 
 
 gaia_cols = {
@@ -89,6 +95,13 @@ gaia_cols = {
     "astrometric_params_solved": None,
 }
 
+xmatch_cols = {
+    "original_ext_source_id": None,
+    "angular_distance": "gaia_ps1_angular_distance",
+    "number_of_neighbours": None,
+    "number_of_mates": None,
+}
+
 ps1_cols = {
     "g_mean_psf_mag": "ps1_g",
     "g_mean_psf_mag_error": "ps1_g_error",
@@ -103,11 +116,11 @@ ps1_cols = {
 }
 
 base_query = """
-SELECT {gaia_columns}, xmatch.original_ext_source_id, {panstarrs_columns}
+SELECT {gaia_columns}, {xmatch_columns}, {panstarrs_columns}
 FROM gaiadr3.gaia_source as G
-JOIN gaiadr3.panstarrs1_best_neighbour AS xmatch USING (source_id)
+JOIN gaiadr3.panstarrs1_best_neighbour AS xm USING (source_id)
 JOIN gaiadr2.panstarrs1_original_valid AS PS1
-   ON xmatch.original_ext_source_id = PS1.obj_id
+   ON xm.original_ext_source_id = PS1.obj_id
 WHERE
         CONTAINS(
             POINT('ICRS', G.ra, G.dec),
@@ -121,12 +134,9 @@ WHERE
     AND G.phot_g_mean_mag BETWEEN {gmag_bounds[0].value} AND {gmag_bounds[1].value}
     AND PS1.g_mean_psf_mag - PS1.r_mean_psf_mag BETWEEN {g_r_bounds[0].value} AND {g_r_bounds[1].value}
 """.format(  # noqa: E501, S608
-    gaia_columns=", ".join(
-        tuple("G." + (k if v is None else f"{k} as {v}") for k, v in gaia_cols.items())
-    ),
-    panstarrs_columns=", ".join(
-        tuple("PS1." + (k if v is None else f"{k} as {v}") for k, v in ps1_cols.items())
-    ),
+    gaia_columns=a_as_b(gaia_cols, "G."),
+    xmatch_columns=a_as_b(xmatch_cols, "xm."),
+    panstarrs_columns=a_as_b(ps1_cols, "PS1."),
     plx_bounds=PLX_BOUNDS,
     g_r_bounds=G_R_BOUNDS,
     gmag_bounds=GMAG_BOUNDS,
@@ -214,6 +224,5 @@ for i, (p1a, p1b) in enumerate(pairwise(PHI1_EDGES.value)):
 axs[1].set_ylim(-12, 6)
 axs[1].set_aspect("equal")
 axs[0].set_aspect("equal")
-
 
 fig.savefig(paths.figures / "pal5" / "diagnostic" / "query_boxes.png", dpi=300)
