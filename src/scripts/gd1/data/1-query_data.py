@@ -129,15 +129,15 @@ WHERE
     AND G.parallax BETWEEN {plx_bounds[0].value} AND {plx_bounds[1].value}
     AND G.phot_g_mean_mag BETWEEN {gmag_bounds[0].value} AND {gmag_bounds[1].value}
     AND G.bp_rp BETWEEN {bp_rp[0].value} AND {bp_rp[1].value}
-"""
-base_query = base_query.format(
+""".format(  # noqa: S608
     gaia_columns=a_as_b(gaia_cols, "G."),
     xmatch_columns=a_as_b(xmatch_cols, "xm."),
     panstarrs_columns=a_as_b(ps1_cols, "PS1."),
     plx_bounds=PLX_BOUNDS,
     bp_rp=BP_RP_BOUNDS,
     gmag_bounds=GMAG_BOUNDS,
-)[1:]
+)
+base_query = base_query[1:]  # remove leading newline
 
 # =============================================================================
 
