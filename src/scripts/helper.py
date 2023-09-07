@@ -30,3 +30,10 @@ def manually_set_dropout(model: ModelAPI, p: float) -> tuple[ModelAPI]:
         else:
             manually_set_dropout(m, p)
     return model
+
+
+def a_as_b(cols: dict[str, str | None], /, prefix: str) -> str:
+    """Convert a dictionary of column names to a string of "a as b" pairs."""
+    return ", ".join(
+        tuple(prefix + (k if v is None else f"{k} as {v}") for k, v in cols.items())
+    )

@@ -19,6 +19,7 @@ sys.path.append(Path(__file__).parents[3].as_posix())
 # isort: split
 
 from scripts import paths
+from scripts.helper import a_as_b
 from scripts.pal5.frames import pal5_frame as frame
 
 ##############################################################################
@@ -51,13 +52,6 @@ PLX_BOUNDS = (-10, 1) * u.milliarcsecond
 G_R_BOUNDS = (-0.5, 1.2) * u.mag
 GMAG_BOUNDS = (0, 30) * u.mag
 IMAG_BOUNDS = (0, 30) * u.mag
-
-
-def a_as_b(cols: dict[str, str | None], /, prefix: str) -> str:
-    """Convert a dictionary of column names to a string of "a as b" pairs."""
-    return ", ".join(
-        tuple(prefix + (k if v is None else f"{k} as {v}") for k, v in cols.items())
-    )
 
 
 gaia_cols = {

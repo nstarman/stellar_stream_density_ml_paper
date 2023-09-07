@@ -20,6 +20,7 @@ sys.path.append(Path(__file__).parents[3].as_posix())
 
 from scripts import paths
 from scripts.gd1.frames import gd1_frame as frame
+from scripts.helper import a_as_b
 
 ##############################################################################
 # Parameters
@@ -30,7 +31,7 @@ snkmk: dict[str, Any]
 try:
     snkmk = dict(snakemake.params)
 except NameError:
-    snkmk = {"load_from_static": True, "save_to_static": False}
+    snkmk = {"load_from_static": False, "save_to_static": False}
 
 
 if snkmk["load_from_static"]:
@@ -51,13 +52,6 @@ PLX_BOUNDS = (-10, 1.0) * u.milliarcsecond
 BP_RP_BOUNDS = (-1, 3) * u.mag
 GMAG_BOUNDS = (0, 50) * u.mag
 IMAG_BOUNDS = (0, 50) * u.mag
-
-
-def a_as_b(cols: dict[str, str | None], /, prefix: str) -> str:
-    """Convert a dictionary of column names to a string of "a as b" pairs."""
-    return ", ".join(
-        tuple(prefix + (k if v is None else f"{k} as {v}") for k, v in cols.items())
-    )
 
 
 gaia_cols = {
@@ -88,6 +82,11 @@ gaia_cols = {
     "ruwe": None,
     "ag_gspphot": None,
     "ebpminrp_gspphot": None,
+    # For Zero Point Correction
+    "nu_eff_used_in_astrometry": "nu_eff",
+    "pseudocolour": None,
+    "ecl_lat": None,
+    "astrometric_params_solved": None,
 }
 
 xmatch_cols = {
