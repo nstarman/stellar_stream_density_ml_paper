@@ -1,6 +1,7 @@
 """Combine data fields into one dataset."""
 
 import contextlib
+import json
 import shutil
 import sys
 from pathlib import Path
@@ -42,7 +43,6 @@ if snkmk["load_from_static"]:
 # -----------------------------------------------------------------------------
 # Initial combination
 
-# NOTE: need to use the fixed polygons
 af = asdf.open(paths.static / "gd1" / "gaia_ps1_xm_polygons.asdf", mode="r")
 
 combined = vstack(af.search("polygon-*").nodes, metadata_conflicts="silent")
@@ -140,7 +140,7 @@ table.meta["parallax"] = "parallax, zero point corrected."
 
 
 # ---------------------------------------
-# Photometrics
+# Photometric Corrections
 
 # Set the NaN distances to 8.5 kpc
 c_icrs = SkyCoord(
@@ -158,27 +158,29 @@ dustmap = dustmaps.bayestar.BayestarQuery(
 )
 
 table["E(B-V)"] = dustmap.query(c_icrs, mode="best")
-
 # Add the 1-sigma errors (+1sigma - -1sigma) / 2
 table["E(B-V)_error"] = (
     np.diff(dustmap.query(c_icrs, mode="percentile", pct=[15.87, 84.13])).flatten() / 2
 ) * u.mag
 
+with (paths.data / "dustmaps" / "ps1_corrections.json").open(mode="r") as f:
+    ps1c = json.load(f)
+
 # numbers from https://ui.adsabs.harvard.edu/abs/2019ApJ...887...93G
-table["g0"] = table["ps1_g"] - 3.158 * table["E(B-V)"] * u.mag
-table["g0_error"] = np.hypot(table["ps1_g_error"], (3.158 * table["E(B-V)_error"]))
+table["g0"] = table["ps1_g"] - ps1c["g"] * table["E(B-V)"] * u.mag
+table["g0_error"] = np.hypot(table["ps1_g_error"], (ps1c["g"] * table["E(B-V)_error"]))
 
-table["r0"] = table["ps1_r"] - 2.617 * table["E(B-V)"] * u.mag
-table["r0_error"] = np.hypot(table["ps1_r_error"], (2.617 * table["E(B-V)_error"]))
+table["r0"] = table["ps1_r"] - ps1c["r"] * table["E(B-V)"] * u.mag
+table["r0_error"] = np.hypot(table["ps1_r_error"], (ps1c["r"] * table["E(B-V)_error"]))
 
-table["i0"] = table["ps1_i"] - 1.971 * table["E(B-V)"] * u.mag
-table["i0_error"] = np.hypot(table["ps1_i_error"], (1.971 * table["E(B-V)_error"]))
+table["i0"] = table["ps1_i"] - ps1c["i"] * table["E(B-V)"] * u.mag
+table["i0_error"] = np.hypot(table["ps1_i_error"], (ps1c["i"] * table["E(B-V)_error"]))
 
-table["z0"] = table["ps1_z"] - 1.549 * table["E(B-V)"] * u.mag
-table["z0_error"] = np.hypot(table["ps1_z_error"], (1.549 * table["E(B-V)_error"]))
+table["z0"] = table["ps1_z"] - ps1c["z"] * table["E(B-V)"] * u.mag
+table["z0_error"] = np.hypot(table["ps1_z_error"], (ps1c["z"] * table["E(B-V)_error"]))
 
-table["y0"] = table["ps1_y"] - 1.263 * table["E(B-V)"] * u.mag
-table["y0_error"] = np.hypot(table["ps1_y_error"], (1.263 * table["E(B-V)_error"]))
+table["y0"] = table["ps1_y"] - ps1c["y"] * table["E(B-V)"] * u.mag
+table["y0_error"] = np.hypot(table["ps1_y_error"], (ps1c["y"] * table["E(B-V)_error"]))
 
 # Metadata
 table.meta["E(B-V)"] = "Bayestar 2019 exctinction"

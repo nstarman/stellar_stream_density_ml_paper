@@ -192,6 +192,17 @@ rule download_dustmaps:
         "src/scripts/dustmaps/download_dustmaps.py"
 
 
+rule panstarrs1_corrections:
+    output:
+        "src/data/dustmaps/ps1_corrections.json"
+    conda:
+        "environment.yml"
+    cache:
+        True
+    script:
+        "src/scripts/dustmaps/ps1_corrections.py"
+
+
 # ==============================================================================
 # GD-1
 
@@ -214,6 +225,7 @@ rule gd1_combine_data:
         protected("src/data/gd1/gaia_ps1_xm.asdf")
     input:
         "src/data/dustmaps/bayestar/bayestar2019.h5",
+        "src/data/dustmaps/ps1_corrections.json",
         "src/data/gd1/gaia_ps1_xm_polygons.asdf",
     params:
         load_from_static=True,  # set to False to recompute
@@ -441,6 +453,7 @@ rule pal5_combine_data:
         protected("src/data/pal5/gaia_ps1_xm.asdf")
     input:
         "src/data/dustmaps/bayestar/bayestar2019.h5",
+        "src/data/dustmaps/ps1_corrections.json",
         "src/data/pal5/gaia_ps1_xm_polygons.asdf",
     params:
         load_from_static=True,  # set to False to recompute
