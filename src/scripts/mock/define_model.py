@@ -86,7 +86,7 @@ flow_coords = ("phi1", "g", "r")
 
 flow_scaler = scaler[flow_coords]  # slice the StandardScaler
 bkg_flow = sml.builtin.compat.ZukoFlowModel(
-    net=zuko.flows.GF(features=2, context=1, transforms=4, hidden_features=[3] * 4),
+    net=zuko.flows.MAF(features=2, context=1, transforms=4, hidden_features=[3] * 4),
     jacobian_logdet=-xp.log(xp.prod(flow_scaler.scale[1:])),
     data_scaler=flow_scaler,
     coord_names=phot_names,
