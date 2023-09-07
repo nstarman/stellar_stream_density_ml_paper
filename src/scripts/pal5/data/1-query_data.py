@@ -143,8 +143,14 @@ af = asdf.AsdfFile()
 
 # Load in base metadata
 af["base_query"] = base_query
-af["phi1_edges"] = PHI1_EDGES
-af["phi2_bounds"] = PHI2_BOUNDS
+af["query_box"] = {
+    "phi1_edges": PHI1_EDGES,
+    "phi2_bounds": PHI2_BOUNDS,
+    "plx_bounds": PLX_BOUNDS,
+    "g_r_bounds": G_R_BOUNDS,
+    "gmag_bounds": GMAG_BOUNDS,
+    "imag_bounds": IMAG_BOUNDS,
+}
 af["frame"] = f"{frame.__class__.__module__}.{frame.__class__.__name__}"
 
 # setup for the jobs
@@ -176,6 +182,14 @@ for i, (query, job) in tqdm(enumerate(jobs.values()), total=len(jobs)):
 
     # Add metadata
     tbl.meta["query"] = query
+    tbl.meta["query_box"] = {
+        "phi1_edges": (PHI1_EDGES[i], PHI1_EDGES[i + 1]),
+        "phi2_bounds": PHI2_BOUNDS,
+        "plx_bounds": PLX_BOUNDS,
+        "g_r_bounds": G_R_BOUNDS,
+        "gmag_bounds": GMAG_BOUNDS,
+        "imag_bounds": IMAG_BOUNDS,
+    }
     tbl.meta["frame"] = f"{frame.__class__.__module__}.{frame.__class__.__name__}"
 
     # Add to ASDF
