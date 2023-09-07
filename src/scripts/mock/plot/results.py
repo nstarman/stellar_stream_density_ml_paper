@@ -32,7 +32,7 @@ model.load_state_dict(xp.load(paths.data / "mock" / "model.pt"))
 # Load data
 with asdf.open(paths.data / "mock" / "data.asdf") as af:
     data = sml.Data(**af["data"]).astype(xp.Tensor, dtype=xp.float32)
-    where = sml.Data(**af["data"]).astype(xp.Tensor, dtype=xp.bool)
+    where = sml.Data(**af["where"]).astype(xp.Tensor, dtype=xp.bool)
     stream_table = af["stream_table"]
     table = af["table"]
     n_stream = af["n_stream"]
