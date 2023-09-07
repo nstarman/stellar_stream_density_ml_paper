@@ -44,10 +44,6 @@ if snkmk["load_from_static"]:
 
     sys.exit(0)
 
-
-# =============================================================================
-# Load Data
-
 diagnostic_path = paths.figures / "pal5" / "diagnostic" / "model"
 diagnostic_path.mkdir(parents=True, exist_ok=True)
 
@@ -94,13 +90,13 @@ for epoch in epoch_iterator:
 
         # Forward Step
         pred = model(step_data)
-        if pred.isnan().any():
+        if not pred.isfinite().all():
             raise ValueError
 
         mpars = model.unpack_params(pred)
         loss_val = -model.ln_posterior_tot(mpars, step_data, where=step_where)
 
-        if loss_val.isnan().any():
+        if not loss_val.isfinite():
             raise ValueError
 
         # backward pass
@@ -130,6 +126,10 @@ for epoch in epoch_iterator:
         plt.close(fig)
 
         helper.manually_set_dropout(model, 0.15)
+
+
+# =============================================================================
+# Save
 
 
 xp.save(model.state_dict(), paths.data / "pal5" / "model.pt")
