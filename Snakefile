@@ -479,6 +479,17 @@ rule pal5_variable_ndata:
         "src/scripts/pal5/data/2.5-variable_ndata.py"
 
 
+rule pal5_masks_pm:
+    output:
+        "src/data/pal5/pm_edges.ecsv"
+    conda:
+        "environment.yml"
+    cache:
+        True
+    script:
+        "src/scripts/pal5/data/3.1-pm_edges.py"
+
+
 rule pal5_masks:
     output:
         "src/data/pal5/masks.asdf"

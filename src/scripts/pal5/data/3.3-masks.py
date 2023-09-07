@@ -73,17 +73,7 @@ masks_table["things"] = ~(
 # =============================================================================
 # Proper motion
 
-# Mask edges
-pm_edges = QTable(
-    rows=[["tight_icrs", *(-3.5, -2) * u.mas / u.yr, *(-3.5, -2) * u.mas / u.yr]],
-    names=("label", "pm_phi1_min", "pm_phi1_max", "pm_phi2_min", "pm_phi2_max"),
-    dtype=(str, float, float, float, float),
-    units=(None, u.mas / u.yr, u.mas / u.yr, u.mas / u.yr, u.mas / u.yr),
-    meta={
-        "pm_phi1_min": r"$\mu_{\phi_1}\cos{\phi_2}$, not reflex corrected",
-        "pm_phi2_min": r"$\mu_{\phi_2}$, not reflex corrected",
-    },
-)
+pm_edges = QTable.read(paths.data / "pal5" / "pm_edges.ecsv")
 pm_edges.add_index("label", unique=True)
 
 
