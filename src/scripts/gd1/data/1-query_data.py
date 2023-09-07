@@ -149,6 +149,8 @@ af["phi1_edges"] = PHI1_EDGES
 af["phi2_bounds"] = PHI2_BOUNDS
 af["frame"] = f"{frame.__class__.__module__}.{frame.__class__.__name__}"
 
+# setup for the jobs
+icrs_frame = coords.ICRS()
 
 # Start the jobs
 jobs: dict[str, tuple[str, Job]] = {}
@@ -162,7 +164,7 @@ for i, (phi1a, phi1b) in tqdm(
             lat=u.Quantity([*PHI2_BOUNDS, *PHI2_BOUNDS[::-1]]),
         )
     )
-    vertices_icrs = vertices.transform_to(coords.ICRS())
+    vertices_icrs = vertices.transform_to(icrs_frame)
     query = base_query.format(c=vertices_icrs)
 
     # Perform the query & save the results
