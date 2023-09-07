@@ -516,3 +516,17 @@ rule pal5_data_script:
         False
     script:
         "src/scripts/pal5/datasets.py"
+
+
+# NOTE: this is a hacky way to aggregate the dependencies of the model script
+rule gd1_model_script:
+    output:
+        temp("src/data/gd1/model.tmp")
+    input:
+        "src/data/gd1/info.asdf",
+        "src/data/gd1/stream_control_points.ecsv",
+        "src/data/gd1/spur_control_points.ecsv",
+    cache:
+        False
+    script:
+        "src/scripts/gd1/define_model.py"
