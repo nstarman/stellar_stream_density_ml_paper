@@ -53,7 +53,7 @@ GMAG_BOUNDS = (0, 50) * u.mag
 IMAG_BOUNDS = (0, 50) * u.mag
 
 
-def a_as_b(cols: dict[str, str | None], prefix: str) -> str:
+def a_as_b(cols: dict[str, str | None], /, prefix: str) -> str:
     """Convert a dictionary of column names to a string of "a as b" pairs."""
     return ", ".join(
         tuple(prefix + (k if v is None else f"{k} as {v}") for k, v in cols.items())
