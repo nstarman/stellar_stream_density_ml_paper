@@ -1,6 +1,7 @@
 """Pal-5 DataSets."""
 
 import asdf
+import astropy.units as u
 import numpy as np
 import torch as xp
 from astropy.table import QTable
@@ -25,7 +26,7 @@ table = QTable.read(paths.data / "pal5" / "gaia_ps1_xm.asdf")[sel]
 
 # TODO: where should this go?
 # We set photoometrics with G_gaia > 20 to NaN
-completeness_mask = table["gaia_g"] > 20
+completeness_mask = table["gaia_g"] > 20 * u.mag
 table["g0"][completeness_mask] = np.nan
 table["r0"][completeness_mask] = np.nan
 table["i0"][completeness_mask] = np.nan

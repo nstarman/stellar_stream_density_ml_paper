@@ -10,7 +10,7 @@ from astropy.table import QTable
 # isort: split
 import stream_ml.pytorch as sml
 from stream_ml.pytorch.params import ModelParameter, ModelParameters
-from stream_ml.pytorch.params.bounds import ClippedBounds, SigmoidBounds
+from stream_ml.pytorch.params.bounds import SigmoidBounds
 from stream_ml.pytorch.params.scaler import StandardLnWidth, StandardLocation
 
 sys.path.append(Path(__file__).parents[2].as_posix())
@@ -154,7 +154,7 @@ model = sml.MixtureModel(
                 bounds=SigmoidBounds(1e-3, 0.301), scaler=None
             ),
             "background.weight": ModelParameter(
-                bounds=ClippedBounds(0.7, 1.0), scaler=None
+                bounds=SigmoidBounds(0.7, 1.0), scaler=None
             ),
         }
     ),
