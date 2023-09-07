@@ -27,7 +27,9 @@ from scripts.helper import manually_set_dropout
 plt.style.use(paths.scripts / "paper.mplstyle")
 
 
-def diagnostic_plot(model: ModelAPI, data: Data, table: QTable) -> plt.Figure:
+def diagnostic_plot(
+    model: ModelAPI, data: Data, where: Data, table: QTable
+) -> plt.Figure:
     """Plot the model."""
     # Evaluate model
     with xp.no_grad():
@@ -35,8 +37,8 @@ def diagnostic_plot(model: ModelAPI, data: Data, table: QTable) -> plt.Figure:
         mpars = model.unpack_params(model(data))
         model.eval()
 
-        stream_lik = model.component_posterior("stream", mpars, data)
-        bkg_lik = model.component_posterior("background", mpars, data)
+        stream_lik = model.component_posterior("stream", mpars, data, where=where)
+        bkg_lik = model.component_posterior("background", mpars, data, where=where)
 
     weight = mpars[("stream.weight",)]
     where = weight > 2e-2

@@ -55,7 +55,7 @@ with asdf.open(
     paths.data / "mock" / "data.asdf", lazy_load=False, copy_arrays=True
 ) as af:
     data = sml.Data(**af["data"]).astype(xp.Tensor, dtype=xp.float32)
-    where = sml.Data(**af["data"]).astype(xp.Tensor, dtype=xp.bool)
+    where = sml.Data(**af["where"]).astype(xp.Tensor, dtype=xp.bool)
     scaler = sml.utils.StandardScaler(**af["scaler"]).astype(
         xp.Tensor, dtype=xp.float32
     )
@@ -68,14 +68,14 @@ diagnostic_path = paths.figures / "mock" / "diagnostic" / "model"
 diagnostic_path.mkdir(parents=True, exist_ok=True)
 
 # =============================================================================
-# Train
+# Training Parameters
 
 # Pre-trained Model component
 model["background"]["photometric"].load_state_dict(
     xp.load(paths.data / "mock" / "flow_model.pt")
 )
 
-dataset = td.TensorDataset(data.array)
+dataset = td.TensorDataset(data.array, where.array)
 loader = td.DataLoader(
     dataset=dataset,
     batch_size=int(0.075 * len(data)),  # 7.5% of the data
@@ -108,14 +108,18 @@ epoch_iterator = tqdm(
     postfix={"lr": f"{scheduler.get_last_lr()[0]:.2e}", "loss": f"{0:.2e}"},
 )
 
+# =============================================================================
+# Train
+
 model.train()
 model.zero_grad()
 for epoch in epoch_iterator:
-    for _i, (data_cur_,) in enumerate(loader):
-        data_cur = sml.Data(data_cur_, names=data.names)
+    for data_step_, where_step_ in loader:
+        data_step = sml.Data(data_step_, names=data.names)
+        where_step = sml.Data(where_step_, names=data.names)
 
-        mpars = model.unpack_params(model(data_cur))
-        loss = -model.ln_posterior_tot(mpars, data_cur, where=where)
+        mpars = model.unpack_params(model(data_step))
+        loss = -model.ln_posterior_tot(mpars, data_step, where=where_step)
 
         if loss.isnan().any():
             raise ValueError
@@ -143,13 +147,16 @@ for epoch in epoch_iterator:
 
         with xp.no_grad():
             mpars = model.unpack_params(model(data))
-            prob = model.posterior(mpars, data)
+            prob = model.posterior(mpars, data, where=where)
 
-        fig = diagnostic_plot(model, data, table)
+        fig = diagnostic_plot(model, data, where, table)
         fig.savefig(diagnostic_path / f"epoch_{epoch:05}.png")
         plt.close(fig)
 
         helper.manually_set_dropout(model, 0.15)
+
+# =============================================================================
+# Save
 
 xp.save(model.state_dict(), paths.data / "mock" / "model.pt")
 
