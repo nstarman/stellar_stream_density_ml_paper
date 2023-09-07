@@ -530,3 +530,25 @@ rule gd1_model_script:
         False
     script:
         "src/scripts/gd1/define_model.py"
+
+
+rule pal5_train_model:
+    output:
+        "src/data/pal5/model.pt"
+    input:
+        "src/data/pal5/data.tmp",
+        "src/data/pal5/model.tmp",
+    params:
+        load_from_static=True,  # set to False to recompute
+        save_to_static=False,
+        diagnostic_plots=True,
+        # epoch milestones
+        epochs=1_250 * 10,
+        lr=1e-3,
+        weight_decay=1e-8,
+    cache:
+        True
+    script:
+        "src/scripts/pal5/model/3-train_model.py"
+
+

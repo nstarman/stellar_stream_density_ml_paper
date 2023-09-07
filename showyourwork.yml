@@ -128,6 +128,9 @@ dependencies:
   src/scripts/pal5/define_model.py:
     - src/data/pal5/info.asdf
     - src/data/pal5/stream_control_points.ecsv
+  src/scripts/pal5/model/3-train_model.py:
+    - src/data/pal5/data.tmp  # hack
+    - src/data/pal5/model.tmp  # hack
 
 
 # Name of the `.tex` manuscript and corresponding `.pdf` article
