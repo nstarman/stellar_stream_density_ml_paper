@@ -254,13 +254,13 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
             fig, ax03, ax11i, left=bins[i], right=bins[i + 1], color="gray"
         )
 
-        cphi2s = np.ones((sel.sum(), 3)) * data_["phi2"][:, None].numpy()
+        cphi2s = np.ones((sel.sum(), 2)) * data_["phi2"][:, None].numpy()
         ws = np.stack((bkg_prob_, stream_prob_), axis=1)
         ax11i.hist(
             cphi2s,
             bins=50,
             weights=ws,
-            color=[cmap(0.01), cmap(0.99), "tab:olive"],
+            color=[cmap(0.01), cmap(0.99)],
             alpha=0.75,
             density=True,
             stacked=True,
@@ -283,13 +283,13 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
         # ax12i = fig.add_subplot(gs1[2, i])
 
         # # Recovered
-        # cpmphi1s = np.ones((sel.sum(), 3)) * data_["pmphi1"][:, None].numpy()
+        # cpmphi1s = np.ones((sel.sum(), 2)) * data_["pmphi1"][:, None].numpy()
         # ws = np.stack((bkg_prob_, stream_prob_, spur_prob_), axis=1)
         # ax12i.hist(
         #     cpmphi1s,
         #     bins=50,
         #     weights=ws,
-        #     color=[cmap(0.01), cmap(0.99), "tab:olive"],
+        #     color=[cmap(0.01), cmap(0.99)],
         #     alpha=0.75,
         #     density=True,
         #     stacked=True,
@@ -310,10 +310,10 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
 
         # ax13i = fig.add_subplot(gs1[3, i])
         # ax13i.hist(
-        #     np.ones((sel.sum(), 3)) * data_["pmphi2"][:, None].numpy(),
+        #     np.ones((sel.sum(), 2)) * data_["pmphi2"][:, None].numpy(),
         #     bins=50,
         #     weights=np.stack((bkg_prob_, stream_prob_, spur_prob_), axis=1),
-        #     color=[cmap(0.01), cmap(0.99), "tab:olive"],
+        #     color=[cmap(0.01), cmap(0.99)],
         #     alpha=0.75,
         #     density=True,
         #     stacked=True,
