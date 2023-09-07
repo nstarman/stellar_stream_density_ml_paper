@@ -1,20 +1,14 @@
 """Pal-5 DataSets."""
 
-import sys
-from pathlib import Path
-
 import asdf
 import numpy as np
 import torch as xp
 from astropy.table import QTable
+from showyourwork.paths import user as user_paths
 
 import stream_ml.pytorch as sml
 
-# Add the parent directory to the path
-sys.path.append(Path(__file__).parents[2].as_posix())
-# isort: split
-
-from scripts import paths
+paths = user_paths()
 
 # =============================================================================
 # Load data table
@@ -27,6 +21,16 @@ with asdf.open(
     renamer = af["renamer"]
 
 table = QTable.read(paths.data / "pal5" / "gaia_ps1_xm.asdf")[sel]
+
+
+# TODO: where should this go?
+# We set photoometrics with G_gaia > 20 to NaN
+completeness_mask = table["gaia_g"] > 20
+table["g0"][completeness_mask] = np.nan
+table["r0"][completeness_mask] = np.nan
+table["i0"][completeness_mask] = np.nan
+table["z0"][completeness_mask] = np.nan
+table["y0"][completeness_mask] = np.nan
 
 
 # =============================================================================
@@ -43,7 +47,7 @@ where = sml.Data(
 
 # TODO: it would be nice to keep this as NaN.
 # Need to set missing data to some value, even though it's ignored, for the
-# gradient
+# gradient. Maybe can use zuko's MaskedMLP?
 data.array[~where.array] = xp.asarray(
     np.repeat(np.nanmedian(data.array, axis=0, keepdims=True), len(data), axis=0)[
         ~where.array
