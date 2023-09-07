@@ -1,1 +1,1 @@
-"""Scripts."""
+"""Pal5 Model."""

@@ -21,8 +21,8 @@ try:
     snkmk = snakemake.params
 except NameError:
     snkmk = {
-        "pm_mask": "pm_tight",
-        "phot_mask": "cmd_medium",
+        "pm_mask": "pm_tight_icrs",
+        # "phot_mask": "cmd_medium",
     }
 
 
