@@ -24,7 +24,6 @@ from scripts.gd1.frames import gd1_frame as frame
 ##############################################################################
 # Parameters
 
-GAIA_LOGIN = Path(paths.static / "gaia.login").expanduser()
 SAVE_LOC = paths.data / "gd1" / "gaia_ps1_xm_polygons.asdf"
 
 snkmk: dict[str, Any]
@@ -37,7 +36,9 @@ except NameError:
 if snkmk["load_from_static"]:
     shutil.copyfile(paths.static / "gd1" / "gaia_ps1_xm_polygons.asdf", SAVE_LOC)
     sys.exit(0)
-
+else:
+    GAIA_LOGIN = Path(paths.static / "gaia.login").expanduser()
+    Gaia.login(credentials_file=GAIA_LOGIN, verbose=False)
 
 Gaia.ROW_LIMIT = -1  # no limit
 
@@ -150,8 +151,6 @@ af["phi1_edges"] = PHI1_EDGES
 af["phi2_bounds"] = PHI2_BOUNDS
 af["frame"] = f"{frame.__class__.__module__}.{frame.__class__.__name__}"
 
-# Log into Gaia for the query
-Gaia.login(credentials_file=GAIA_LOGIN, verbose=False)
 
 # Start the jobs
 jobs: dict[str, tuple[str, Job]] = {}
