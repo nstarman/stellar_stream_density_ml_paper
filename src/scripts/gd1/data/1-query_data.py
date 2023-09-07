@@ -168,8 +168,9 @@ for i, (phi1a, phi1b) in tqdm(
     query = base_query.format(c=vertices_icrs)
 
     # Perform the query & save the results
-    job = Gaia.launch_job_async(query, name=f"GD1_{i:02d}", background=True)
-    jobs[f"GD1_{i:02d}"] = (query, job)
+    name = f"GD1_{i:02d}"
+    job = Gaia.launch_job_async(query, name=name, background=True)
+    jobs[name] = (query, job)
 
 # Collect results
 for i, (query, job) in tqdm(enumerate(jobs.values()), total=len(jobs)):
