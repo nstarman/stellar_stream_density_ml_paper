@@ -105,15 +105,12 @@ dependencies:
     - src/data/gd1/data.tmp  # hack
   src/scripts/gd1/plot/results_full.py:
     - src/data/gd1/data.tmp  # hack
-    - src/data/gd1/model.tmp  # hack
     - src/data/gd1/model.pt
   src/scripts/gd1/plot/results_panels.py:
     - src/data/gd1/data.tmp  # hack
-    - src/data/gd1/model.tmp  # hack
     - src/data/gd1/model.pt
   src/scripts/gd1/plot/smooth_likelihood.py:
     - src/data/gd1/data.tmp  # hack
-    - src/data/gd1/model.tmp  # hack
     - src/data/gd1/model.pt
   # Pal5
   src/scripts/pal5/data/2-combine_data.py:
