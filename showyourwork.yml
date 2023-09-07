@@ -94,6 +94,9 @@ dependencies:
     - src/data/gd1/data.tmp  # hack
     - src/data/gd1/model.tmp  # hack
     - src/data/gd1/flow_model.pt
+  src/scripts/gd1/model/4-likelihoods.py:
+    - src/data/gd1/data.tmp  # hack
+    - src/data/gd1/model.pt  # hack
   src/scripts/gd1/plot/data_selection.py:
     - src/data/gd1/gaia_ps1_xm.asdf
     - src/data/gd1/pm_edges.ecsv
