@@ -86,6 +86,7 @@ dependencies:
     - src/data/gd1/info.asdf
     - src/data/gd1/stream_control_points.ecsv
     - src/data/gd1/spur_control_points.ecsv
+    - src/data/gd1/magnitude_control_points.ecsv
   src/scripts/gd1/model/2-train_flow.py:
     - src/data/gd1/data.tmp  # hack
     - src/data/gd1/model.tmp  # hack
