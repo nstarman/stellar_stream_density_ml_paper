@@ -195,12 +195,27 @@ if snkmk["save_to_static"]:
 
 _p2_bnds = PHI2_BOUNDS.value
 
-fig, ax = plt.subplots(figsize=(10, 5))
-ax.set_aspect("equal")
+fig, axs = plt.subplots(2, 1, figsize=(10, 7))
 
 for i, (p1a, p1b) in enumerate(pairwise(PHI1_EDGES.value)):
-    ax.plot([p1a, p1a, p1b, p1b, p1a], [*_p2_bnds, *_p2_bnds[::-1], _p2_bnds[0]], c="k")
-    ax.annotate(f"box {i}", (np.mean([p1a, p1b]) - 4, np.mean(_p2_bnds)))
+    axs[1].plot(
+        [p1a, p1a, p1b, p1b, p1a], [*_p2_bnds, *_p2_bnds[::-1], _p2_bnds[0]], c="k"
+    )
+    axs[1].annotate(f"box {i}", (np.mean([p1a, p1b]) - 4, np.mean(_p2_bnds)))
 
-ax.set_ylim(-12, 6)
+    vx = frame.realize_frame(
+        coords.UnitSphericalRepresentation(
+            lon=u.Quantity([p1a, p1a, p1b, p1b], u.deg),  # ll, ul, ur, lr
+            lat=u.Quantity([*PHI2_BOUNDS, *PHI2_BOUNDS[::-1]], u.deg),
+        )
+    ).transform_to(icrs_frame)
+    axs[0].plot(
+        [*vx.ra.degree, vx.ra[0].degree], [*vx.dec.degree, vx.dec[0].degree], c="k"
+    )
+    axs[0].annotate(f"box {i}", (np.mean(vx.ra.degree) - 4, np.mean(vx.dec.degree)))
+
+axs[1].set_ylim(-12, 6)
+axs[1].set_aspect("equal")
+axs[0].set_aspect("equal")
+
 fig.savefig(paths.figures / "gd1" / "diagnostic" / "query_boxes.png", dpi=300)
