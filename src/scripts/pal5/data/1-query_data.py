@@ -229,7 +229,7 @@ for i, (p1a, p1b) in enumerate(pairwise(PHI1_EDGES.value)):
     )
     axs[0].annotate(f"box {i}", (np.mean(vx.ra.degree) - 4, np.mean(vx.dec.degree)))
 
-axs[1].set_ylim(-12, 6)
+axs[1].set_ylim(-7, 12)
 axs[1].set_aspect("equal")
 axs[0].set_aspect("equal")
 
