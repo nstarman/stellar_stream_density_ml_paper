@@ -1,18 +1,20 @@
 """Import data."""
 
 import sys
-from pathlib import Path
 
 import asdf
 import astropy.units as u
 import numpy as np
 import torch as xp
 from astropy.table import QTable
+from showyourwork.paths import user as user_paths
 
 import stream_ml.pytorch as sml
 
+paths = user_paths()
+
 # Add the parent directory to the path
-sys.path.append(Path(__file__).parents[2].as_posix())
+sys.path.append(paths.scripts.as_posix())
 # isort: split
 
 from scripts import paths

@@ -1,21 +1,16 @@
 """Train photometry background flow."""
 
-import sys
-from pathlib import Path
 
 import asdf
 import matplotlib.pyplot as plt
 import numpy as np
 import torch as xp
+from showyourwork.paths import user as user_paths
 
 import stream_ml.pytorch as sml
 
-# isort: split
-# Add the parent directory to the path
-sys.path.append(Path(__file__).parents[3].as_posix())
-# isort: split
+paths = user_paths()
 
-from scripts import paths
 
 # =============================================================================
 

@@ -1,13 +1,12 @@
 """Helper function."""
 
-import sys
-from pathlib import Path
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import torch as xp
 from matplotlib.gridspec import GridSpec
+from showyourwork.paths import user as user_paths
 
 import stream_ml.visualization as smlvis
 from stream_ml.core import ModelAPI
@@ -16,12 +15,7 @@ from stream_ml.visualization.background import (
     exponential_like_distribution as exp_distr,
 )
 
-# Add the parent directory to the path
-sys.path.append(Path(__file__).parents[3].as_posix())
-# isort: split
-
-from scripts import paths
-from scripts.helper import manually_set_dropout
+paths = user_paths()
 
 # =============================================================================
 
@@ -35,7 +29,6 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
     with xp.no_grad():
         model.eval()
         mpars = model.unpack_params(model(data))
-        model.train()
 
         stream_lik = model.component_posterior("stream", mpars, data, where=where)
         bkg_lik = model.component_posterior("background", mpars, data, where=where)
@@ -82,23 +75,6 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
     ax01.set(ylabel="Stream fraction", ylim=(0, 0.5))
     ax01.set_xticklabels([])
 
-    with xp.no_grad():
-        manually_set_dropout(model, 0.15)
-        weights = xp.stack(
-            [model.unpack_params(model(data))["stream.weight",] for i in range(25)], 1
-        )
-        weight_percentiles = np.c_[
-            np.percentile(weights, 5, axis=1), np.percentile(weights, 95, axis=1)
-        ]
-        manually_set_dropout(model, 0)
-    ax01.fill_between(
-        data["phi1"],
-        weight_percentiles[:, 0],
-        weight_percentiles[:, 1],
-        color="k",
-        alpha=0.25,
-        label=r"Model (15% dropout)",
-    )
     ax01.plot(data["phi1"], stream_weight, c="k", ls="--", lw=2, label="Model (MLE)")
     ax01.legend(loc="upper left")
 
@@ -254,12 +230,13 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
             fig, ax03, ax11i, left=bins[i], right=bins[i + 1], color="gray"
         )
 
+        notna = ~np.isnan(data_["phi2"])
         cphi2s = np.ones((sel.sum(), 2)) * data_["phi2"][:, None].numpy()
         ws = np.stack((bkg_prob_, stream_prob_), axis=1)
         ax11i.hist(
-            cphi2s,
+            cphi2s[notna],
             bins=50,
-            weights=ws,
+            weights=ws[notna],
             color=[cmap(0.01), cmap(0.99)],
             alpha=0.75,
             density=True,

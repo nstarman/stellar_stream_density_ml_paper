@@ -1,7 +1,6 @@
 """Train photometry background flow."""
 
 import sys
-from pathlib import Path
 
 import astropy.units as u
 import matplotlib as mpl
@@ -10,6 +9,7 @@ import numpy as np
 import torch as xp
 from astropy.coordinates import Distance
 from matplotlib.gridspec import GridSpec
+from showyourwork.paths import user as user_paths
 
 import stream_ml.visualization as smlvis
 from stream_ml.core import ModelAPI
@@ -18,11 +18,12 @@ from stream_ml.visualization.background import (
     exponential_like_distribution as exp_distr,
 )
 
+paths = user_paths()
+
 # Add the parent directory to the path
-sys.path.append(Path(__file__).parents[3].as_posix())
+sys.path.append(paths.scripts.as_posix())
 # isort: split
 
-from scripts import paths
 from scripts.helper import manually_set_dropout
 
 # =============================================================================

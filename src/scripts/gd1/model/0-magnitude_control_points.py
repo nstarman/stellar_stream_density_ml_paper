@@ -1,15 +1,11 @@
 """Plot results."""
 
-import sys
-from pathlib import Path
 
 import astropy.units as u
 from astropy.table import QTable
+from showyourwork.paths import user as user_paths
 
-sys.path.append(Path(__file__).parents[3].as_posix())
-# isort: split
-
-from scripts import paths
+paths = user_paths()
 
 ##############################################################################
 

@@ -1,7 +1,6 @@
 """Plot results."""
 
 import sys
-from pathlib import Path
 
 import asdf
 import numpy as np
@@ -12,18 +11,19 @@ from nflows.flows.base import Flow
 from nflows.transforms.autoregressive import MaskedAffineAutoregressiveTransform
 from nflows.transforms.base import CompositeTransform
 from nflows.transforms.permutations import ReversePermutation
+from showyourwork.paths import user as user_paths
 from torch import nn
 
-# isort: split
 import stream_ml.pytorch as sml
 from stream_ml.pytorch.params import ModelParameter, ModelParameters, set_param
 from stream_ml.pytorch.params.bounds import ClippedBounds, SigmoidBounds
 from stream_ml.pytorch.params.scaler import StandardLnWidth, StandardLocation
 
-sys.path.append(Path(__file__).parents[2].as_posix())
-# isort: split
+paths = user_paths()
 
-from scripts import paths
+# Add the parent directory to the path
+sys.path.append(paths.scripts.as_posix())
+# isort: split
 from scripts.helper import isochrone_spline
 
 ##############################################################################

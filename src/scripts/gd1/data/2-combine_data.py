@@ -4,7 +4,6 @@ import contextlib
 import json
 import shutil
 import sys
-from pathlib import Path
 from typing import Any
 
 import asdf
@@ -14,12 +13,15 @@ import gala.coordinates as gc
 import numpy as np
 from astropy.coordinates import ICRS, Distance, SkyCoord
 from astropy.table import QTable, vstack
+from showyourwork.paths import user as user_paths
 from zero_point import zpt
 
-sys.path.append(Path(__file__).parents[3].as_posix())
+paths = user_paths()
+
+# Add the parent directory to the path
+sys.path.append(paths.scripts.as_posix())
 # isort: split
 
-from scripts import paths
 from scripts.gd1.frames import gd1_frame as frame
 
 ##############################################################################

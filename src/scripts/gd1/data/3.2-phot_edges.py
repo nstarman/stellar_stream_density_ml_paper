@@ -1,20 +1,16 @@
 """Setup."""
 
-import sys
-from pathlib import Path
 
 import asdf
 import brutus.filters
 import brutus.seds
 import numpy as np
 import shapely
+from showyourwork.paths import user as user_paths
 
 import stream_ml.pytorch as sml
 
-sys.path.append(Path(__file__).parents[3].as_posix())
-# isort: split
-
-from scripts import paths
+paths = user_paths()
 
 ##############################################################################
 

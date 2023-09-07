@@ -1,7 +1,6 @@
 """Train photometry background flow."""
 
 import sys
-from pathlib import Path
 
 import asdf
 import matplotlib as mpl
@@ -9,15 +8,17 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch as xp
 from matplotlib.gridspec import GridSpec
+from showyourwork.paths import user as user_paths
 
 import stream_ml.pytorch as sml
 import stream_ml.visualization as smlvis
 
+paths = user_paths()
+
 # Add the parent directory to the path
-sys.path.append(Path(__file__).parents[3].as_posix())
+sys.path.append(paths.scripts.as_posix())
 # isort: split
 
-from scripts import paths
 from scripts.mock.define_model import model
 from scripts.mock.model import helper
 

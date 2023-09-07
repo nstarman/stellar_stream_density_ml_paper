@@ -1,14 +1,10 @@
 """Combine data fields into one dataset."""
 
-import sys
-from pathlib import Path
 
 from astropy.table import QTable
+from showyourwork.paths import user as user_paths
 
-sys.path.append(Path(__file__).parents[3].as_posix())
-# isort: split
-
-from scripts import paths
+paths = user_paths()
 
 table = QTable.read(paths.data / "gd1" / "gaia_ps1_xm.asdf")
 

@@ -1,20 +1,15 @@
 """GD-1 Model Info."""
 
-import sys
-from pathlib import Path
 
 import asdf
 import astropy.units as u
 import numpy as np
 from astropy.table import QTable
+from showyourwork.paths import user as user_paths
 
-# isort: split
 import stream_ml.pytorch as sml
 
-sys.path.append(Path(__file__).parents[3].as_posix())
-# isort: split
-
-from scripts import paths
+paths = user_paths()
 
 ##############################################################################
 

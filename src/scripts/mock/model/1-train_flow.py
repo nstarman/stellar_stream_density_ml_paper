@@ -2,23 +2,24 @@
 
 import sys
 from dataclasses import replace
-from pathlib import Path
 from typing import Any
 
 import asdf
 import matplotlib.pyplot as plt
 import torch as xp
 import torch.utils.data as td
+from showyourwork.paths import user as user_paths
 from torch import optim
 from tqdm import tqdm
 
 import stream_ml.pytorch as sml
 
+paths = user_paths()
+
 # Add the parent directory to the path
-sys.path.append(Path(__file__).parents[3].as_posix())
+sys.path.append(paths.scripts.as_posix())
 # isort: split
 
-from scripts import paths
 from scripts.mock.define_model import bkg_flow as model_without_grad
 from scripts.mock.define_model import flow_coords
 

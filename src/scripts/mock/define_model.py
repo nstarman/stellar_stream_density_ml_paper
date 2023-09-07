@@ -1,13 +1,12 @@
 """Train photometry background flow."""
 
-import sys
-from pathlib import Path
 
 import asdf
 import numpy as np
 import torch as xp
 import zuko
 from scipy.interpolate import CubicSpline
+from showyourwork.paths import user as user_paths
 
 import stream_ml.pytorch as sml
 from stream_ml.core.utils.funcs import pairwise_distance
@@ -16,11 +15,8 @@ from stream_ml.pytorch.params import ModelParameter, ModelParameters
 from stream_ml.pytorch.params.bounds import ClippedBounds, SigmoidBounds
 from stream_ml.pytorch.params.scaler import StandardLnWidth, StandardLocation
 
-# Add the parent directory to the path
-sys.path.append(Path(__file__).parents[3].as_posix())
-# isort: split
+paths = user_paths()
 
-from scripts import paths
 
 # =============================================================================
 # Load Data
