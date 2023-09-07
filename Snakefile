@@ -562,3 +562,29 @@ rule pal5_member_likelihoods:
         True
     script:
         "src/scripts/gd1/model/4-likelihoods.py"
+
+
+rule pal5_member_table_select:
+    output:
+        "src/tex/output/pal5/member_table_select.tex"
+    input:
+        "src/data/pal5/data.tmp",
+        "src/data/pal5/model.tmp",
+        "src/data/pal5/membership_likelhoods.ecsv"
+    cache:
+        True
+    script:
+        "src/scripts/pal5/table/member_table_select.py"
+
+
+rule pal5_member_table_full:
+    output:
+        "src/tex/output/pal5/member_table_full.tex"
+    input:
+        "src/data/pal5/data.tmp",
+        "src/data/pal5/model.tmp",
+        "src/data/pal5/membership_likelhoods.ecsv"
+    cache:
+        True
+    script:
+        "src/scripts/pal5/table/member_table_full.py"
