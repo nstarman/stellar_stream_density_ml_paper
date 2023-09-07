@@ -131,6 +131,9 @@ dependencies:
   src/scripts/pal5/model/3-train_model.py:
     - src/data/pal5/data.tmp  # hack
     - src/data/pal5/model.tmp  # hack
+  src/scripts/pal5/model/4-likelihoods.py:
+    - src/data/pal5/data.tmp  # hack
+    - src/data/pal5/model.pt  # hack
 
 
 # Name of the `.tex` manuscript and corresponding `.pdf` article

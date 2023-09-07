@@ -552,3 +552,13 @@ rule pal5_train_model:
         "src/scripts/pal5/model/3-train_model.py"
 
 
+rule pal5_member_likelihoods:
+    output:
+        "src/data/gd1/membership_likelhoods.ecsv"
+    input:
+        "src/data/gd1/data.tmp",
+        "src/data/gd1/model.tmp",
+    cache:
+        True
+    script:
+        "src/scripts/gd1/model/4-likelihoods.py"
