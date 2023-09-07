@@ -125,6 +125,9 @@ dependencies:
   src/scripts/pal5/datasets.py:
     - src/data/pal5/gaia_ps1_xm.asdf
     - src/data/pal5/info.asdf
+  src/scripts/pal5/define_model.py:
+    - src/data/pal5/info.asdf
+    - src/data/pal5/stream_control_points.ecsv
 
 
 # Name of the `.tex` manuscript and corresponding `.pdf` article
