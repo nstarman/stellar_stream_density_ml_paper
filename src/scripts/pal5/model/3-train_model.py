@@ -123,7 +123,9 @@ for epoch in epoch_iterator:
         fig.savefig(diagnostic_path / f"epoch_{epoch:05}.png")
         plt.close(fig)
 
-        helper.manually_set_dropout(model, 0.15)
+        helper.manually_set_dropout(model, 0.0)  # TODO!
+
+        xp.save(model.state_dict(), paths.data / "pal5" / "model.pt")
 
 
 # =============================================================================
