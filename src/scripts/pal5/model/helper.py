@@ -5,6 +5,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import torch as xp
+from astropy.table import QTable
 from matplotlib.gridspec import GridSpec
 from showyourwork.paths import user as user_paths
 
@@ -32,15 +33,15 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
 
         stream_lik = model.component_posterior("stream", mpars, data, where=where)
         bkg_lik = model.component_posterior("background", mpars, data, where=where)
-        tot_lik = model.posterior(mpars, data, where=where)
+        # tot_lik = model.posterior(mpars, data, where=where)  # FIXME!
+        tot_lik = stream_lik + bkg_lik
 
     stream_weight = mpars[("stream.weight",)]
     stream_cutoff = stream_weight > 2e-2
 
-    # FIXME!
-    bkg_prob = xp.nan_to_num(bkg_lik / tot_lik, nan=0)
-    stream_prob = xp.nan_to_num(stream_lik / tot_lik, nan=0)
-    allstream_prob = xp.nan_to_num((stream_lik) / tot_lik, nan=0)
+    bkg_prob = bkg_lik / tot_lik
+    stream_prob = stream_lik / tot_lik
+    allstream_prob = stream_lik / tot_lik
 
     psort = np.argsort(stream_prob)
     pmax = xp.max(stream_prob.max(), xp.tensor(0.95))
@@ -104,6 +105,11 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
         alpha=0.25,
         label="Model (MLE)",
     )
+
+    pal5_cp = QTable.read(paths.data / "pal5" / "stream_control_points.ecsv")
+    ax02.errorbar(pal5_cp["phi1"], pal5_cp["phi2"], yerr=pal5_cp["w_phi2"], ls="none")
+
+    ax02.set_ylim(np.nanmin(data["phi2"]), np.nanmax(data["phi2"]))
     ax02.legend(loc="upper left")
 
     # # ---------------------------------------------------------------------------

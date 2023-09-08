@@ -51,7 +51,7 @@ coord_bounds: dict[str, tuple[float, float]] = {
 
 background_astrometric_model = sml.builtin.Exponential(
     net=sml.nn.lin_tanh(
-        n_in=1, n_hidden=32, n_layers=4, n_out=len(coord_names), dropout=0.15
+        n_in=1, n_hidden=16, n_layers=2, n_out=len(coord_names), dropout=0.15
     ),
     data_scaler=scaler,
     coord_names=astro_coords,
@@ -102,10 +102,10 @@ stream_strometric_prior = sml.prior.ControlRegions(
 stream_astrometric_model = sml.builtin.TruncatedNormal(
     net=sml.nn.lin_tanh(
         n_in=1,
-        n_hidden=128,
-        n_layers=5,
+        n_hidden=32,
+        n_layers=3,
         n_out=2 * len(astro_coords),
-        dropout=0.15,
+        dropout=0.0,
     ),
     data_scaler=scaler,
     coord_names=astro_coords,
@@ -147,7 +147,7 @@ _mx = {"stream": stream_model, "background": background_model}
 model = sml.MixtureModel(
     _mx,
     net=sml.nn.lin_tanh(
-        n_in=1, n_hidden=32, n_layers=4, n_out=len(_mx) - 1, dropout=0.15
+        n_in=1, n_hidden=16, n_layers=2, n_out=len(_mx) - 1, dropout=0.0
     ),
     data_scaler=scaler,
     params=ModelParameters(
@@ -160,24 +160,24 @@ model = sml.MixtureModel(
             ),
         }
     ),
-    # priors=(
-    #     sml.prior.HardThreshold(
-    #         1,
-    #         set_to=1e-3,
-    #         upper=-90,
-    #         param_name="stream.weight",
-    #         coord_name="phi1",
-    #         data_scaler=scaler,
-    #     ),
-    #     sml.prior.HardThreshold(
-    #         1,
-    #         set_to=1e-3,
-    #         lower=10,
-    #         param_name="stream.weight",
-    #         coord_name="phi1",
-    #         data_scaler=scaler,
-    #     ),
-    # ),
+    priors=(
+        sml.prior.HardThreshold(
+            threshold=1,
+            upper=-7,
+            set_to=1e-6,
+            param_name="stream.weight",
+            coord_name="phi1",
+            data_scaler=scaler,
+        ),
+        sml.prior.HardThreshold(
+            threshold=1,
+            lower=7,
+            set_to=1e-6,
+            param_name="stream.weight",
+            coord_name="phi1",
+            data_scaler=scaler,
+        ),
+    ),
 )
 
 

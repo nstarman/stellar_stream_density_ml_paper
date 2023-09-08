@@ -98,8 +98,8 @@ for epoch in epoch_iterator:
         mpars = model.unpack_params(pred)
         loss_val = -model.ln_posterior_tot(mpars, step_data, where=step_where)
 
-        if not loss_val.isfinite():
-            raise ValueError
+        # if not loss_val.isfinite():  # FIXME!
+        #     raise ValueError
 
         # backward pass
         optimizer.zero_grad()
@@ -118,10 +118,6 @@ for epoch in epoch_iterator:
         (epoch % 100 == 0) or (epoch == snkmk["epochs"] - 1)
     ):
         helper.manually_set_dropout(model, 0)
-
-        with xp.no_grad():
-            mpars = model.unpack_params(model(data))
-            prob = model.posterior(mpars, data, where=where)
 
         fig = diagnostic_plot(model, data, where=where)
         fig.savefig(diagnostic_path / f"epoch_{epoch:05}.png")

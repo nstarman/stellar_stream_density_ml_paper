@@ -16,7 +16,8 @@ sys.path.append(paths.scripts.as_posix())
 table = QTable(
     # fmt: off
     rows=[
-        [0.0 * u.deg, 0.0 * u.deg, 0.1 * u.deg],  # the progenitor
+        [0 * u.deg, 0.0 * u.deg, 0.1 * u.deg],  # the progenitor
+        [7 * u.deg, 1.5 * u.deg, 0.75 * u.deg],
     ],
     # fmt: on
     names=("phi1", "phi2", "w_phi2"),
