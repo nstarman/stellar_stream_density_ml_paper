@@ -1,4 +1,4 @@
-"""Train photometry background flow."""
+"""Train Pal5 model."""
 
 import sys
 from typing import Any
