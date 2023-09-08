@@ -1,6 +1,5 @@
 """Train photometry background flow."""
 
-import sys
 from typing import Any
 
 import asdf
@@ -12,10 +11,6 @@ from astropy.table import QTable, Row
 from showyourwork.paths import user as user_paths
 
 paths = user_paths()
-
-# Add the parent directory to the path
-sys.path.append(paths.scripts.as_posix())
-# isort: split
 
 
 ###############################################################################
@@ -40,6 +35,11 @@ with asdf.open(
 # ) as af:
 #     isochrone = af["isochrone"]
 #     iso_medium = af["isochrone_medium"]
+
+p1min = table["phi1"].min().value
+p1max = table["phi1"].max().value
+p2min = table["phi2"].min().value
+p2max = table["phi2"].max().value
 
 
 ###############################################################################
@@ -78,9 +78,11 @@ ax00.hist2d(
     cmap="Greys",
     norm=mpl.colors.LogNorm(),
 )
-ax00.add_patch(_sel_patch(pm_edges.loc["loose"], "pm_phi1", "pm_phi2", color="y"))
+# ax00.add_patch(_sel_patch(pm_edges.loc["loose"], "pm_phi1", "pm_phi2", color="y"))
 # ax00.add_patch(_sel_patch(pm_edges.loc["medium"], "pm_phi1", "pm_phi2", color="purple"))  # noqa: E501
-ax00.add_patch(_sel_patch(pm_edges.loc["tight"], "pm_phi1", "pm_phi2", color="tab:red"))
+ax00.add_patch(
+    _sel_patch(pm_edges.loc["tight_icrs"], "pm_phi1", "pm_phi2", color="tab:red")
+)
 
 ax00.set_rasterization_zorder(100)
 ax00.set(
@@ -91,18 +93,18 @@ ax00.set(
 # PM selection
 
 ax01 = subfigs[0].add_subplot(gs0[0, 1])
+# ax01.plot(
+#     table["phi1"][masks_table["pm_loose"] ^ masks_table["pm_tight_icrs"]],
+#     table["phi2"][masks_table["pm_loose"] ^ masks_table["pm_tight_icrs"]],
+#     c="y",
+#     marker=",",
+#     linestyle="none",
+#     alpha=0.25,
+#     zorder=-10,
+# )
 ax01.plot(
-    table["phi1"][masks_table["pm_loose"] ^ masks_table["pm_tight"]],
-    table["phi2"][masks_table["pm_loose"] ^ masks_table["pm_tight"]],
-    c="y",
-    marker=",",
-    linestyle="none",
-    alpha=0.25,
-    zorder=-10,
-)
-ax01.plot(
-    table["phi1"][masks_table["pm_tight"]],
-    table["phi2"][masks_table["pm_tight"]],
+    table["phi1"][masks_table["pm_tight_icrs"]],
+    table["phi2"][masks_table["pm_tight_icrs"]],
     c="tab:red",
     marker=",",
     linestyle="none",
@@ -111,7 +113,10 @@ ax01.plot(
 )
 ax01.set_rasterization_zorder(0)
 ax01.set(
-    xlabel=r"$\phi_1$ [deg]", ylabel=r"$\phi_2$ [deg]", xlim=(-100, 30), ylim=(-9, 5)
+    xlabel=r"$\phi_1$ [deg]",
+    ylabel=r"$\phi_2$ [deg]",
+    xlim=(p1min, p1max),
+    ylim=(p2min, p2max),
 )
 
 # -----------------------------------------------------------------------------
@@ -123,8 +128,8 @@ _mask = _mask & (
     & ((table["phi2"] > -2.5 * u.deg) & (table["phi2"] < 1 * u.deg))
 )
 ax10.hist2d(
-    (table["g0"] - table["i0"]).value[_mask & masks_table["pm_tight"]],
-    table["g0"].value[_mask & masks_table["pm_tight"]],
+    (table["g0"] - table["i0"]).value[_mask & masks_table["pm_tight_icrs"]],
+    table["g0"].value[_mask & masks_table["pm_tight_icrs"]],
     bins=100,
     label="GD-1",
     norm=mpl.colors.LogNorm(),
@@ -144,24 +149,24 @@ ax10.legend(loc="upper left")
 # Phot selection
 
 ax11 = subfigs[0].add_subplot(gs0[1, 1])
-ax11.hist2d(
-    table["phi1"][masks_table["cmd_medium"]].value,
-    table["phi2"][masks_table["cmd_medium"]].value,
-    cmap="Blues",
-    density=True,
-    bins=200,
-    alpha=0.5,
-    norm=mpl.colors.LogNorm(),
-)
-ax11.hist2d(
-    table["phi1"][masks_table["cmd_tight"]].value,
-    table["phi2"][masks_table["cmd_tight"]].value,
-    cmap="Blues",
-    density=True,
-    bins=200,
-    norm=mpl.colors.LogNorm(),
-)
-ax11.set_rasterization_zorder(0)
+# ax11.hist2d(
+#     table["phi1"][masks_table["cmd_medium"]].value,
+#     table["phi2"][masks_table["cmd_medium"]].value,
+#     cmap="Blues",
+#     density=True,
+#     bins=200,
+#     alpha=0.5,
+#     norm=mpl.colors.LogNorm(),
+# )
+# ax11.hist2d(
+#     table["phi1"][masks_table["cmd_tight"]].value,
+#     table["phi2"][masks_table["cmd_tight"]].value,
+#     cmap="Blues",
+#     density=True,
+#     bins=200,
+#     norm=mpl.colors.LogNorm(),
+# )
+# ax11.set_rasterization_zorder(0)
 ax11.set(xlabel=r"$\phi_1$ [deg]", ylabel=r"$\phi_2$ [deg]")
 
 # -----------------------------------------------------------------------------
@@ -170,8 +175,8 @@ ax11.set(xlabel=r"$\phi_1$ [deg]", ylabel=r"$\phi_2$ [deg]")
 subfigs[1].suptitle("Applying Selections")
 
 sel = (
-    masks_table["pm_tight"]
-    & masks_table["cmd_medium"]
+    masks_table["pm_tight_icrs"]
+    # & masks_table["cmd_medium"]
     & (table["parallax"] > -0.5 * u.mas)
 )
 
@@ -278,7 +283,7 @@ ax43.set(xlabel=r"$\phi_1$ [$\degree$]", ylabel=r"$\mu_{\phi_2}$ [mas yr$^{-1}$]
 
 for ax in (ax40, ax41, ax42, ax43):
     start, end = ax.get_xlim()
-    ax.xaxis.set_ticks([-100, -75, -50, -25, 0, 25])
+    # ax.xaxis.set_ticks([-100, -75, -50, -25, 0, 25])
     ax.xaxis.set_major_formatter(mpl.ticker.FormatStrFormatter("%0d"))
 
 # -----------------------------------------------------------------------------
