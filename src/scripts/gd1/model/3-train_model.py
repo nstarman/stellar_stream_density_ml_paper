@@ -133,6 +133,8 @@ for epoch in epoch_iterator:
 
         helper.manually_set_dropout(model, 0.15)
 
+        xp.save(model.state_dict(), paths.data / "gd1" / "model.pt")
+
 
 xp.save(model.state_dict(), paths.data / "gd1" / "model.pt")
 
