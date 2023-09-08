@@ -60,7 +60,7 @@ background_astrometric_model = sml.builtin.Exponential(
     params=ModelParameters(
         {
             "phi2": {
-                "slope": ModelParameter(bounds=SigmoidBounds(-0.15, 0.0), scaler=None)
+                "slope": ModelParameter(bounds=SigmoidBounds(-0.1, -0.01), scaler=None)
             },
         }
     ),
