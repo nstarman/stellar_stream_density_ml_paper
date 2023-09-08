@@ -51,7 +51,7 @@ coord_bounds: dict[str, tuple[float, float]] = {
 
 background_astrometric_model = sml.builtin.Exponential(
     net=sml.nn.lin_tanh(
-        n_in=1, n_hidden=16, n_layers=2, n_out=len(coord_names), dropout=0.15
+        n_in=1, n_hidden=16, n_layers=2, n_out=len(coord_names), dropout=0.0
     ),
     data_scaler=scaler,
     coord_names=astro_coords,
@@ -147,7 +147,7 @@ _mx = {"stream": stream_model, "background": background_model}
 model = sml.MixtureModel(
     _mx,
     net=sml.nn.lin_tanh(
-        n_in=1, n_hidden=16, n_layers=2, n_out=len(_mx) - 1, dropout=0.0
+        n_in=1, n_hidden=16, n_layers=3, n_out=len(_mx) - 1, dropout=0.0
     ),
     data_scaler=scaler,
     params=ModelParameters(
