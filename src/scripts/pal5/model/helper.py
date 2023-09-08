@@ -211,7 +211,6 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
             mpl.patches.Patch(color=cmap(0.01), label="Background"),
             mpl.lines.Line2D([0], [0], color="k", lw=4),
             mpl.patches.Patch(color=cmap(0.99), label="Stream"),
-            mpl.patches.Patch(color="tab:olive", label="Spur"),
         ],
         ncols=4,
     )
@@ -267,7 +266,7 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
 
         # # Recovered
         # cpmphi1s = np.ones((sel.sum(), 2)) * data_["pmphi1"][:, None].numpy()
-        # ws = np.stack((bkg_prob_, stream_prob_, spur_prob_), axis=1)
+        # ws = np.stack((bkg_prob_, stream_prob_), axis=1)
         # ax12i.hist(
         #     cpmphi1s,
         #     bins=50,
@@ -276,7 +275,7 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
         #     alpha=0.75,
         #     density=True,
         #     stacked=True,
-        #     label=["", "Stream Model (MLE)", "Spur Model (MLE)"],
+        #     label=["", "Stream Model (MLE)"],
         # )
 
         # xmin, xmax = data["pmphi1"].min().numpy(), data["pmphi1"].max().numpy()
@@ -295,12 +294,12 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
         # ax13i.hist(
         #     np.ones((sel.sum(), 2)) * data_["pmphi2"][:, None].numpy(),
         #     bins=50,
-        #     weights=np.stack((bkg_prob_, stream_prob_, spur_prob_), axis=1),
+        #     weights=np.stack((bkg_prob_, stream_prob_), axis=1),
         #     color=[cmap(0.01), cmap(0.99)],
         #     alpha=0.75,
         #     density=True,
         #     stacked=True,
-        #     label=["", "Stream Model (MLE)", "Spur Model (MLE)"],
+        #     label=["", "Stream Model (MLE)"],
         # )
 
         # xmin, xmax = data["pmphi2"].min().numpy(), data["pmphi2"].max().numpy()
