@@ -1,22 +1,22 @@
 """write variable 'isochrone_age_variable.txt' to disk."""
 
 import sys
-from pathlib import Path
 
 import asdf
 import torch as xp
-from showyourwork.paths import user as Paths
+from showyourwork.paths import user as user_paths
 
 import stream_ml.pytorch as sml
 
+paths = user_paths()
+
 # Add the parent directory to the path
-sys.path.append(Path(__file__).parents[3].as_posix())
+sys.path.append(paths.scripts.as_posix())
 # isort: split
 
 from scripts.mock.define_model import model
 from scripts.mock.model import helper
 
-paths = Paths()
 (paths.output / "mock").mkdir(parents=True, exist_ok=True)
 
 # =============================================================================

@@ -1,9 +1,9 @@
 """write variable 'isochrone_feh_variable.txt' to disk."""
 
 import asdf
-from showyourwork.paths import user as Paths
+from showyourwork.paths import user as user_paths
 
-paths = Paths()
+paths = user_paths()
 (paths.output / "mock").mkdir(parents=True, exist_ok=True)
 
 # =============================================================================

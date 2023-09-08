@@ -16,11 +16,11 @@ from scipy import stats
 from shapely.affinity import affine_transform
 from shapely.geometry import Point, Polygon
 from shapely.ops import triangulate
-from showyourwork.paths import user as Paths
+from showyourwork.paths import user as user_paths
 
 import stream_ml.pytorch as sml
 
-paths = Paths()
+paths = user_paths()
 
 ##############################################################################
 # Parameters

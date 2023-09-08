@@ -1,22 +1,24 @@
 """Train photometry background flow."""
 
 import sys
-from pathlib import Path
 from typing import Any
 
 import matplotlib.pyplot as plt
 import torch as xp
 import torch.utils.data as td
+from showyourwork.paths import user as user_paths
 from torch import optim
 from tqdm import tqdm
 
 import stream_ml.pytorch as sml
 
+paths = user_paths()
+
 # Add the parent directory to the path
-sys.path.append(Path(__file__).parents[3].as_posix())
+sys.path.append(paths.scripts.as_posix())
 # isort: split
 
-from scripts import helper, paths
+from scripts import helper
 from scripts.pal5.datasets import data, where
 from scripts.pal5.define_model import model
 from scripts.pal5.model.helper import diagnostic_plot

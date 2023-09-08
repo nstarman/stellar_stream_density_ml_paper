@@ -1,7 +1,6 @@
 """Plot GD1 Likelihoods."""
 
 import sys
-from pathlib import Path
 
 import astropy.units as u
 import matplotlib as mpl
@@ -12,12 +11,14 @@ from astropy.coordinates import Distance
 from astropy.table import QTable
 from matplotlib.colors import to_rgba
 from matplotlib.gridspec import GridSpec
+from showyourwork.paths import user as user_paths
+
+paths = user_paths()
 
 # Add the parent directory to the path
-sys.path.append(Path(__file__).parents[3].as_posix())
+sys.path.append(paths.scripts.as_posix())
 # isort: split
 
-from scripts import paths
 from scripts.gd1.datasets import data, where
 from scripts.gd1.define_model import model
 from scripts.helper import manually_set_dropout

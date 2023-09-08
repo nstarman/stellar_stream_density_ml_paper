@@ -13,12 +13,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 from astroquery.gaia import Gaia
 from astroquery.utils.tap.model.job import Job
+from showyourwork.paths import user as user_paths
 from tqdm import tqdm
 
-sys.path.append(Path(__file__).parents[3].as_posix())
-# isort: split
+paths = user_paths()
 
-from scripts import paths
+# Add the parent directory to the path
+sys.path.append(paths.scripts.as_posix())
+# isort: split
 from scripts.helper import a_as_b
 from scripts.pal5.frames import pal5_frame as frame
 

@@ -2,7 +2,6 @@
 
 import shutil
 import sys
-from pathlib import Path
 from typing import Any
 
 import matplotlib as mpl
@@ -11,11 +10,14 @@ from astropy import units as u
 from astropy.coordinates import SkyCoord
 from astropy.table import QTable
 from matplotlib import pyplot as plt
+from showyourwork.paths import user as user_paths
 
-sys.path.append(Path(__file__).parents[3].as_posix())
+paths = user_paths()
+
+# Add the parent directory to the path
+sys.path.append(paths.scripts.as_posix())
 # isort: split
 
-from scripts import paths
 from scripts.pal5.frames import pal5_frame as frame
 
 ##############################################################################

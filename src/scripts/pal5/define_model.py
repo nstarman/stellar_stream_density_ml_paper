@@ -1,22 +1,24 @@
 """Plot results."""
 
 import sys
-from pathlib import Path
 
 import asdf
 import torch as xp
 from astropy.table import QTable
+from showyourwork.paths import user as user_paths
 
-# isort: split
 import stream_ml.pytorch as sml
-from stream_ml.pytorch.params import ModelParameter, ModelParameters
-from stream_ml.pytorch.params.bounds import SigmoidBounds
-from stream_ml.pytorch.params.scaler import StandardLnWidth, StandardLocation
 
-sys.path.append(Path(__file__).parents[2].as_posix())
+paths = user_paths()
+
+# Add the parent directory to the path
+sys.path.append(paths.scripts.as_posix())
 # isort: split
 
 from scripts import paths
+from stream_ml.pytorch.params import ModelParameter, ModelParameters
+from stream_ml.pytorch.params.bounds import SigmoidBounds
+from stream_ml.pytorch.params.scaler import StandardLnWidth, StandardLocation
 
 ##############################################################################
 
