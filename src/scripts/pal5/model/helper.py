@@ -31,17 +31,17 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
         model.eval()
         mpars = model.unpack_params(model(data))
 
-        stream_lik = model.component_posterior("stream", mpars, data, where=where)
-        bkg_lik = model.component_posterior("background", mpars, data, where=where)
-        # tot_lik = model.posterior(mpars, data, where=where)  # FIXME!
-        tot_lik = stream_lik + bkg_lik
+        stream_lik = model.component_ln_posterior("stream", mpars, data, where=where)
+        bkg_lik = model.component_ln_posterior("background", mpars, data, where=where)
+        # tot_lik = model.ln_posterior(mpars, data, where=where)  # FIXME!
+        tot_lik = xp.logaddexp(stream_lik, bkg_lik)
 
     stream_weight = mpars[("stream.weight",)]
     stream_cutoff = stream_weight > 2e-2
 
-    bkg_prob = bkg_lik / tot_lik
-    stream_prob = stream_lik / tot_lik
-    allstream_prob = stream_lik / tot_lik
+    bkg_prob = xp.exp(bkg_lik - tot_lik)
+    stream_prob = xp.exp(stream_lik - tot_lik)
+    allstream_prob = xp.exp(stream_lik - tot_lik)
 
     psort = np.argsort(stream_prob)
     pmax = xp.max(stream_prob.max(), xp.tensor(0.95))

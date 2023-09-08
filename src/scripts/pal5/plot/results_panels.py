@@ -37,17 +37,17 @@ model = model.eval()
 with xp.no_grad():
     mpars = model.unpack_params(model(data))
 
-    stream_lik = model.component_posterior("stream", mpars, data, where=where)
-    bkg_lik = model.component_posterior("background", mpars, data, where=where)
-    tot_lik = model.posterior(mpars, data, where=where)
+    stream_lik = model.component_ln_posterior("stream", mpars, data, where=where)
+    bkg_lik = model.component_ln_posterior("background", mpars, data, where=where)
+    tot_lik = model.ln_posterior(mpars, data, where=where)
 
 
 stream_weight = mpars[("stream.weight",)]
 stream_cutoff = stream_weight > 2e-2
 
-bkg_prob = bkg_lik / tot_lik
-stream_prob = stream_lik / tot_lik
-allstream_prob = stream_lik / tot_lik
+bkg_prob = xp.exp(bkg_lik - tot_lik)
+stream_prob = xp.exp(stream_lik - tot_lik)
+allstream_prob = xp.exp(stream_lik - tot_lik)
 
 psort = np.argsort(allstream_prob)
 pmax = allstream_prob.max()
