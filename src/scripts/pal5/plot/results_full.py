@@ -2,12 +2,10 @@
 
 import sys
 
-import astropy.units as u
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import torch as xp
-from astropy.coordinates import Distance
 from astropy.table import QTable
 from matplotlib.colors import to_rgba
 from matplotlib.gridspec import GridSpec
@@ -60,14 +58,14 @@ with xp.no_grad():
     # plx_lnsigma = xp.stack(
     #     [mp["stream.astrometric.plx", "ln-sigma"] for mp in dmpars], 1
     # )
-    pmphi1_mu = xp.stack([mp["stream.astrometric.pmphi1", "mu"] for mp in dmpars], 1)
-    pmphi1_lnsigma = xp.stack(
-        [mp["stream.astrometric.pmphi1", "ln-sigma"] for mp in dmpars], 1
-    )
-    pmphi2_mu = xp.stack([mp["stream.astrometric.pmphi2", "mu"] for mp in dmpars], 1)
-    pmphi2_lnsigma = xp.stack(
-        [mp["stream.astrometric.pmphi2", "ln-sigma"] for mp in dmpars], 1
-    )
+    # pmphi1_mu = xp.stack([mp["stream.astrometric.pmphi1", "mu"] for mp in dmpars], 1)
+    # pmphi1_lnsigma = xp.stack(
+    #     [mp["stream.astrometric.pmphi1", "ln-sigma"] for mp in dmpars], 1
+    # )
+    # pmphi2_mu = xp.stack([mp["stream.astrometric.pmphi2", "mu"] for mp in dmpars], 1)
+    # pmphi2_lnsigma = xp.stack(
+    #     [mp["stream.astrometric.pmphi2", "ln-sigma"] for mp in dmpars], 1
+    # )
 
     # turn dropout back off
     manually_set_dropout(model, 0)
@@ -226,120 +224,120 @@ ax02.legend(loc="lower right")
 # )
 # ax02.legend(loc="lower right")
 
-# ---------------------------------------------------------------------------
-# PM-Phi1
+# # ---------------------------------------------------------------------------
+# # PM-Phi1
 
-ax03 = fig.add_subplot(gs[3, :])
-ax03.set_xticklabels([])
-ax03.set(ylabel=r"$\mu_{\phi_1}^*$ [mas yr$^{-1}$]")
+# ax03 = fig.add_subplot(gs[3, :])
+# ax03.set_xticklabels([])
+# ax03.set(ylabel=r"$\mu_{\phi_1}^*$ [mas yr$^{-1}$]")
 
-ax03.scatter(
-    data["phi1"][psort],
-    data["pmphi1"][psort],
-    c=allstream_prob[psort],
-    alpha=0.1 + (1 - 0.1) / (pmax - pmin) * (stream_prob[psort] - pmin),
-    s=2,
-    zorder=-10,
-)
-ax03.set_rasterization_zorder(0)
+# ax03.scatter(
+#     data["phi1"][psort],
+#     data["pmphi1"][psort],
+#     c=allstream_prob[psort],
+#     alpha=0.1 + (1 - 0.1) / (pmax - pmin) * (stream_prob[psort] - pmin),
+#     s=2,
+#     zorder=-10,
+# )
+# ax03.set_rasterization_zorder(0)
+# # ax03.fill_between(
+# #     data["phi1"][stream_cutoff],
+# #     (mpa["pmphi1", "mu"] - xp.exp(mpa["pmphi1", "ln-sigma"]))[stream_cutoff],
+# #     (mpa["pmphi1", "mu"] + xp.exp(mpa["pmphi1", "ln-sigma"]))[stream_cutoff],
+# #     color="k",
+# #     alpha=0.25,
+# #     label="Model (MLE)",
+# # )
+# # ax03.plot(data["phi1"], np.mean(pmphi1_mu.numpy(), 1), c="blue", label="Model
+# # (mean)")
 # ax03.fill_between(
 #     data["phi1"][stream_cutoff],
-#     (mpa["pmphi1", "mu"] - xp.exp(mpa["pmphi1", "ln-sigma"]))[stream_cutoff],
-#     (mpa["pmphi1", "mu"] + xp.exp(mpa["pmphi1", "ln-sigma"]))[stream_cutoff],
+#     (pmphi1_mu.mean(1) - np.exp(pmphi1_lnsigma.mean(1)))[stream_cutoff],
+#     (pmphi1_mu.mean(1) + np.exp(pmphi1_lnsigma.mean(1)))[stream_cutoff],
 #     color="k",
 #     alpha=0.25,
-#     label="Model (MLE)",
+#     label=r"Model (mean)",
 # )
-# ax03.plot(data["phi1"], np.mean(pmphi1_mu.numpy(), 1), c="blue", label="Model
-# (mean)")
-ax03.fill_between(
-    data["phi1"][stream_cutoff],
-    (pmphi1_mu.mean(1) - np.exp(pmphi1_lnsigma.mean(1)))[stream_cutoff],
-    (pmphi1_mu.mean(1) + np.exp(pmphi1_lnsigma.mean(1)))[stream_cutoff],
-    color="k",
-    alpha=0.25,
-    label=r"Model (mean)",
-)
 
-# Control points
-ax03.errorbar(
-    stream_cp["phi1"],
-    stream_cp["pm_phi1"],
-    yerr=stream_cp["w_pm_phi1"],
-    fmt=".",
-    c="royalblue",
-    capsize=2,
-    label="Stream Control Points",
-)
+# # Control points
+# ax03.errorbar(
+#     stream_cp["phi1"],
+#     stream_cp["pm_phi1"],
+#     yerr=stream_cp["w_pm_phi1"],
+#     fmt=".",
+#     c="royalblue",
+#     capsize=2,
+#     label="Stream Control Points",
+# )
 
-ax03.legend(loc="lower right")
-ax03.set_ylim(data["pmphi1"].min(), data["pmphi1"].max())
+# ax03.legend(loc="lower right")
+# ax03.set_ylim(data["pmphi1"].min(), data["pmphi1"].max())
 
-# ---------------------------------------------------------------------------
-# PM-Phi2
+# # ---------------------------------------------------------------------------
+# # PM-Phi2
 
-ax04 = fig.add_subplot(gs[4, :])
-ax04.set_xticklabels([])
-ax04.set(ylabel=r"$\mu_{\phi_2}$ [mas yr$^{-1}$]")
+# ax04 = fig.add_subplot(gs[4, :])
+# ax04.set_xticklabels([])
+# ax04.set(ylabel=r"$\mu_{\phi_2}$ [mas yr$^{-1}$]")
 
-ax04.scatter(
-    data["phi1"][psort],
-    data["pmphi2"][psort],
-    c=allstream_prob[psort],
-    alpha=0.1 + (1 - 0.1) / (pmax - pmin) * (stream_prob[psort] - pmin),
-    s=2,
-    zorder=-10,
-)
-ax04.set_rasterization_zorder(0)
+# ax04.scatter(
+#     data["phi1"][psort],
+#     data["pmphi2"][psort],
+#     c=allstream_prob[psort],
+#     alpha=0.1 + (1 - 0.1) / (pmax - pmin) * (stream_prob[psort] - pmin),
+#     s=2,
+#     zorder=-10,
+# )
+# ax04.set_rasterization_zorder(0)
+# # ax04.fill_between(
+# #     data["phi1"][stream_cutoff],
+# #     (mpa["pmphi2", "mu"] - xp.exp(mpa["pmphi2", "ln-sigma"]))[stream_cutoff],
+# #     (mpa["pmphi2", "mu"] + xp.exp(mpa["pmphi2", "ln-sigma"]))[stream_cutoff],
+# #     color="k",
+# #     alpha=0.25,
+# #     label="Model (MLE)",
+# # )
 # ax04.fill_between(
 #     data["phi1"][stream_cutoff],
-#     (mpa["pmphi2", "mu"] - xp.exp(mpa["pmphi2", "ln-sigma"]))[stream_cutoff],
-#     (mpa["pmphi2", "mu"] + xp.exp(mpa["pmphi2", "ln-sigma"]))[stream_cutoff],
+#     (pmphi2_mu.mean(1) - np.exp(pmphi2_lnsigma.mean(1)))[stream_cutoff],
+#     (pmphi2_mu.mean(1) + np.exp(pmphi2_lnsigma.mean(1)))[stream_cutoff],
 #     color="k",
 #     alpha=0.25,
+#     label=r"Model (mean)",
+# )
+# # ax04.plot(data["phi1"], np.mean(pmphi2_mu.numpy(), 1), c="blue", label="Model
+# # (mean)")
+# ax04.legend(loc="upper left")
+
+
+# # ---------------------------------------------------------------------------
+# # Distance
+
+# mpa = mpars["stream.photometric.distmod"]
+
+# ax03 = fig.add_subplot(gs[5, :])
+# ax03.set(xlabel=r"$\phi_1$ [deg]", ylabel=r"$d$ [kpc]")
+
+# d2sm = Distance(distmod=(mpa["mu"] - 2 * xp.exp(mpa["ln-sigma"])) * u.mag)
+# d2sp = Distance(distmod=(mpa["mu"] + 2 * xp.exp(mpa["ln-sigma"])) * u.mag)
+# d1sm = Distance(distmod=(mpa["mu"] - xp.exp(mpa["ln-sigma"])) * u.mag)
+# d1sp = Distance(distmod=(mpa["mu"] + xp.exp(mpa["ln-sigma"])) * u.mag)
+
+# ax03.fill_between(
+#     data["phi1"][stream_cutoff],
+#     d2sm[stream_cutoff].to_value("kpc"),
+#     d2sp[stream_cutoff].to_value("kpc"),
+#     alpha=0.15,
+#     color="k",
+# )
+# ax03.fill_between(
+#     data["phi1"][stream_cutoff],
+#     d1sm[stream_cutoff].to_value("kpc"),
+#     d1sp[stream_cutoff].to_value("kpc"),
+#     alpha=0.25,
+#     color="k",
 #     label="Model (MLE)",
 # )
-ax04.fill_between(
-    data["phi1"][stream_cutoff],
-    (pmphi2_mu.mean(1) - np.exp(pmphi2_lnsigma.mean(1)))[stream_cutoff],
-    (pmphi2_mu.mean(1) + np.exp(pmphi2_lnsigma.mean(1)))[stream_cutoff],
-    color="k",
-    alpha=0.25,
-    label=r"Model (mean)",
-)
-# ax04.plot(data["phi1"], np.mean(pmphi2_mu.numpy(), 1), c="blue", label="Model
-# (mean)")
-ax04.legend(loc="upper left")
-
-
-# ---------------------------------------------------------------------------
-# Distance
-
-mpa = mpars["stream.photometric.distmod"]
-
-ax03 = fig.add_subplot(gs[5, :])
-ax03.set(xlabel=r"$\phi_1$ [deg]", ylabel=r"$d$ [kpc]")
-
-d2sm = Distance(distmod=(mpa["mu"] - 2 * xp.exp(mpa["ln-sigma"])) * u.mag)
-d2sp = Distance(distmod=(mpa["mu"] + 2 * xp.exp(mpa["ln-sigma"])) * u.mag)
-d1sm = Distance(distmod=(mpa["mu"] - xp.exp(mpa["ln-sigma"])) * u.mag)
-d1sp = Distance(distmod=(mpa["mu"] + xp.exp(mpa["ln-sigma"])) * u.mag)
-
-ax03.fill_between(
-    data["phi1"][stream_cutoff],
-    d2sm[stream_cutoff].to_value("kpc"),
-    d2sp[stream_cutoff].to_value("kpc"),
-    alpha=0.15,
-    color="k",
-)
-ax03.fill_between(
-    data["phi1"][stream_cutoff],
-    d1sm[stream_cutoff].to_value("kpc"),
-    d1sp[stream_cutoff].to_value("kpc"),
-    alpha=0.25,
-    color="k",
-    label="Model (MLE)",
-)
-ax03.legend(loc="upper left")
+# ax03.legend(loc="upper left")
 
 fig.savefig(paths.figures / "pal5" / "results_full.pdf")
