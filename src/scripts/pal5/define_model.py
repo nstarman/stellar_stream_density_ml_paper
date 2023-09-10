@@ -50,8 +50,8 @@ coord_bounds: dict[str, tuple[float, float]] = {
 # Astrometry
 
 background_astrometric_model = sml.builtin.Exponential(
-    net=sml.nn.lin_tanh(
-        n_in=1, n_hidden=16, n_layers=2, n_out=len(coord_names), dropout=0.0
+    net=sml.nn.sequential(
+        data=1, hidden_features=16, layers=2, features=len(coord_names), dropout=0.0
     ),
     data_scaler=scaler,
     coord_names=astro_coords,
@@ -100,11 +100,11 @@ stream_strometric_prior = sml.prior.ControlRegions(
 )
 
 stream_astrometric_model = sml.builtin.TruncatedNormal(
-    net=sml.nn.lin_tanh(
-        n_in=1,
-        n_hidden=32,
-        n_layers=3,
-        n_out=2 * len(astro_coords),
+    net=sml.nn.sequential(
+        data=1,
+        hidden_features=32,
+        layers=3,
+        features=2 * len(astro_coords),
         dropout=0.0,
     ),
     data_scaler=scaler,
@@ -146,8 +146,8 @@ stream_model = sml.IndependentModels(
 _mx = {"stream": stream_model, "background": background_model}
 model = sml.MixtureModel(
     _mx,
-    net=sml.nn.lin_tanh(
-        n_in=1, n_hidden=16, n_layers=3, n_out=len(_mx) - 1, dropout=0.0
+    net=sml.nn.sequential(
+        data=1, hidden_features=16, layers=3, features=len(_mx) - 1, dropout=0.0
     ),
     data_scaler=scaler,
     params=ModelParameters(

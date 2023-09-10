@@ -47,19 +47,14 @@ data = sml.Data.from_format(
     table, fmt="astropy.table", names=names, renamer=renamer
 ).astype(xp.Tensor, dtype=xp.float32)
 
-where = sml.Data(
-    (~xp.isnan(data.array)),  # True where NOT missing
-    names=data.names,
-)
+# True where NOT missing
+where = sml.Data((~xp.isnan(data.array)), names=data.names)
 
 # TODO: it would be nice to keep this as NaN.
-# Need to set missing data to some value, even though it's ignored, for the
-# gradient
+# Need to set missing data to some value for the gradient.
 data.array[~where.array] = xp.asarray(
-    np.repeat(np.nanmedian(data.array, axis=0, keepdims=True), len(data), axis=0)[
-        ~where.array
-    ]
-)
+    np.repeat(np.nanmedian(data.array, axis=0, keepdims=True), len(data), axis=0)
+)[~where.array]
 
 
 # =============================================================================
