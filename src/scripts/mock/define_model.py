@@ -61,7 +61,9 @@ bkg_phi2_model = sml.builtin.Uniform(
 
 
 bkg_plx_model = sml.builtin.Exponential(
-    net=sml.nn.lin_tanh(n_in=1, n_hidden=32, n_layers=3, n_out=1, dropout=0.15),
+    net=sml.nn.sequential(
+        data=1, hidden_features=32, layers=3, features=1, dropout=0.15
+    ),
     data_scaler=scaler,
     indep_coord_names=("phi1",),
     coord_names=("parallax",),
@@ -107,11 +109,11 @@ background_model = sml.IndependentModels(
 # Stream Model
 
 stream_astrometric_model = sml.builtin.Normal(
-    net=sml.nn.lin_tanh(
-        n_in=1,
-        n_hidden=64,
-        n_layers=5,
-        n_out=2 * len(coord_astrometric_names),
+    net=sml.nn.sequential(
+        data=1,
+        hidden_features=64,
+        layers=5,
+        features=2 * len(coord_astrometric_names),
         dropout=0.15,
     ),
     data_scaler=scaler,
@@ -195,7 +197,9 @@ model = sml.MixtureModel(
         "stream": stream_model,
         "background": background_model,
     },
-    net=sml.nn.lin_tanh(n_in=1, n_hidden=64, n_layers=4, n_out=1, dropout=0.15),
+    net=sml.nn.sequential(
+        data=1, hidden_features=64, layers=4, features=1, dropout=0.15
+    ),
     data_scaler=scaler,
     params=ModelParameters(
         {
