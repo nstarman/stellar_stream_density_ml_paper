@@ -2,6 +2,8 @@
 
 
 import astropy.units as u
+import numpy as np
+from astropy.coordinates import Distance
 from astropy.table import QTable
 from showyourwork.paths import user as user_paths
 
@@ -23,4 +25,16 @@ table = QTable(
     meta={},
 )
 
-table.write(paths.data / "gd1" / "magnitude_control_points.ecsv", overwrite=True)
+# Convert to parallax
+table["parallax"] = Distance(distmod=table["distmod"]).parallax
+table["w_parallax"] = (
+    np.abs(
+        (Distance(distmod=table["distmod"] + table["w_distmod"]).parallax)
+        - (Distance(distmod=table["distmod"] - table["w_distmod"]).parallax)
+    )
+    / 2
+    * 1.1
+)
+
+# Save
+table.write(paths.data / "gd1" / "distance_control_points.ecsv", overwrite=True)
