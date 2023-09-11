@@ -2,6 +2,7 @@
 
 
 import astropy.units as u
+import numpy as np
 from astropy.table import QTable
 from showyourwork.paths import user as user_paths
 
@@ -14,7 +15,7 @@ table = QTable(
     # fmt: off
     rows=[
         # [-80.0 * u.deg, -2.24 * u.deg, 1.75 * u.deg, -9.9 * u.mas / u.yr, 0.75 * u.mas / u.yr],  # noqa: E501
-        [-70.0 * u.deg, -1.3 * u.deg, 1.75 * u.deg, -11.1 * u.mas / u.yr, 0.75 * u.mas / u.yr],  # noqa: E501
+        [-70.0 * u.deg, np.NaN * u.deg, np.NaN * u.deg, -11.2 * u.mas / u.yr, 1 * u.mas / u.yr],  # noqa: E501
         [-60.0 * u.deg, -0.8 * u.deg, 1.75 * u.deg, -12.5 * u.mas / u.yr, 0.75 * u.mas / u.yr],  # noqa: E501
         [-50.0 * u.deg, -0.0 * u.deg, 1.75 * u.deg, -13.3 * u.mas / u.yr, 0.75 * u.mas / u.yr],  # noqa: E501
         [-40.0 * u.deg, -0.0 * u.deg, 1.75 * u.deg, -13.3 * u.mas / u.yr, 0.75 * u.mas / u.yr],  # noqa: E501
