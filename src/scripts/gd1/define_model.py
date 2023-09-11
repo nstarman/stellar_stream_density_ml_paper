@@ -5,6 +5,7 @@ import sys
 import asdf
 import numpy as np
 import torch as xp
+import zuko
 from astropy.table import QTable
 from nflows.distributions.normal import ConditionalDiagonalNormal
 from nflows.flows.base import Flow
@@ -24,6 +25,7 @@ paths = user_paths()
 # Add the parent directory to the path
 sys.path.append(paths.scripts.as_posix())
 # isort: split
+
 from scripts.helper import isochrone_spline
 
 ##############################################################################
@@ -33,10 +35,12 @@ with asdf.open(paths.data / "gd1" / "info.asdf", mode="r") as af:
     scaler = sml.utils.StandardScaler(**af["scaler"]).astype(
         xp.Tensor, dtype=xp.float32
     )
-    all_coord_bounds = {k: tuple(v) for k, v in af["coord_bounds"].items()}
+    all_coord_bounds = {
+        k: (v[0] - 1e-10, v[1] + 1e-10) for k, v in af["coord_bounds"].items()
+    }
 
-astro_coords = ("phi2", "pmphi1", "pmphi2")
-astro_coord_errs = ("phi2_err", "pmphi1_err", "pmphi2_err")
+astro_coords = ("phi2", "plx", "pmphi1", "pmphi2")
+astro_coord_errs = ("phi2_err", "plx_err", "pmphi1_err", "pmphi2_err")
 astro_coord_bounds = {k: v for k, v in all_coord_bounds.items() if k in astro_coords}
 
 phot_coords = ("g", "r")
@@ -55,28 +59,75 @@ coord_bounds: dict[str, tuple[float, float]] = {
 # -----------------------------------------------------------------------------
 # Astrometry
 
-background_astrometric_model = sml.builtin.Exponential(
-    net=sml.nn.lin_tanh(
-        n_in=1, n_hidden=64, n_layers=4, n_out=len(coord_names), dropout=0.15
+bkg1_coord_names = ("phi2", "pmphi1")
+background_astrometric_phi2pmphi1_model = sml.builtin.Exponential(
+    net=sml.nn.sequential(
+        data=1, hidden_features=64, layers=4, features=2, dropout=0.15
     ),
     data_scaler=scaler,
-    coord_names=astro_coords,
-    coord_err_names=astro_coord_errs,
-    coord_bounds=astro_coord_bounds,
+    coord_names=bkg1_coord_names,
+    coord_err_names=("phi2_err", "pmphi1_err"),
+    coord_bounds={k: v for k, v in astro_coord_bounds.items() if k in bkg1_coord_names},
     params=ModelParameters(
         {
             "phi2": {
-                "slope": ModelParameter(bounds=SigmoidBounds(-0.01, 0.01), scaler=None)
+                "slope": ModelParameter(bounds=SigmoidBounds(-0.03, 0.03), scaler=None)
             },
             "pmphi1": {
                 "slope": ModelParameter(bounds=SigmoidBounds(-0.5, 0.0), scaler=None)
             },
+        }
+    ),
+    name="background_astrometric_phi2pmphi1_model",
+)
+
+
+background_astrometric_pmphi2_model = sml.builtin.TruncatedNormal(
+    net=sml.nn.sequential(
+        data=1, hidden_features=32, layers=4, features=2, dropout=0.15
+    ),
+    data_scaler=scaler,
+    coord_names=("pmphi2",),
+    coord_err_names=("pmphi2_err",),
+    coord_bounds={k: v for k, v in astro_coord_bounds.items() if k in ("pmphi2",)},
+    params=ModelParameters(
+        {
             "pmphi2": {
-                "slope": ModelParameter(bounds=SigmoidBounds(-0.5, 0.0), scaler=None)
+                "mu": ModelParameter(
+                    bounds=SigmoidBounds(*astro_coord_bounds["pmphi2"]),
+                    scaler=StandardLocation.from_data_scaler(scaler, "pmphi2", xp=xp),
+                ),
+                "ln-sigma": ModelParameter(
+                    bounds=SigmoidBounds(0, 1.5),
+                    scaler=StandardLnWidth.from_data_scaler(scaler, "pmphi2", xp=xp),
+                ),
             },
         }
     ),
+    name="background_astrometric_pmphi2_model",
 )
+
+flow_plx_scaler = scaler["phi1", "plx"]
+background_astrometric_plx_model = sml.builtin.compat.ZukoFlowModel(
+    net=zuko.flows.NSF(1, 1, hidden_features=[10, 10], bins=8),
+    jacobian_logdet=-xp.log(xp.prod(flow_plx_scaler.scale[1:])),
+    data_scaler=flow_plx_scaler,
+    coord_names=("plx",),
+    coord_bounds={"plx": coord_bounds["plx"]},
+    params=ModelParameters(),
+    with_grad=False,
+    name="background_astrometric_plx_model",
+)
+
+
+background_astrometric_model = sml.IndependentModels(
+    {
+        "phi2pmphi1": background_astrometric_phi2pmphi1_model,
+        "pmphi2": background_astrometric_pmphi2_model,
+        "plx": background_astrometric_plx_model,
+    }
+)
+
 
 # -----------------------------------------------------------------------------
 # Photometry
@@ -128,9 +179,8 @@ background_model = sml.IndependentModels(
 # -----------------------------------------------------------------------------
 # Astrometry
 
+# Control points
 gd1_cp = QTable.read(paths.data / "gd1" / "stream_control_points.ecsv")
-
-# Selection of control points
 stream_strometric_prior = sml.prior.ControlRegions(
     center=sml.Data.from_format(
         gd1_cp, fmt="astropy.table", names=("phi1", "phi2", "pm_phi1"), renamer=renamer
@@ -144,12 +194,27 @@ stream_strometric_prior = sml.prior.ControlRegions(
     lamda=1_000,
 )
 
+# TODO: put the parallax in the control points file
+mag_cp = QTable.read(paths.data / "distance_control_points.ecsv")
+stream_distance_prior = sml.prior.ControlRegions(
+    center=sml.Data.from_format(
+        mag_cp, fmt="astropy.table", names=("phi1", "parallax"), renamer=renamer
+    ).astype(xp.Tensor, dtype=xp.float32),
+    width=sml.Data.from_format(
+        mag_cp,
+        fmt="astropy.table",
+        names=("w_parallax",),
+        renamer={"w_parallax": "plx"},
+    ).astype(xp.Tensor, dtype=xp.float32),
+    lamda=1_000,
+)
+
 stream_astrometric_model = sml.builtin.TruncatedNormal(
-    net=sml.nn.lin_tanh(
-        n_in=1,
-        n_hidden=128,
-        n_layers=5,
-        n_out=2 * len(astro_coords),
+    net=sml.nn.sequential(
+        data=1,
+        hidden_features=128,
+        layers=5,
+        features=2 * len(astro_coords),
         dropout=0.15,
     ),
     data_scaler=scaler,
@@ -166,6 +231,16 @@ stream_astrometric_model = sml.builtin.TruncatedNormal(
                 "ln-sigma": ModelParameter(
                     bounds=SigmoidBounds(-3.0, 0.0),
                     scaler=StandardLnWidth.from_data_scaler(scaler, "phi2", xp=xp),
+                ),
+            },
+            "plx": {
+                "mu": ModelParameter(
+                    bounds=SigmoidBounds(1e-10, coord_bounds["plx"][1]),
+                    scaler=StandardLocation.from_data_scaler(scaler, "plx", xp=xp),
+                ),
+                "ln-sigma": ModelParameter(
+                    bounds=SigmoidBounds(-7.0, -2.0),
+                    scaler=StandardLnWidth.from_data_scaler(scaler, "plx", xp=xp),
                 ),
             },
             "pmphi1": {
@@ -190,7 +265,11 @@ stream_astrometric_model = sml.builtin.TruncatedNormal(
             },
         }
     ),
-    priors=(stream_strometric_prior,),
+    priors=(
+        stream_strometric_prior,
+        stream_distance_prior,
+    ),
+    name="stream_astrometric_model",
 )
 
 
@@ -216,27 +295,31 @@ stream_mass_function = sml.builtin.StepwiseMassFunction(
     log_probs=(0.0, 0.0),  # TODO: set a value
 )
 
-# Control points
-mag_cp = QTable.read(paths.data / "gd1" / "magnitude_control_points.ecsv")
-stream_photometric_prior = sml.prior.ControlRegions(
-    center=sml.Data.from_format(
-        mag_cp, fmt="astropy.table", names=("phi1", "distmod"), renamer=renamer
-    ).astype(xp.Tensor, dtype=xp.float32),
-    width=sml.Data.from_format(
-        mag_cp,
-        fmt="astropy.table",
-        names=("w_distmod",),
-        renamer={"w_distmod": "distmod"},
-    ).astype(xp.Tensor, dtype=xp.float32),
-    lamda=1_000,
-)
+# # Control points
+# mag_cp = QTable.read(paths.data / "gd1" / "distance_control_points.ecsv")
+# stream_photometric_prior = sml.prior.ControlRegions(
+#     center=sml.Data.from_format(
+#         mag_cp, fmt="astropy.table", names=("phi1", "distmod"), renamer=renamer
+#     ).astype(xp.Tensor, dtype=xp.float32),
+#     width=sml.Data.from_format(
+#         mag_cp,
+#         fmt="astropy.table",
+#         names=("w_distmod",),
+#         renamer={"w_distmod": "distmod"},
+#     ).astype(xp.Tensor, dtype=xp.float32),
+#     lamda=1_000,
+# )
 
 stream_isochrone_model = sml.builtin.IsochroneMVNorm(
-    net=sml.nn.lin_tanh(n_in=1, n_hidden=32, n_layers=4, n_out=2, dropout=0.15),
+    # net=sml.nn.sequential(
+    #     data=1, hidden_features=32, layers=4, features=2, dropout=0.15
+    # ),
     data_scaler=flow_scaler,
-    # coordinates
-    coord_names=("distmod",),
-    coord_bounds={"distmod": (13.0, 18.0)},
+    # # coordinates
+    # coord_names=("distmod",),
+    # coord_bounds={"distmod": (13.0, 18.0)},
+    coord_names=(),
+    coord_bounds={},
     # photometry
     phot_names=phot_coords,
     phot_apply_dm=(True, True),  # (g, r)
@@ -249,22 +332,26 @@ stream_isochrone_model = sml.builtin.IsochroneMVNorm(
     stream_mass_function=stream_mass_function,
     # params
     params=ModelParameters(
-        {
-            "distmod": {
-                "mu": ModelParameter(bounds=SigmoidBounds(13.0, 18.0), scaler=None),
-                "ln-sigma": ModelParameter(
-                    bounds=SigmoidBounds(-7.6, -2.8), scaler=None
-                ),
-            },
-        }
+        # {
+        #     "distmod": {
+        #         "mu": ModelParameter(bounds=SigmoidBounds(13.0, 18.0), scaler=None),
+        #         "ln-sigma": ModelParameter(
+        #             bounds=SigmoidBounds(-7.6, -2.8), scaler=None
+        #         ),
+        #     },
+        # }
     ),
-    priors=(stream_photometric_prior,),
+    # priors=(stream_photometric_prior,),
+    name="stream_isochrone_model",
 )
 
 # -----------------------------------------------------------------------------
 
 stream_model = sml.IndependentModels(
-    {"astrometric": stream_astrometric_model, "photometric": stream_isochrone_model}
+    {
+        "astrometric": stream_astrometric_model,
+        "photometric": stream_isochrone_model,
+    }
 )
 
 
@@ -293,11 +380,11 @@ spur_control_points_prior = sml.prior.ControlRegions(
 
 
 spur_astrometric_model = sml.builtin.Normal(
-    net=sml.nn.lin_tanh(
-        n_in=1,
-        n_hidden=64,
-        n_layers=4,
-        n_out=2 * len(astro_coords),
+    net=sml.nn.sequential(
+        data=1,
+        hidden_features=64,
+        layers=4,
+        features=2 * (len(astro_coords) - 1),  # no parallax
         dropout=0.15,
     ),
     data_scaler=scaler,
@@ -342,29 +429,33 @@ spur_astrometric_model = sml.builtin.Normal(
 )
 
 
-spur_isochrone_model = sml.builtin.IsochroneMVNorm(
-    net=None,
-    data_scaler=flow_scaler,
-    # coordinates
-    coord_names=(),
-    coord_bounds={},
-    # photometry
-    phot_names=phot_coords,
-    phot_apply_dm=(True, True),  # g, r
-    phot_err_names=phot_coord_errs,
-    phot_bounds=phot_coord_bounds,
-    # isochrone
-    gamma_edges=gamma_edges,
-    isochrone_spl=stream_isochrone_spl,
-    isochrone_err_spl=None,
-    stream_mass_function=stream_mass_function,
-    # params
-    params=ModelParameters(),
-)
+# spur_isochrone_model = sml.builtin.IsochroneMVNorm(
+#     net=None,
+#     data_scaler=flow_scaler,
+#     # coordinates
+#     coord_names=(),
+#     coord_bounds={},
+#     # photometry
+#     phot_names=phot_coords,
+#     phot_apply_dm=(True, True),  # g, r
+#     phot_err_names=phot_coord_errs,
+#     phot_bounds=phot_coord_bounds,
+#     # isochrone
+#     gamma_edges=gamma_edges,
+#     isochrone_spl=stream_isochrone_spl,
+#     isochrone_err_spl=None,
+#     stream_mass_function=stream_mass_function,
+#     # params
+#     params=ModelParameters(),
+# )
 
 
 spur_model = sml.IndependentModels(
-    {"astrometric": spur_astrometric_model, "photometric": spur_isochrone_model}
+    {
+        "astrometric": spur_astrometric_model,
+        # "photometric": spur_isochrone_model,
+        "photometric": stream_isochrone_model,
+    }
 )
 
 
@@ -374,6 +465,18 @@ spur_model = sml.IndependentModels(
 
 def spur_shares_stream_distmod(params: dict) -> dict:
     """Set the spur distance modulus to be the same as the stream."""
+    # Set the distance parallax
+    set_param(
+        params,
+        ("spur.astrometric.plx", "mu"),
+        params["stream.astrometric.plx"]["mu"],
+    )
+    set_param(
+        params,
+        ("spur.astrometric.plx", "ln-sigma"),
+        params["stream.astrometric.plx"]["ln-sigma"],
+    )
+
     # Set the distance modulus
     set_param(
         params,
@@ -388,9 +491,12 @@ def spur_shares_stream_distmod(params: dict) -> dict:
     return params
 
 
+mm = {"stream": stream_model, "spur": spur_model, "background": background_model}
 model = sml.MixtureModel(
-    {"stream": stream_model, "spur": spur_model, "background": background_model},
-    net=sml.nn.lin_tanh(n_in=1, n_hidden=32, n_layers=4, n_out=2, dropout=0.15),
+    mm,
+    net=sml.nn.sequential(
+        data=1, hidden_features=32, layers=4, features=len(mm) - 1, dropout=0.15
+    ),
     data_scaler=scaler,
     params=ModelParameters(
         {
@@ -407,7 +513,7 @@ model = sml.MixtureModel(
     priors=(
         sml.prior.HardThreshold(
             1,
-            set_to=1e-3,
+            set_to=1e-4,
             upper=-90,
             param_name="stream.weight",
             coord_name="phi1",
@@ -415,7 +521,7 @@ model = sml.MixtureModel(
         ),
         sml.prior.HardThreshold(
             1,
-            set_to=1e-3,
+            set_to=1e-4,
             lower=10,
             param_name="stream.weight",
             coord_name="phi1",
@@ -423,7 +529,7 @@ model = sml.MixtureModel(
         ),
         sml.prior.HardThreshold(
             1,
-            set_to=1e-3,
+            set_to=1e-4,
             upper=-45,
             param_name="spur.weight",
             coord_name="phi1",
@@ -431,7 +537,7 @@ model = sml.MixtureModel(
         ),
         sml.prior.HardThreshold(
             1,
-            set_to=1e-3,
+            set_to=1e-4,
             lower=-15,
             param_name="spur.weight",
             coord_name="phi1",
