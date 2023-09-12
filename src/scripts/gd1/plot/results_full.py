@@ -90,7 +90,7 @@ pmin = allstream_prob.min()
 # Load Control Points
 
 stream_cp = QTable.read(paths.data / "gd1" / "stream_control_points.ecsv")
-spur_cp = QTable.read(paths.data / "gd1" / "spur_control_points.ecsv")
+spur_cp = QTable.read(paths.data / "gd1" / "control_points_spur.ecsv")
 
 
 # =============================================================================

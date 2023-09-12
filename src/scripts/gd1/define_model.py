@@ -361,16 +361,16 @@ stream_model = sml.IndependentModels(
 # =============================================================================
 # Astrometry
 
-spur_cp_tbl = QTable.read(paths.data / "gd1" / "spur_control_points.ecsv")
-spur_control_points_prior = sml.prior.ControlRegions(
+_spur_cp_tbl = QTable.read(paths.data / "gd1" / "control_points_spur.ecsv")
+spur_cp_prior = sml.prior.ControlRegions(
     center=sml.Data.from_format(
-        spur_cp_tbl,
+        _spur_cp_tbl,
         fmt="astropy.table",
         names=("phi1", "phi2", "pm_phi1"),
         renamer=renamer,
     ).astype(xp.Tensor, dtype=xp.float32),
     width=sml.Data.from_format(
-        spur_cp_tbl,
+        _spur_cp_tbl,
         fmt="astropy.table",
         names=("w_phi2", "w_pm_phi1"),
         renamer={"w_phi2": "phi2", "w_pm_phi1": "pmphi1"},
@@ -425,7 +425,7 @@ spur_astrometric_model = sml.builtin.Normal(
             },
         }
     ),
-    priors=(spur_control_points_prior,),
+    priors=(spur_cp_prior,),
 )
 
 

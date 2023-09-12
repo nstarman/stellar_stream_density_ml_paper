@@ -312,13 +312,13 @@ rule gd1_stream_control_points:
         "src/scripts/gd1/model/0-stream_control_points.py"
 
 
-rule gd1_spur_control_points:
+rule gd1_control_points_spur:
     output:
-        "src/data/gd1/spur_control_points.ecsv"
+        "src/data/gd1/control_points_spur.ecsv"
     cache:
         True
     script:
-        "src/scripts/gd1/model/0-spur_control_points.py"
+        "src/scripts/gd1/model/0-control_points_spur.py"
 
 
 rule gd1_info:
@@ -356,7 +356,7 @@ rule gd1_model_script:
     input:
         "src/data/gd1/info.asdf",
         "src/data/gd1/stream_control_points.ecsv",
-        "src/data/gd1/spur_control_points.ecsv",
+        "src/data/gd1/control_points_spur.ecsv",
     cache:
         False
     script:
@@ -558,7 +558,7 @@ rule gd1_model_script:
     input:
         "src/data/gd1/info.asdf",
         "src/data/gd1/stream_control_points.ecsv",
-        "src/data/gd1/spur_control_points.ecsv",
+        "src/data/gd1/control_points_spur.ecsv",
     cache:
         False
     script:

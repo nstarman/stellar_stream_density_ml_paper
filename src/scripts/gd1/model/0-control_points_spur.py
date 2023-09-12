@@ -24,4 +24,4 @@ table = QTable(
     meta={},
 )
 
-table.write(paths.data / "gd1" / "spur_control_points.ecsv", overwrite=True)
+table.write(paths.data / "gd1" / "control_points_spur.ecsv", overwrite=True)
