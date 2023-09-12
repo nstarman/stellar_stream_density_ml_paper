@@ -46,10 +46,6 @@ if snkmk["load_from_static"]:
 
     sys.exit(0)
 
-
-# =============================================================================
-# Load Data
-
 diagnostic_path = paths.figures / "gd1" / "diagnostic" / "model"
 diagnostic_path.mkdir(parents=True, exist_ok=True)
 

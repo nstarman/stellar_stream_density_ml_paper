@@ -328,7 +328,13 @@ stream_model = sml.IndependentModels(
     {
         "astrometric": stream_astrometric_model,
         "photometric": stream_isochrone_model,
-    }
+    },
+    unpack_params_hooks=(
+        sml.builtin.Parallax2DistMod(
+            astrometric_coord="astrometric.plx",
+            photometric_coord="photometric.distmod",
+        ),
+    ),
 )
 
 
