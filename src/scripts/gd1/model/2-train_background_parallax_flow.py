@@ -91,7 +91,7 @@ for epoch in tqdm(range(snkmk["epochs"])):
         ):
             with xp.no_grad():
                 mpars = model.unpack_params(model(data))
-                prob = model.likelihood(mpars, data, where=where).flatten()
+                prob = model.posterior(mpars, data, where=where).flatten()
 
             psort = np.argsort(prob[off_stream])
 
