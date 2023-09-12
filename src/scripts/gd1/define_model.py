@@ -379,6 +379,9 @@ spur_cp_prior = sml.prior.ControlRegions(
 )
 
 
+astro_coords_mplx = tuple(c for c in astro_coords if c != "plx")
+astro_coord_errs_mplx = tuple(c for c in astro_coord_errs if c != "plx_err")
+astro_coord_bounds_mplx = {k: v for k, v in astro_coord_bounds.items() if k != "plx"}
 spur_astrometric_model = sml.builtin.Normal(
     net=sml.nn.sequential(
         data=1,
@@ -388,9 +391,9 @@ spur_astrometric_model = sml.builtin.Normal(
         dropout=0.15,
     ),
     data_scaler=scaler,
-    coord_names=astro_coords,
-    coord_err_names=astro_coord_errs,
-    coord_bounds=astro_coord_bounds,
+    coord_names=astro_coords_mplx,
+    coord_err_names=astro_coord_errs_mplx,
+    coord_bounds=astro_coord_bounds_mplx,
     params=ModelParameters(
         {
             "phi2": {
