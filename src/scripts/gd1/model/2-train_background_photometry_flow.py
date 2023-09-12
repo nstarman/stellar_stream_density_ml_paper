@@ -96,7 +96,7 @@ for epoch in tqdm(range(snkmk["epochs"])):
             psort = np.argsort(prob[off_stream])
 
             fig, ax = plt.subplots()
-            im = ax.scatter(
+            ax.scatter(
                 (data["g"] - data["r"])[~off_stream],
                 data["g"][~off_stream],
                 s=0.2,
