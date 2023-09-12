@@ -515,13 +515,13 @@ rule pal5_masks:
         "src/scripts/pal5/data/3.3-masks.py"
 
 
-rule pal5_stream_control_points:
+rule pal5_control_points_stream:
     output:
-        "src/data/pal5/stream_control_points.ecsv"
+        "src/data/pal5/control_points_stream.ecsv"
     cache:
         True
     script:
-        "src/scripts/pal5/model/0-stream_control_points.py"
+        "src/scripts/pal5/model/0-control_points_stream.py"
 
 
 rule pal5_info:
@@ -552,17 +552,17 @@ rule pal5_data_script:
 
 
 # NOTE: this is a hacky way to aggregate the dependencies of the model script
-rule gd1_model_script:
+rule pal5_model_script:
     output:
-        temp("src/data/gd1/model.tmp")
+        temp("src/data/pal5/model.tmp")
     input:
-        "src/data/gd1/info.asdf",
-        "src/data/gd1/stream_control_points.ecsv",
-        "src/data/gd1/control_points_spur.ecsv",
+        "src/data/pal5/info.asdf",
+        "src/data/pal5/control_points_stream.ecsv",
+        "src/data/pal5/control_points_spur.ecsv",
     cache:
         False
     script:
-        "src/scripts/gd1/define_model.py"
+        "src/scripts/pal5/define_model.py"
 
 
 rule pal5_train_model:

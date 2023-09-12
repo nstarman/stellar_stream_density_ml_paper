@@ -25,4 +25,4 @@ table = QTable(
     meta={},
 )
 
-table.write(paths.data / "pal5" / "stream_control_points.ecsv", overwrite=True)
+table.write(paths.data / "pal5" / "control_points_stream.ecsv", overwrite=True)

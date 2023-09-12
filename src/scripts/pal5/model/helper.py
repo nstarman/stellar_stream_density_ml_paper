@@ -106,7 +106,7 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
         label="Model (MLE)",
     )
 
-    pal5_cp = QTable.read(paths.data / "pal5" / "stream_control_points.ecsv")
+    pal5_cp = QTable.read(paths.data / "pal5" / "control_points_stream.ecsv")
     ax02.errorbar(pal5_cp["phi1"], pal5_cp["phi2"], yerr=pal5_cp["w_phi2"], ls="none")
 
     ax02.set_ylim(np.nanmin(data["phi2"]), np.nanmax(data["phi2"]))
