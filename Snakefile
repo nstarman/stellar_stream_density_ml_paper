@@ -294,6 +294,15 @@ rule gd1_masks:
         "src/scripts/gd1/data/3.3-masks.py"
 
 
+rule gd1_control_points_distance:
+    output:
+        "src/data/gd1/control_points_distance.ecsv"
+    cache:
+        True
+    script:
+        "src/scripts/gd1/model/0-control_points_distance.py"
+
+
 rule gd1_stream_control_points:
     output:
         "src/data/gd1/stream_control_points.ecsv"

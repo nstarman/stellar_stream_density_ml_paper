@@ -195,7 +195,7 @@ stream_strometric_prior = sml.prior.ControlRegions(
 )
 
 # TODO: put the parallax in the control points file
-mag_cp = QTable.read(paths.data / "distance_control_points.ecsv")
+mag_cp = QTable.read(paths.data / "control_points_distance.ecsv")
 stream_distance_prior = sml.prior.ControlRegions(
     center=sml.Data.from_format(
         mag_cp, fmt="astropy.table", names=("phi1", "parallax"), renamer=renamer
@@ -296,7 +296,7 @@ stream_mass_function = sml.builtin.StepwiseMassFunction(
 )
 
 # # Control points
-# mag_cp = QTable.read(paths.data / "gd1" / "distance_control_points.ecsv")
+# mag_cp = QTable.read(paths.data / "gd1" / "control_points_distance.ecsv")
 # stream_photometric_prior = sml.prior.ControlRegions(
 #     center=sml.Data.from_format(
 #         mag_cp, fmt="astropy.table", names=("phi1", "distmod"), renamer=renamer

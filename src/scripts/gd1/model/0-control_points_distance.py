@@ -37,4 +37,4 @@ table["w_parallax"] = (
 )
 
 # Save
-table.write(paths.data / "gd1" / "distance_control_points.ecsv", overwrite=True)
+table.write(paths.data / "gd1" / "control_points_distance.ecsv", overwrite=True)
