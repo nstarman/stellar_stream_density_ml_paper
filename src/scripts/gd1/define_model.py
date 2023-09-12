@@ -180,7 +180,7 @@ background_model = sml.IndependentModels(
 # Astrometry
 
 # Control points
-gd1_cp = QTable.read(paths.data / "gd1" / "stream_control_points.ecsv")
+gd1_cp = QTable.read(paths.data / "gd1" / "control_points_stream.ecsv")
 stream_strometric_prior = sml.prior.ControlRegions(
     center=sml.Data.from_format(
         gd1_cp, fmt="astropy.table", names=("phi1", "phi2", "pm_phi1"), renamer=renamer

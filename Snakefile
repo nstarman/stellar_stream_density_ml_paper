@@ -303,13 +303,13 @@ rule gd1_control_points_distance:
         "src/scripts/gd1/model/0-control_points_distance.py"
 
 
-rule gd1_stream_control_points:
+rule gd1_control_points_stream:
     output:
-        "src/data/gd1/stream_control_points.ecsv"
+        "src/data/gd1/control_points_stream.ecsv"
     cache:
         True
     script:
-        "src/scripts/gd1/model/0-stream_control_points.py"
+        "src/scripts/gd1/model/0-control_points_stream.py"
 
 
 rule gd1_control_points_spur:
@@ -355,7 +355,7 @@ rule gd1_model_script:
         temp("src/data/gd1/model.tmp")
     input:
         "src/data/gd1/info.asdf",
-        "src/data/gd1/stream_control_points.ecsv",
+        "src/data/gd1/control_points_stream.ecsv",
         "src/data/gd1/control_points_spur.ecsv",
     cache:
         False
