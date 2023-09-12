@@ -1,4 +1,4 @@
-"""Combine data fields into one dataset."""
+"""Combine GD-1's data fields into one dataset."""
 
 import contextlib
 import json

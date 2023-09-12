@@ -1,4 +1,4 @@
-"""Plot results."""
+"""GD1 spur control points."""
 
 
 import astropy.units as u

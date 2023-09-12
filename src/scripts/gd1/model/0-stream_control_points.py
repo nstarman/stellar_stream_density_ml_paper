@@ -1,4 +1,4 @@
-"""Plot results."""
+"""GD1 stream control points."""
 
 
 import astropy.units as u

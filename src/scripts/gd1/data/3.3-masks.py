@@ -1,4 +1,4 @@
-"""Setup."""
+"""Define data masks for GD-1."""
 
 import shutil
 import sys

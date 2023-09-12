@@ -1,4 +1,4 @@
-"""Mist files for brutus."""
+"""Download dust maps."""
 
 import pathlib
 import shutil

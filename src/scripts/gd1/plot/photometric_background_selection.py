@@ -1,4 +1,4 @@
-"""Train photometry background flow."""
+"""Plot the photometry background flow."""
 
 import sys
 

@@ -1,4 +1,4 @@
-"""Plot GD1 Likelihoods."""
+"""Plot Phi1-binned panels of the trained model."""
 
 import sys
 

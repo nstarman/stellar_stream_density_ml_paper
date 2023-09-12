@@ -1,4 +1,4 @@
-"""Train photometry background flow."""
+"""GD-1 model helper functions."""
 
 import sys
 

@@ -1,4 +1,4 @@
-"""PM-edges."""
+"""Define the proper motion data mask boundaries for GD-1."""
 
 
 import astropy.units as u

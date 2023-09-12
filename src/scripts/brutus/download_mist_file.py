@@ -1,4 +1,4 @@
-"""Mist files for brutus."""
+"""Download MIST files for brutus."""
 
 import pathlib
 import shutil

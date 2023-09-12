@@ -1,4 +1,4 @@
-"""Combine data fields into one dataset."""
+"""Save the number of stars in the GD-1 stream."""
 
 
 from astropy.table import QTable

@@ -1,4 +1,4 @@
-"""Get Likelihoods."""
+"""Compute and save a table of the per-star likelihoods."""
 
 import sys
 

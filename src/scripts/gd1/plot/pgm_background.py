@@ -1,4 +1,4 @@
-"""Train photometry background flow."""
+"""Plot background PGM."""
 
 import sys
 

@@ -1,4 +1,4 @@
-"""Train photometry background flow."""
+"""Plot the data masks."""
 
 import sys
 from typing import Any

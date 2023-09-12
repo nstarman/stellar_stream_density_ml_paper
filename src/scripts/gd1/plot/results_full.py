@@ -1,4 +1,4 @@
-"""Plot GD1 Likelihoods."""
+"""Plot the trained GD1 model."""
 
 import sys
 

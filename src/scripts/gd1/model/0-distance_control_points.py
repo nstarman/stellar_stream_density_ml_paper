@@ -1,4 +1,4 @@
-"""Plot results."""
+"""GD-1 distance control points."""
 
 
 import astropy.units as u

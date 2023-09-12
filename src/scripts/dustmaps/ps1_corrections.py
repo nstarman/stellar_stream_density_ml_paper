@@ -1,4 +1,4 @@
-"""Mist files for brutus."""
+"""Save file of PS-1 exctinction coefficients."""
 
 import json
 
@@ -6,7 +6,8 @@ from showyourwork.paths import user as user_paths
 
 paths = user_paths()
 
-
+# From Table 1 of Green et al. (2019)
+# https://arxiv.org/pdf/1905.02734.pdf
 factors = {
     "g": 3.158,
     "r": 2.617,

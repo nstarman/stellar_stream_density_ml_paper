@@ -1,4 +1,4 @@
-"""Setup."""
+"""Define the photometric data mask boundaries for GD-1."""
 
 
 import asdf

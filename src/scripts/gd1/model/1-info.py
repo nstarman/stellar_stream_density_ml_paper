@@ -1,4 +1,4 @@
-"""GD-1 Model Info."""
+"""GD-1 model info."""
 
 
 import asdf
