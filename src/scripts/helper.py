@@ -12,7 +12,7 @@ from stream_ml.pytorch.builtin.compat._flow import _FlowModel
 def isochrone_spline(mags: Array, *, xp: ArrayNamespace[Array]) -> CubicSpline:
     """Return a spline interpolating the isochrone's coordinates."""
     pdist = pairwise_distance(mags, axis=0, xp=xp)
-    gamma = xp.concatenate((xp.asarray([0]), pdist.cumsum()))
+    gamma = xp.concatenate((xp.asarray([0]), pdist.cumsum(0)))
     gamma = gamma / gamma[-1]  # gamma in [0, 1]
     return CubicSpline(gamma, mags)
 
