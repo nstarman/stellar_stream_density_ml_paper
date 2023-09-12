@@ -1,5 +1,7 @@
 """Define the photometric data mask boundaries for GD-1."""
 
+from dataclasses import asdict
+
 import asdf
 import brutus.filters
 import brutus.seds
@@ -39,7 +41,8 @@ iso_loose = isochrone.buffer(0.5)
 
 af = asdf.AsdfFile()
 af["isochrone"] = np.c_[isochrone.xy]
-af["isochrone_data"] = {"array": mags_data.array, "names": mags_data.names}
+af["isochrone_data"] = asdict(mags_data)
+af["isochrone_data"].pop("_n2k")
 # Masks
 af["isochrone_tight"] = np.c_[iso_tight.exterior.xy]
 af["isochrone_medium"] = np.c_[iso_medium.exterior.xy]
