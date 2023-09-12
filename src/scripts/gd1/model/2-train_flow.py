@@ -1,6 +1,7 @@
 """Train photometry background flow."""
 
 import sys
+from dataclasses import replace
 from typing import Any
 
 import matplotlib.pyplot as plt
@@ -19,9 +20,9 @@ paths = user_paths()
 sys.path.append(paths.scripts.as_posix())
 # isort: split
 
-from scripts.gd1.datasets import data, off_stream
+from scripts.gd1.datasets import data, off_stream, where
 from scripts.gd1.define_model import (
-    background_photometric_model as model,
+    background_photometric_model as model_without_grad,
 )
 
 # =============================================================================
@@ -32,14 +33,15 @@ try:
     snkmk = dict(snakemake.params)
 except NameError:
     snkmk = {
-        "load_from_static": True,
+        "load_from_static": False,
         "save_to_static": False,
         "epochs": 1_000,
+        "diagnostic_plots": True,
     }
 
 if snkmk["load_from_static"]:
-    model.load_state_dict(xp.load(paths.static / "gd1" / "flow_model.pt"))
-    xp.save(model.state_dict(), paths.data / "gd1" / "flow_model.pt")
+    model_without_grad.load_state_dict(xp.load(paths.static / "gd1" / "flow_model.pt"))
+    xp.save(model_without_grad.state_dict(), paths.data / "gd1" / "flow_model.pt")
 
     sys.exit(0)
 
@@ -50,22 +52,31 @@ figure_path.mkdir(parents=True, exist_ok=True)
 # =============================================================================
 # Train
 
+# Make a copy of the model with gradients
+# The network is shared with the original model
+model = replace(model_without_grad, with_grad=True)
+
+# Prerequisites for training
 coord_names = model.indep_coord_names + model.coord_names
-dataset = td.TensorDataset(data[coord_names].array[off_stream])
-loader = td.DataLoader(dataset=dataset, batch_size=500, shuffle=True, num_workers=0)
+dataset = td.TensorDataset(
+    data[coord_names].array[off_stream],
+    where[coord_names].array[off_stream],
+)
+loader = td.DataLoader(
+    dataset=dataset, batch_size=500, shuffle=True, num_workers=0, drop_last=True
+)
 optimizer = optim.Adam(model.parameters(), lr=1e-3)
 
-# Turn on gradients for training
-object.__setattr__(model, "with_grad", True)
-
+# Train
 for epoch in tqdm(range(snkmk["epochs"])):
-    for _step, (data_cur_,) in enumerate(loader):
-        data_cur = sml.Data(data_cur_, names=coord_names)
+    for data_step_, where_step_ in loader:
+        data_step = sml.Data(data_step_, names=coord_names)
+        where_step = sml.Data(where_step_, names=coord_names)
 
         optimizer.zero_grad()
 
-        mpars = model.unpack_params(model(data_cur))
-        loss = -model.ln_posterior_tot(mpars, data_cur)
+        mpars = model.unpack_params(model(data_step))
+        loss = -model.ln_posterior_tot(mpars, data_step, where=where_step)
 
         loss.backward()
         optimizer.step()
@@ -76,7 +87,7 @@ for epoch in tqdm(range(snkmk["epochs"])):
         ):
             with xp.no_grad():
                 mpars = model.unpack_params(model(data))
-                prob = model.posterior(mpars, data)
+                prob = model.posterior(mpars, data, where=where)
 
             psort = np.argsort(prob[off_stream])
 
@@ -91,9 +102,6 @@ for epoch in tqdm(range(snkmk["epochs"])):
             ax.set(xlim=(0, 0.8), ylim=(22, 13.5))
             fig.savefig(figure_path / f"epoch_{epoch:05}.png")
             plt.close(fig)
-
-# Turn off gradients for usage later
-object.__setattr__(model, "with_grad", False)
 
 xp.save(model.state_dict(), paths.data / "gd1" / "flow_model.pt")
 

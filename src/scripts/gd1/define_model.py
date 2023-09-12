@@ -7,13 +7,7 @@ import numpy as np
 import torch as xp
 import zuko
 from astropy.table import QTable
-from nflows.distributions.normal import ConditionalDiagonalNormal
-from nflows.flows.base import Flow
-from nflows.transforms.autoregressive import MaskedAffineAutoregressiveTransform
-from nflows.transforms.base import CompositeTransform
-from nflows.transforms.permutations import ReversePermutation
 from showyourwork.paths import user as user_paths
-from torch import nn
 
 import stream_ml.pytorch as sml
 from stream_ml.pytorch.params import ModelParameter, ModelParameters, set_param
@@ -132,34 +126,17 @@ background_astrometric_model = sml.IndependentModels(
 # -----------------------------------------------------------------------------
 # Photometry
 
-
-def _make_background_flow(num_layers: int = 4, num_features: int = 2) -> Flow:
-    """Make the background photometry flow."""
-    base_dist = ConditionalDiagonalNormal(
-        shape=[num_features], context_encoder=nn.Linear(1, 4)
-    )
-    transforms = []
-    for _ in range(num_layers):
-        transforms.append(ReversePermutation(features=num_features))
-        transforms.append(
-            MaskedAffineAutoregressiveTransform(
-                features=num_features, hidden_features=3, context_features=1
-            )
-        )
-    transform = CompositeTransform(transforms)
-    return Flow(transform, base_dist)
-
-
 flow_scaler = scaler[("phi1", *phot_coords)]
 
-background_photometric_model = sml.builtin.compat.FlowModel(
-    net=_make_background_flow(),
+background_photometric_model = sml.builtin.compat.ZukoFlowModel(
+    net=zuko.flows.MAF(2, 1, transforms=4, hidden_features=[10, 10, 10, 10]),
     jacobian_logdet=-xp.log(xp.prod(flow_scaler.scale[1:])),
     data_scaler=flow_scaler,
     coord_names=phot_coords,
     coord_bounds=phot_coord_bounds,
     params=ModelParameters(),
     with_grad=False,
+    name="background_photometric_model",
 )
 
 # -----------------------------------------------------------------------------
@@ -284,7 +261,7 @@ stream_isochrone_spl = isochrone_spline(abs_mags["g", "r"].array, xp=np)
 # concentrating on the MS turnoff
 gamma_edges = xp.concatenate(
     [
-        xp.linspace(0, 0.43, 30),
+        xp.linspace(00, 0.43, 30),
         xp.linspace(0.43, 0.5, 15),
         xp.linspace(0.501, 1, 30),
     ]
