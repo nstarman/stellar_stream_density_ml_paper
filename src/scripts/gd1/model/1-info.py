@@ -1,6 +1,8 @@
 """GD-1 model info."""
 
 
+from dataclasses import asdict
+
 import asdf
 import astropy.units as u
 import numpy as np
@@ -147,7 +149,7 @@ af["coord_bounds"] = {k: (np.nanmin(data[k]), np.nanmax(data[k])) for k in data.
 
 scaler = sml.utils.StandardScaler.fit(data, names=data.names)
 
-af["scaler"] = {"mean": scaler.mean, "scale": scaler.scale, "names": scaler.names}
+af["scaler"] = asdict(scaler)
 
 # -----------------------------------------------------------------------------
 

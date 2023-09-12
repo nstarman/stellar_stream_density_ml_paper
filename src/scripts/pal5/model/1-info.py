@@ -1,5 +1,7 @@
 """Pal-5 Model Info."""
 
+from dataclasses import asdict
+
 import asdf
 import numpy as np
 from astropy.table import QTable
@@ -147,8 +149,7 @@ af["coord_bounds"] = {k: (np.nanmin(data[k]), np.nanmax(data[k])) for k in data.
 # Scaling for ML
 
 scaler = sml.utils.StandardScaler.fit(data, names=data.names)
-
-af["scaler"] = {"mean": scaler.mean, "scale": scaler.scale, "names": scaler.names}
+af["scaler"] = asdict(scaler)
 
 # -----------------------------------------------------------------------------
 
