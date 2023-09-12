@@ -195,13 +195,13 @@ stream_strometric_prior = sml.prior.ControlRegions(
 )
 
 # TODO: put the parallax in the control points file
-mag_cp = QTable.read(paths.data / "control_points_distance.ecsv")
+distance_cp = QTable.read(paths.data / "gd1" / "control_points_distance.ecsv")
 stream_distance_prior = sml.prior.ControlRegions(
     center=sml.Data.from_format(
-        mag_cp, fmt="astropy.table", names=("phi1", "parallax"), renamer=renamer
+        distance_cp, fmt="astropy.table", names=("phi1", "parallax"), renamer=renamer
     ).astype(xp.Tensor, dtype=xp.float32),
     width=sml.Data.from_format(
-        mag_cp,
+        distance_cp,
         fmt="astropy.table",
         names=("w_parallax",),
         renamer={"w_parallax": "plx"},
@@ -296,13 +296,13 @@ stream_mass_function = sml.builtin.StepwiseMassFunction(
 )
 
 # # Control points
-# mag_cp = QTable.read(paths.data / "gd1" / "control_points_distance.ecsv")
+# distance_cp = QTable.read(paths.data / "gd1" / "control_points_distance.ecsv")
 # stream_photometric_prior = sml.prior.ControlRegions(
 #     center=sml.Data.from_format(
-#         mag_cp, fmt="astropy.table", names=("phi1", "distmod"), renamer=renamer
+#         distance_cp, fmt="astropy.table", names=("phi1", "distmod"), renamer=renamer
 #     ).astype(xp.Tensor, dtype=xp.float32),
 #     width=sml.Data.from_format(
-#         mag_cp,
+#         distance_cp,
 #         fmt="astropy.table",
 #         names=("w_distmod",),
 #         renamer={"w_distmod": "distmod"},
