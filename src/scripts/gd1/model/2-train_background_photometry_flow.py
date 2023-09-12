@@ -35,7 +35,7 @@ except NameError:
     snkmk = {
         "load_from_static": False,
         "save_to_static": False,
-        "epochs": 250,
+        "epochs": 1_000,
         "diagnostic_plots": True,
     }
 
@@ -47,7 +47,6 @@ if snkmk["load_from_static"]:
         model_without_grad.state_dict(),
         paths.data / "gd1" / "background_photometry_model.pt",
     )
-
     sys.exit(0)
 
 
