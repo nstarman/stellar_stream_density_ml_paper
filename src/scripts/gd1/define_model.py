@@ -103,7 +103,7 @@ background_astrometric_pmphi2_model = sml.builtin.TruncatedNormal(
 
 flow_plx_scaler = scaler["phi1", "plx"]
 background_astrometric_plx_model = sml.builtin.compat.ZukoFlowModel(
-    net=zuko.flows.NSF(1, 1, hidden_features=[10, 10], bins=8),
+    net=zuko.flows.NSF(1, 1, hidden_features=[10, 10, 10], bins=8),
     jacobian_logdet=-xp.log(xp.prod(flow_plx_scaler.scale[1:])),
     data_scaler=flow_plx_scaler,
     coord_names=("plx",),

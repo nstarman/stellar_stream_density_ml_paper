@@ -103,7 +103,7 @@ rule mock_isochrone_feh_variable:
 
 rule mock_train_flow:
     output:
-        "src/data/mock/flow_model.pt"
+        "src/data/mock/background_photometry_model.pt"
     input:
         "src/data/mock/data.asdf"
     params:
@@ -126,7 +126,7 @@ rule mock_train_model:
         "src/data/mock/model.pt"
     input:
         "src/data/mock/data.asdf",
-        "src/data/mock/flow_model.pt",
+        "src/data/mock/background_photometry_model.pt",
     params:
         load_from_static=True,  # set to False to train the model
         save_to_static=False,
@@ -363,9 +363,9 @@ rule gd1_model_script:
         "src/scripts/gd1/define_model.py"
 
 
-rule gd1_train_flow:
+rule gd1_train_background_photometry_flow:
     output:
-        "src/data/gd1/flow_model.pt"
+        "src/data/gd1/background_photometry_model.pt"
     input:
         "src/data/gd1/data.tmp",
         "src/data/gd1/model.tmp",
@@ -377,7 +377,24 @@ rule gd1_train_flow:
     cache:
         True
     script:
-        "src/scripts/gd1/model/2-train_flow.py"
+        "src/scripts/gd1/model/2-train_background_photometry_flow.py"
+
+
+rule gd1_train_background_parallax_flow:
+    output:
+        "src/data/gd1/background_parallax_model.pt"
+    input:
+        "src/data/gd1/data.tmp",
+        "src/data/gd1/model.tmp",
+    params:
+        load_from_static=True,  # set to False to recompute
+        save_to_static=False,
+        diagnostic_plots=True,
+        epochs=250,
+    cache:
+        True
+    script:
+        "src/scripts/gd1/model/2-train_background_parallax_flow.py"
 
 
 # TODO: rerun from scratch
@@ -387,7 +404,7 @@ rule gd1_train_model:
     input:
         "src/data/gd1/data.tmp",
         "src/data/gd1/model.tmp",
-        "src/data/gd1/flow_model.pt",
+        "src/data/gd1/background_photometry_model.pt",
     params:
         load_from_static=True,  # set to False to recompute
         save_to_static=False,

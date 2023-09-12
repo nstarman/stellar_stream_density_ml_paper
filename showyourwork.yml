@@ -53,7 +53,7 @@ dependencies:
   src/scripts/mock/model/2-train_model.py:
     - src/data/mock/data.asdf
     - src/scripts/mock/define_model.py
-    - src/data/mock/flow_model.pt
+    - src/data/mock/background_photometry_model.pt
   src/scripts/mock/plot/photometric_background_selection.py:
     - src/data/mock/data.asdf
     - src/scripts/mock/define_model.py
@@ -87,13 +87,17 @@ dependencies:
     - src/data/gd1/control_points_stream.ecsv
     - src/data/gd1/control_points_spur.ecsv
     - src/data/gd1/control_points_distance.ecsv
-  src/scripts/gd1/model/2-train_flow.py:
+  src/scripts/gd1/model/2-train_background_photometry_flow.py:
+    - src/data/gd1/data.tmp  # hack
+    - src/data/gd1/model.tmp  # hack
+  src/scripts/gd1/model/2-train_parallax_photometry_flow.py:
     - src/data/gd1/data.tmp  # hack
     - src/data/gd1/model.tmp  # hack
   src/scripts/gd1/model/3-train_model.py:
     - src/data/gd1/data.tmp  # hack
     - src/data/gd1/model.tmp  # hack
-    - src/data/gd1/flow_model.pt
+    - src/data/gd1/background_photometry_model.pt
+    - src/data/gd1/background_parallax_model.pt
   src/scripts/gd1/model/4-likelihoods.py:
     - src/data/gd1/data.tmp  # hack
     - src/data/gd1/model.pt  # hack

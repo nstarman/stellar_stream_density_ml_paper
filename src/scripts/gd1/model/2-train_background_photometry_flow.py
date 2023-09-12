@@ -4,8 +4,8 @@ import sys
 from dataclasses import replace
 from typing import Any
 
-import asdf
 import matplotlib.pyplot as plt
+import numpy as np
 import torch as xp
 import torch.utils.data as td
 from showyourwork.paths import user as user_paths
@@ -20,83 +20,63 @@ paths = user_paths()
 sys.path.append(paths.scripts.as_posix())
 # isort: split
 
-from scripts.mock.define_model import bkg_flow as model_without_grad
-from scripts.mock.define_model import flow_coords
+from scripts.gd1.datasets import data, off_stream, where
+from scripts.gd1.define_model import (
+    background_photometric_model as model_without_grad,
+)
 
 # =============================================================================
-# Parameters
+# Load Data
 
 snkmk: dict[str, Any]
 try:
     snkmk = dict(snakemake.params)
 except NameError:
     snkmk = {
-        "load_from_static": True,
+        "load_from_static": False,
         "save_to_static": False,
+        "epochs": 250,
         "diagnostic_plots": True,
-        "epochs": 400,
-        "batch_size": 500,
-        "lr": 1e-3,
     }
-
 
 if snkmk["load_from_static"]:
     model_without_grad.load_state_dict(
-        xp.load(paths.static / "mock" / "background_photometry_model.pt")
+        xp.load(paths.static / "gd1" / "background_photometry_model.pt")
     )
     xp.save(
         model_without_grad.state_dict(),
-        paths.data / "mock" / "background_photometry_model.pt",
+        paths.data / "gd1" / "background_photometry_model.pt",
     )
 
     sys.exit(0)
 
 
-# =============================================================================
-# Load Data
-
-with asdf.open(
-    paths.data / "mock" / "data.asdf", lazy_load=False, copy_arrays=True
-) as af:
-    table = af["table"]
-
-    data = sml.Data(**af["data"]).astype(xp.Tensor, dtype=xp.float32)
-    where = sml.Data(**af["where"]).astype(xp.Tensor, dtype=bool)
-    scaler = sml.utils.StandardScaler(**af["scaler"]).astype(
-        xp.Tensor, dtype=xp.float32
-    )
-
-    off_stream = af["off_stream"]
-
-figure_path = paths.figures / "mock" / "diagnostic" / "flow"
+figure_path = paths.figures / "gd1" / "diagnostic" / "phot_flow"
 figure_path.mkdir(parents=True, exist_ok=True)
-
-# =============================================================================
-# Training Parameters
-
-# Turn on gradients for training
-model = replace(model_without_grad, with_grad=True)
-
-loader = td.DataLoader(
-    dataset=td.TensorDataset(
-        data[flow_coords].array[off_stream],
-        where[flow_coords].array[off_stream],
-    ),
-    batch_size=snkmk["batch_size"],
-    shuffle=True,
-    num_workers=0,
-)
-
-optimizer = optim.AdamW(list(model.parameters()), lr=snkmk["lr"])
-
 
 # =============================================================================
 # Train
 
+# Make a copy of the model with gradients
+# The network is shared with the original model
+model = replace(model_without_grad, with_grad=True)
+
+# Prerequisites for training
+coord_names = model.indep_coord_names + model.coord_names
+dataset = td.TensorDataset(
+    data[coord_names].array[off_stream],
+    where[coord_names].array[off_stream],
+)
+loader = td.DataLoader(
+    dataset=dataset, batch_size=500, shuffle=True, num_workers=0, drop_last=True
+)
+optimizer = optim.AdamW(model.parameters(), lr=1e-3)
+
+# Train
 for epoch in tqdm(range(snkmk["epochs"])):
     for data_step_, where_step_ in loader:
-        data_step = sml.Data(data_step_, names=flow_coords)
-        where_step = sml.Data(where_step_, names=flow_coords)
+        data_step = sml.Data(data_step_, names=coord_names)
+        where_step = sml.Data(where_step_, names=coord_names)
 
         optimizer.zero_grad()
 
@@ -114,19 +94,27 @@ for epoch in tqdm(range(snkmk["epochs"])):
                 mpars = model.unpack_params(model(data))
                 prob = model.posterior(mpars, data, where=where)
 
+            psort = np.argsort(prob[off_stream])
+
             fig, ax = plt.subplots()
-            im = ax.scatter(data["g-r"], data["g"], s=0.2, c=prob)
+            im = ax.scatter(
+                (data["g"] - data["r"])[~off_stream],
+                data["g"][~off_stream],
+                s=0.2,
+                c="black",
+            )
+            im = ax.scatter(
+                (data["g"] - data["r"])[off_stream][psort],
+                data["g"][off_stream][psort],
+                s=0.2,
+                c=prob[off_stream][psort],
+            )
             plt.colorbar(im, ax=ax)
+            ax.set(xlim=(0, 0.8), ylim=(22, 13.5))
             fig.savefig(figure_path / f"epoch_{epoch:05}.png")
             plt.close(fig)
 
-
-# =============================================================================
-# Save
-
-xp.save(model.state_dict(), paths.data / "mock" / "background_photometry_model.pt")
+xp.save(model.state_dict(), paths.data / "gd1" / "background_photometry_model.pt")
 
 if snkmk["save_to_static"]:
-    xp.save(
-        model.state_dict(), paths.static / "mock" / "background_photometry_model.pt"
-    )
+    xp.save(model.state_dict(), paths.static / "gd1" / "background_photometry_model.pt")

@@ -1,4 +1,4 @@
-"""Train photometry background flow."""
+"""Train parallax background flow."""
 
 import sys
 from dataclasses import replace
@@ -22,7 +22,7 @@ sys.path.append(paths.scripts.as_posix())
 
 from scripts.gd1.datasets import data, off_stream, where
 from scripts.gd1.define_model import (
-    background_photometric_model as model_without_grad,
+    background_astrometric_plx_model as model_without_grad,
 )
 
 # =============================================================================
@@ -40,13 +40,17 @@ except NameError:
     }
 
 if snkmk["load_from_static"]:
-    model_without_grad.load_state_dict(xp.load(paths.static / "gd1" / "flow_model.pt"))
-    xp.save(model_without_grad.state_dict(), paths.data / "gd1" / "flow_model.pt")
-
+    model_without_grad.load_state_dict(
+        xp.load(paths.static / "gd1" / "background_parallax_model.pt")
+    )
+    xp.save(
+        model_without_grad.state_dict(),
+        paths.data / "gd1" / "background_parallax_model.pt",
+    )
     sys.exit(0)
 
 
-figure_path = paths.figures / "gd1" / "diagnostic" / "flow"
+figure_path = paths.figures / "gd1" / "diagnostic" / "plx_flow"
 figure_path.mkdir(parents=True, exist_ok=True)
 
 # =============================================================================
@@ -65,7 +69,7 @@ dataset = td.TensorDataset(
 loader = td.DataLoader(
     dataset=dataset, batch_size=500, shuffle=True, num_workers=0, drop_last=True
 )
-optimizer = optim.Adam(model.parameters(), lr=1e-3)
+optimizer = optim.AdamW(model.parameters(), lr=1e-3)
 
 # Train
 for epoch in tqdm(range(snkmk["epochs"])):
@@ -87,23 +91,29 @@ for epoch in tqdm(range(snkmk["epochs"])):
         ):
             with xp.no_grad():
                 mpars = model.unpack_params(model(data))
-                prob = model.posterior(mpars, data, where=where)
+                prob = model.likelihood(mpars, data, where=where).flatten()
 
             psort = np.argsort(prob[off_stream])
 
             fig, ax = plt.subplots()
+            ax.scatter(
+                data["phi1"][~off_stream],
+                data["plx"][~off_stream],
+                s=0.2,
+                c="black",
+            )
             im = ax.scatter(
-                (data["g"] - data["r"])[off_stream][psort],
-                data["g"][off_stream][psort],
+                data["phi1"][off_stream][psort],
+                data["plx"][off_stream][psort],
                 s=0.2,
                 c=prob[off_stream][psort],
             )
             plt.colorbar(im, ax=ax)
-            ax.set(xlim=(0, 0.8), ylim=(22, 13.5))
+            ax.set_ylim(data["plx"].min(), data["plx"].max())
             fig.savefig(figure_path / f"epoch_{epoch:05}.png")
             plt.close(fig)
 
-xp.save(model.state_dict(), paths.data / "gd1" / "flow_model.pt")
+xp.save(model.state_dict(), paths.data / "gd1" / "background_parallax_model.pt")
 
 if snkmk["save_to_static"]:
-    xp.save(model.state_dict(), paths.static / "gd1" / "flow_model.pt")
+    xp.save(model.state_dict(), paths.static / "gd1" / "background_parallax_model.pt")

@@ -74,7 +74,7 @@ diagnostic_path.mkdir(parents=True, exist_ok=True)
 
 # Pre-trained Model component
 model["background"]["photometric"].load_state_dict(
-    xp.load(paths.data / "mock" / "flow_model.pt")
+    xp.load(paths.data / "mock" / "background_photometry_model.pt")
 )
 
 dataset = td.TensorDataset(data.array, where.array)
