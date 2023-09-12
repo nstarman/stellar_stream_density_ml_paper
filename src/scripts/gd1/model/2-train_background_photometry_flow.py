@@ -92,7 +92,6 @@ for epoch in tqdm(range(snkmk["epochs"])):
             with xp.no_grad():
                 mpars = model.unpack_params(model(data))
                 prob = model.posterior(mpars, data, where=where)
-
             psort = np.argsort(prob[off_stream])
 
             fig, ax = plt.subplots()
