@@ -10,21 +10,21 @@ paths = user_paths()
 
 ##############################################################################
 
+MAS_YR = u.mas / u.yr
 
 table = QTable(
     # fmt: off
     rows=[
-        # [-80.0 * u.deg, -2.24 * u.deg, 1.75 * u.deg, -9.9 * u.mas / u.yr, 0.75 * u.mas / u.yr],  # noqa: E501
-        [-70.0 * u.deg, np.NaN * u.deg, np.NaN * u.deg, -11.2 * u.mas / u.yr, 1 * u.mas / u.yr],  # noqa: E501
-        [-60.0 * u.deg, -0.8 * u.deg, 1.75 * u.deg, -12.5 * u.mas / u.yr, 0.75 * u.mas / u.yr],  # noqa: E501
-        [-50.0 * u.deg, -0.0 * u.deg, 1.75 * u.deg, -13.3 * u.mas / u.yr, 0.75 * u.mas / u.yr],  # noqa: E501
-        [-40.0 * u.deg, -0.0 * u.deg, 1.75 * u.deg, -13.3 * u.mas / u.yr, 0.75 * u.mas / u.yr],  # noqa: E501
-        [-30.0 * u.deg, -0.0 * u.deg, 1.75 * u.deg, -12.6 * u.mas / u.yr, 0.75 * u.mas / u.yr],  # noqa: E501
-        # [-20.0 * u.deg, 0.09 * u.deg, 1.75 * u.deg, -11.5 * u.mas / u.yr, 0.75 * u.mas / u.yr],  # noqa: E501
+        [-70.0 * u.deg, np.NaN * u.deg, np.NaN * u.deg, -11.2 * MAS_YR, 1 * MAS_YR],  # noqa: E501
+        [-60.0 * u.deg, -0.8 * u.deg, 1.75 * u.deg, -12.5 * MAS_YR, 0.75 * MAS_YR],  # noqa: E501
+        [-50.0 * u.deg, -0.0 * u.deg, 1.75 * u.deg, -13.3 * MAS_YR, 0.75 * MAS_YR],  # noqa: E501
+        [-40.0 * u.deg, -0.0 * u.deg, 1.75 * u.deg, -13.3 * MAS_YR, 0.75 * MAS_YR],  # noqa: E501
+        [-30.0 * u.deg, -0.0 * u.deg, 1.75 * u.deg, -12.6 * MAS_YR, 0.75 * MAS_YR],  # noqa: E501
+        [-10. * u.deg, np.NaN * u.deg, np.NaN * u.deg, -10 * MAS_YR, 1.75 * MAS_YR],
     ],
     # fmt: on
     names=("phi1", "phi2", "w_phi2", "pm_phi1", "w_pm_phi1"),
-    units=(u.deg, u.deg, u.deg, u.mas / u.yr, u.mas / u.yr),
+    units=(u.deg, u.deg, u.deg, MAS_YR, MAS_YR),
     meta={},
 )
 
