@@ -126,6 +126,7 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
     # ---------------------------------------------------------------------------
     # Colormap
 
+    # Stream probability
     ax00 = fig.add_subplot(gs0[0, :])
     cbar = fig.colorbar(
         mpl.cm.ScalarMappable(cmap=cmap1),
@@ -136,6 +137,7 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
     cbar.ax.xaxis.set_ticks_position("top")
     cbar.ax.xaxis.set_label_position("top")
 
+    # Spur probability
     ax01 = fig.add_subplot(gs0[1, :])
     cbar = fig.colorbar(
         mpl.cm.ScalarMappable(cmap=cmap2),
