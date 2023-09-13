@@ -33,7 +33,6 @@ pm_edges.add_index("label", unique=True)
 with asdf.open(
     paths.data / "gd1" / "isochrone.asdf", lazy_load=False, copy_arrays=True
 ) as af:
-    isochrone = af["isochrone"]
     iso_medium = af["isochrone_medium"]
 
 
