@@ -24,7 +24,7 @@ from scripts.gd1.define_model import model
 from scripts.gd1.model.helper import diagnostic_plot
 
 # =============================================================================
-# Parameters
+# Initial set up
 
 snkmk: dict[str, Any]
 try:
@@ -48,6 +48,16 @@ if snkmk["load_from_static"]:
 
 diagnostic_path = paths.figures / "gd1" / "diagnostic" / "model"
 diagnostic_path.mkdir(parents=True, exist_ok=True)
+
+# =============================================================================
+# Load saved model components
+
+model["background"]["astrometric"]["plx"].load_state_dict(
+    xp.load(paths.data / "gd1" / "background_parallax_model.pt")
+)
+model["background"]["photometric"].load_state_dict(
+    xp.load(paths.data / "gd1" / "background_photometry_model.pt")
+)
 
 
 # =============================================================================
@@ -85,7 +95,7 @@ epoch_iterator = tqdm(
     postfix={"lr": f"{scheduler.get_last_lr()[0]:.2e}", "loss": f"{0:.2e}"},
 )
 for epoch in epoch_iterator:
-    for _step, (step_arr, step_where_) in enumerate(loader):
+    for step_arr, step_where_ in loader:
         # Prepare
         step_data = sml.Data(step_arr, names=data.names)
         step_where = sml.Data(step_where_, names=data.names)
@@ -118,10 +128,6 @@ for epoch in epoch_iterator:
         (epoch % 100 == 0) or (epoch == snkmk["epochs"] - 1)
     ):
         helper.manually_set_dropout(model, 0)
-
-        with xp.no_grad():
-            mpars = model.unpack_params(model(data))
-            prob = model.posterior(mpars, data, where=where)
 
         fig = diagnostic_plot(model, data, where=where)
         fig.savefig(diagnostic_path / f"epoch_{epoch:05}.png")
