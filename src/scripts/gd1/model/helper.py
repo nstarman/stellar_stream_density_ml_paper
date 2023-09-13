@@ -1,7 +1,12 @@
 """GD-1 model helper functions."""
 
-import sys
+from __future__ import annotations
 
+import sys
+import warnings
+from typing import TYPE_CHECKING
+
+import asdf
 import astropy.units as u
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -9,11 +14,13 @@ import numpy as np
 import torch as xp
 from astropy.coordinates import Distance
 from matplotlib.gridspec import GridSpec
+from matplotlib.legend_handler import HandlerTuple
+from scipy import stats
 from showyourwork.paths import user as user_paths
 
 import stream_ml.visualization as smlvis
-from stream_ml.core import ModelAPI
-from stream_ml.pytorch import Data
+from scripts import helper
+from stream_ml.core import Data
 from stream_ml.visualization.background import (
     exponential_like_distribution as exp_distr,
 )
@@ -24,55 +31,104 @@ paths = user_paths()
 sys.path.append(paths.scripts.as_posix())
 # isort: split
 
-from scripts.helper import manually_set_dropout
+from scripts.mpl_colormaps import stream_cmap1 as cmap1
+from scripts.mpl_colormaps import stream_cmap2 as cmap2
+
+if TYPE_CHECKING:
+    from matplotlib.colors import LinearSegmentedColormap
+
+    from stream_ml.core import ModelAPI
+    from stream_ml.core.typing import Array
 
 # =============================================================================
+# Setup
 
 # Matplotlib style
 plt.style.use(paths.scripts / "paper.mplstyle")
 
+with asdf.open(
+    paths.data / "gd1" / "isochrone.asdf", "r", lazy_load=False, copy_arrays=True
+) as af:
+    isochrone_data = Data(**af["isochrone_data"])
+
+
+# =============================================================================
+
+
+def _p2alpha(p: Array, /, minval: float = 0.1) -> Array:
+    out = minval + (1 - minval) * np.where(
+        p == p.max(), 1, (p - p.min()) / (p.max() - p.min())
+    )
+    return np.clip(out, minval, 1)
+
+
+def _color_by_probable_member(
+    *pandcmaps: tuple[Array, LinearSegmentedColormap]
+) -> np.ndarray:
+    ps = np.stack(tuple(p[0] for p in pandcmaps), 1)
+
+    cs = np.stack(tuple(cmap(p) for p, cmap in pandcmaps), 0)
+
+    return cs[np.argmax(ps, 1), np.arange(len(ps))]
+
 
 def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
     """Plot the model."""
+    # =============================================================================
     # Evaluate model
+
     with xp.no_grad():
         model.eval()
         mpars = model.unpack_params(model(data))
         model.train()
 
-        stream_lik = model.component_posterior("stream", mpars, data, where=where)
-        spur_lik = model.component_posterior("spur", mpars, data, where=where)
-        bkg_lik = model.component_posterior("background", mpars, data, where=where)
-        tot_lik = model.posterior(mpars, data, where=where)
+        stream_lnlik = model.component_ln_posterior("stream", mpars, data, where=where)
+        spur_lnlik = model.component_ln_posterior("spur", mpars, data, where=where)
+        bkg_lnlik = model.component_ln_posterior("background", mpars, data, where=where)
+        # tot_lnlik = model.ln_posterior(mpars, data, where=where)  # FIXME
+        tot_lnlik = xp.logsumexp(xp.stack((stream_lnlik, spur_lnlik, bkg_lnlik), 1), 1)
+
+    # =============================================================================
 
     stream_weight = mpars[("stream.weight",)]
     stream_cutoff = stream_weight > 2e-2
 
-    # FIXME!
-    bkg_prob = xp.nan_to_num(bkg_lik / tot_lik, nan=0)
-    stream_prob = xp.nan_to_num(stream_lik / tot_lik, nan=0)
-    spur_prob = xp.nan_to_num(spur_lik / tot_lik, nan=0)
-    allstream_prob = xp.nan_to_num((stream_lik + spur_lik) / tot_lik, nan=0)
+    spur_weight = mpars[("spur.weight",)]
+    spur_cutoff = spur_weight > 1e-2
 
-    psort = np.argsort(stream_prob)
-    pmax = xp.max(stream_prob.max(), xp.tensor(0.95))
+    bkg_prob = xp.exp(bkg_lnlik - tot_lnlik)
+    stream_prob = xp.exp(stream_lnlik - tot_lnlik)
+    spur_prob = xp.exp(spur_lnlik - tot_lnlik)
+    allstream_prob = xp.exp(xp.logaddexp(stream_lnlik, spur_lnlik) - tot_lnlik)
+
+    psort = np.argsort(allstream_prob)
+    pmax = xp.max(stream_prob.max(), xp.tensor(1e-3))  # First eval is bad
+    if pmax > 1:
+        warnings.warn(f"pmax={pmax} > 1", stacklevel=1)
+        pmax = xp.tensor(1)
+
     pmin = stream_prob.min()
+    if pmin < 0:
+        warnings.warn(f"pmin={pmin} > 1", stacklevel=1)
+        pmin = xp.tensor(0)
 
     # =============================================================================
     # Make Figure
 
-    fig = plt.figure(constrained_layout="tight", figsize=(11, 15))
-    gs = GridSpec(2, 1, figure=fig, height_ratios=(1.2, 1), hspace=0)
-    gs0 = gs[0].subgridspec(6, 1, height_ratios=(1, 5, 5, 5, 5, 5))
+    fig = plt.figure(constrained_layout="tight", figsize=(10, 16))
+    gs = GridSpec(2, 1, figure=fig, height_ratios=(6, 5), hspace=0.12)
+    gs0 = gs[0].subgridspec(8, 1, height_ratios=(1, 1, 5, 5, 5, 5, 5, 5))
 
-    cmap = plt.get_cmap()
+    colors = _color_by_probable_member(
+        (stream_prob[psort], cmap1), (spur_prob[psort], cmap2)
+    )
 
     # ---------------------------------------------------------------------------
     # Colormap
 
     ax00 = fig.add_subplot(gs0[0, :])
     cbar = fig.colorbar(
-        mpl.cm.ScalarMappable(cmap=cmap),
+        mpl.cm.ScalarMappable(cmap=cmap1),
         cax=ax00,
         orientation="horizontal",
         label="Stream Probability",
@@ -80,164 +136,310 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
     cbar.ax.xaxis.set_ticks_position("top")
     cbar.ax.xaxis.set_label_position("top")
 
+    ax01 = fig.add_subplot(gs0[1, :])
+    cbar = fig.colorbar(
+        mpl.cm.ScalarMappable(cmap=cmap2),
+        cax=ax01,
+        orientation="horizontal",
+        label="Spur Probability",
+    )
+    cbar.ax.xaxis.set_ticks([])
+    cbar.ax.xaxis.set_label_position("bottom")
+
     # ---------------------------------------------------------------------------
     # Weight plot
 
-    ax01 = fig.add_subplot(gs0[1, :])
-    ax01.set(ylabel="Stream fraction", ylim=(0, 0.5))
-    ax01.set_xticklabels([])
+    ax02 = fig.add_subplot(gs0[2, :])
+    ax02.set(ylabel="Stream fraction", ylim=(0, 0.4))
+    ax02.set_xticklabels([])
 
     with xp.no_grad():
-        manually_set_dropout(model, 0.15)
-        weights = xp.stack(
-            [model.unpack_params(model(data))["stream.weight",] for i in range(25)], 1
-        )
-        weight_percentiles = np.c_[
-            np.percentile(weights, 5, axis=1), np.percentile(weights, 95, axis=1)
+        helper.manually_set_dropout(model, 0.15)
+        _stream_weights = []
+        _spur_weights = []
+        for _ in range(25):
+            _mpars = model.unpack_params(model(data))
+            _stream_weights.append(_mpars["stream.weight",])
+            _spur_weights.append(_mpars["spur.weight",])
+
+        stream_weights = xp.stack(_stream_weights, 1)
+        stream_weight_percentiles = np.c_[
+            np.percentile(stream_weights, 5, axis=1),
+            np.percentile(stream_weights, 95, axis=1),
         ]
-        manually_set_dropout(model, 0)
-    ax01.fill_between(
+
+        spur_weights = xp.stack(_spur_weights, 1)
+        spur_weight_percentiles = np.c_[
+            np.percentile(spur_weights, 5, axis=1),
+            np.percentile(spur_weights, 95, axis=1),
+        ]
+
+        helper.manually_set_dropout(model, 0)
+
+    f1 = ax02.fill_between(
         data["phi1"],
-        weight_percentiles[:, 0],
-        weight_percentiles[:, 1],
-        color="k",
+        stream_weight_percentiles[:, 0],
+        stream_weight_percentiles[:, 1],
+        color=cmap1(0.99),
         alpha=0.25,
-        label=r"Model (15% dropout)",
     )
-    ax01.plot(data["phi1"], stream_weight, c="k", ls="--", lw=2, label="Model (MLE)")
-    ax01.legend(loc="upper left")
+    (l1,) = ax02.plot(
+        data["phi1"], stream_weights.mean(1), c="k", ls="--", lw=2, label="Model (MLE)"
+    )
+    f2 = ax02.fill_between(
+        data["phi1"],
+        spur_weight_percentiles[:, 0],
+        spur_weight_percentiles[:, 1],
+        color=cmap2(0.99),
+        alpha=0.25,
+    )
+    (l2,) = ax02.plot(data["phi1"], spur_weights.mean(1), c="k", ls="--", lw=2)
+
+    ax02.legend(
+        [(f1, f2), l1],
+        [r"Models (15% dropout)", l1.get_label()],
+        numpoints=1,
+        handler_map={tuple: HandlerTuple(ndivide=None)},
+        loc="upper left",
+    )
 
     # ---------------------------------------------------------------------------
     # Phi2
 
     mpa = mpars.get_prefixed("stream.astrometric")
+    mpb = mpars.get_prefixed("spur.astrometric")
 
-    ax02 = fig.add_subplot(gs0[2, :])
-    ax02.set_xticklabels([])
-    ax02.set(ylabel=r"$\phi_2$ [$\degree$]")
+    ax03 = fig.add_subplot(gs0[3, :])
+    ax03.set_xticklabels([])
+    ax03.set(ylabel=r"$\phi_2$ [$\degree$]")
+    ax03.set_rasterization_zorder(0)
 
-    ax02.scatter(
+    p1 = ax03.scatter(
         data["phi1"][psort],
         data["phi2"][psort],
-        c=allstream_prob[psort],
-        alpha=0.1 + (1 - 0.1) / (pmax - pmin) * (allstream_prob[psort] - pmin),
+        c=colors,
+        alpha=_p2alpha(allstream_prob[psort]),
         s=2,
         zorder=-10,
     )
-    ax02.set_rasterization_zorder(0)
-    ax02.fill_between(
+    f1 = ax03.fill_between(
         data["phi1"][stream_cutoff],
         (mpa["phi2", "mu"] - xp.exp(mpa["phi2", "ln-sigma"]))[stream_cutoff],
         (mpa["phi2", "mu"] + xp.exp(mpa["phi2", "ln-sigma"]))[stream_cutoff],
-        color="k",
+        color=cmap1(0.99),
         alpha=0.25,
-        label="Model (MLE)",
     )
-    ax02.legend(loc="upper left")
+    f2 = ax03.fill_between(
+        data["phi1"][spur_cutoff],
+        (mpb["phi2", "mu"] - xp.exp(mpb["phi2", "ln-sigma"]))[spur_cutoff],
+        (mpb["phi2", "mu"] + xp.exp(mpb["phi2", "ln-sigma"]))[spur_cutoff],
+        color=cmap2(0.99),
+        alpha=0.25,
+    )
+    ax03.legend(
+        [p1, (f1, f2)],
+        ["Data", r"Models"],
+        numpoints=1,
+        handler_map={tuple: HandlerTuple(ndivide=None)},
+        loc="upper left",
+    )
+
+    # ---------------------------------------------------------------------------
+    # Parallax
+
+    ax04 = fig.add_subplot(gs0[4, :])
+    ax04.set_xticklabels([])
+    ax04.set(ylabel=r"$\phi_2$ [$\degree$]")
+    ax04.set_rasterization_zorder(0)
+
+    p1 = ax04.scatter(
+        data["phi1"][psort],
+        data["plx"][psort],
+        c=colors,
+        alpha=_p2alpha(allstream_prob[psort]),
+        s=2,
+        zorder=-10,
+    )
+    f1 = ax04.fill_between(
+        data["phi1"][stream_cutoff],
+        (mpa["plx", "mu"] - xp.exp(mpa["plx", "ln-sigma"]))[stream_cutoff],
+        (mpa["plx", "mu"] + xp.exp(mpa["plx", "ln-sigma"]))[stream_cutoff],
+        color=cmap1(0.99),
+        alpha=0.25,
+    )
+    f2 = ax04.fill_between(
+        data["phi1"][spur_cutoff],
+        (mpb["plx", "mu"] - xp.exp(mpb["plx", "ln-sigma"]))[spur_cutoff],
+        (mpb["plx", "mu"] + xp.exp(mpb["plx", "ln-sigma"]))[spur_cutoff],
+        color=cmap2(0.99),
+        alpha=0.25,
+    )
+    ax04.legend(
+        [p1, (f1, f2)],
+        ["Data", r"Models"],
+        numpoints=1,
+        handler_map={tuple: HandlerTuple(ndivide=None)},
+        loc="upper left",
+    )
 
     # ---------------------------------------------------------------------------
     # PM-Phi1
 
-    ax03 = fig.add_subplot(gs0[3, :])
-    ax03.set_xticklabels([])
-    ax03.set(ylabel=r"$\mu_{\phi_1}^*$ [mas yr$^{-1}$]")
+    ax05 = fig.add_subplot(gs0[5, :])
+    ax05.set_xticklabels([])
+    ax05.set(ylabel=r"$\mu_{\phi_1}^*$ [mas yr$^{-1}$]")
+    ax05.set_rasterization_zorder(0)
 
-    ax03.scatter(
+    p1 = ax05.scatter(
         data["phi1"][psort],
         data["pmphi1"][psort],
-        c=allstream_prob[psort],
-        alpha=0.1 + (1 - 0.1) / (pmax - pmin) * (stream_prob[psort] - pmin),
+        c=colors,
+        alpha=_p2alpha(stream_prob[psort]),
         s=2,
         zorder=-10,
     )
-    ax03.set_rasterization_zorder(0)
-    ax03.fill_between(
+    f1 = ax05.fill_between(
         data["phi1"][stream_cutoff],
         (mpa["pmphi1", "mu"] - xp.exp(mpa["pmphi1", "ln-sigma"]))[stream_cutoff],
         (mpa["pmphi1", "mu"] + xp.exp(mpa["pmphi1", "ln-sigma"]))[stream_cutoff],
-        color="k",
+        color=cmap1(0.99),
         alpha=0.25,
-        label="Model (MLE)",
     )
-    ax03.legend(loc="upper left")
+    f2 = ax05.fill_between(
+        data["phi1"][spur_cutoff],
+        (mpb["pmphi1", "mu"] - xp.exp(mpb["pmphi1", "ln-sigma"]))[spur_cutoff],
+        (mpb["pmphi1", "mu"] + xp.exp(mpb["pmphi1", "ln-sigma"]))[spur_cutoff],
+        color=cmap2(0.99),
+        alpha=0.25,
+    )
+    ax05.legend(
+        [p1, (f1, f2)],
+        ["Data", r"Models"],
+        numpoints=1,
+        handler_map={tuple: HandlerTuple(ndivide=None)},
+        loc="upper left",
+    )
 
     # ---------------------------------------------------------------------------
     # PM-Phi2
 
-    ax04 = fig.add_subplot(gs0[4, :])
-    ax04.set_xticklabels([])
-    ax04.set(ylabel=r"$\mu_{\phi_2}$ [mas yr$^{-1}$]")
+    ax06 = fig.add_subplot(gs0[6, :])
+    ax06.set_xticklabels([])
+    ax06.set(ylabel=r"$\mu_{\phi_2}$ [mas yr$^{-1}$]")
+    ax06.set_rasterization_zorder(0)
 
-    ax04.scatter(
+    p1 = ax06.scatter(
         data["phi1"][psort],
         data["pmphi2"][psort],
-        c=allstream_prob[psort],
-        alpha=0.1 + (1 - 0.1) / (pmax - pmin) * (stream_prob[psort] - pmin),
+        c=colors,
+        alpha=_p2alpha(stream_prob[psort]),
         s=2,
         zorder=-10,
     )
-    ax04.set_rasterization_zorder(0)
-    ax04.fill_between(
+    f1 = ax06.fill_between(
         data["phi1"][stream_cutoff],
         (mpa["pmphi2", "mu"] - xp.exp(mpa["pmphi2", "ln-sigma"]))[stream_cutoff],
         (mpa["pmphi2", "mu"] + xp.exp(mpa["pmphi2", "ln-sigma"]))[stream_cutoff],
-        color="k",
+        color=cmap1(0.99),
         alpha=0.25,
         label="Model (MLE)",
     )
-    ax04.legend(loc="upper left")
+    f2 = ax06.fill_between(
+        data["phi1"][spur_cutoff],
+        (mpb["pmphi2", "mu"] - xp.exp(mpb["pmphi2", "ln-sigma"]))[spur_cutoff],
+        (mpb["pmphi2", "mu"] + xp.exp(mpb["pmphi2", "ln-sigma"]))[spur_cutoff],
+        color=cmap2(0.99),
+        alpha=0.25,
+    )
+    ax06.legend(
+        [p1, (f1, f2)],
+        ["Data", r"Models"],
+        numpoints=1,
+        handler_map={tuple: HandlerTuple(ndivide=None)},
+        loc="upper left",
+    )
 
     # ---------------------------------------------------------------------------
     # Distance
 
+    ax07 = fig.add_subplot(gs0[7, :])
+    ax07.set(xlabel=r"$\phi_1$ [deg]", ylabel=r"$d$ [kpc]")
+
     mpa = mpars["stream.photometric.distmod"]
-
-    ax03 = fig.add_subplot(gs0[5, :])
-    ax03.set(xlabel=r"$\phi_1$ [deg]", ylabel=r"$d$ [kpc]")
-
     d2sm = Distance(distmod=(mpa["mu"] - 2 * xp.exp(mpa["ln-sigma"])) * u.mag)
     d2sp = Distance(distmod=(mpa["mu"] + 2 * xp.exp(mpa["ln-sigma"])) * u.mag)
     d1sm = Distance(distmod=(mpa["mu"] - xp.exp(mpa["ln-sigma"])) * u.mag)
     d1sp = Distance(distmod=(mpa["mu"] + xp.exp(mpa["ln-sigma"])) * u.mag)
 
-    ax03.fill_between(
+    ax07.fill_between(
         data["phi1"][stream_cutoff],
         d2sm[stream_cutoff].to_value("kpc"),
         d2sp[stream_cutoff].to_value("kpc"),
         alpha=0.15,
-        color="k",
+        color=cmap1(0.99),
     )
-    ax03.fill_between(
+    f1 = ax07.fill_between(
         data["phi1"][stream_cutoff],
         d1sm[stream_cutoff].to_value("kpc"),
         d1sp[stream_cutoff].to_value("kpc"),
         alpha=0.25,
-        color="k",
-        label="Model (MLE)",
+        color=cmap1(0.99),
     )
-    ax03.legend(loc="upper left")
+
+    mpb = mpars["spur.photometric.distmod"]
+    d2sm = Distance(distmod=(mpb["mu"] - 2 * xp.exp(mpb["ln-sigma"])) * u.mag)
+    d2sp = Distance(distmod=(mpb["mu"] + 2 * xp.exp(mpb["ln-sigma"])) * u.mag)
+    d1sm = Distance(distmod=(mpb["mu"] - xp.exp(mpb["ln-sigma"])) * u.mag)
+    d1sp = Distance(distmod=(mpb["mu"] + xp.exp(mpb["ln-sigma"])) * u.mag)
+
+    ax07.fill_between(
+        data["phi1"][spur_cutoff],
+        d2sm[spur_cutoff].to_value("kpc"),
+        d2sp[spur_cutoff].to_value("kpc"),
+        alpha=0.15,
+        color=cmap2(0.99),
+    )
+    f2 = ax07.fill_between(
+        data["phi1"][spur_cutoff],
+        d1sm[spur_cutoff].to_value("kpc"),
+        d1sp[spur_cutoff].to_value("kpc"),
+        alpha=0.25,
+        color=cmap2(0.99),
+    )
+
+    ax07.legend(
+        [(f1, f2)],
+        [r"Models"],
+        numpoints=1,
+        handler_map={tuple: HandlerTuple(ndivide=None)},
+        loc="upper left",
+    )
 
     # =============================================================================
     # Slice plots
 
-    gs1 = gs[1].subgridspec(5, 4, height_ratios=(0.01, 1, 1, 1, 2), hspace=0)
+    # Legend
+    legend1 = plt.legend(
+        handles=[
+            mpl.patches.Patch(color=cmap1(0.01), label="Background (MLE)"),
+            mpl.lines.Line2D(
+                [0], [0], color="k", lw=3, ls="-", label="Background Distribution"
+            ),
+            mpl.patches.Patch(color=cmap1(0.99), label="Stream (MLE)"),
+            mpl.patches.Patch(color=cmap2(0.99), label="Spur (MLE)"),
+        ],
+        ncols=4,
+        loc="upper right",
+        bbox_to_anchor=(1, -0.35),
+    )
+    ax07.add_artist(legend1)
+
+    # gridspec
+    gs1 = gs[1].subgridspec(4, 4, height_ratios=(1, 1, 1, 2), hspace=0)
 
     # Bin the data for plotting
     bins = np.linspace(data["phi1"].min(), data["phi1"].max(), num=5, endpoint=True)
     which_bin = np.digitize(data["phi1"], bins[:-1])
-
-    # Legend
-    ax10 = fig.add_subplot(gs1[0, :])
-    ax10.axis(False)
-    ax10.legend(
-        handles=[
-            mpl.patches.Patch(color=cmap(0.01), label="Background"),
-            mpl.lines.Line2D([0], [0], color="k", lw=4),
-            mpl.patches.Patch(color=cmap(0.99), label="Stream"),
-            mpl.patches.Patch(color="tab:olive", label="Spur"),
-        ],
-        ncols=4,
-    )
 
     for i, b in enumerate(np.unique(which_bin)):
         sel = which_bin == b
@@ -250,14 +452,14 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
         # ---------------------------------------------------------------------------
         # Phi2
 
-        ax11i = fig.add_subplot(gs1[1, i])
+        ax11i = fig.add_subplot(gs1[0, i])
 
         # Connect to top plot(s)
-        for ax in (ax01, ax02, ax03, ax04):
+        for ax in (ax01, ax02, ax03, ax04, ax05, ax06, ax07):
             ax.axvline(bins[i], color="gray", ls="--", zorder=-200)
             ax.axvline(bins[i + 1], color="gray", ls="--", zorder=-200)
         smlvis._slices.connect_slices_to_top(  # noqa: SLF001
-            fig, ax03, ax11i, left=bins[i], right=bins[i + 1], color="gray"
+            fig, ax07, ax11i, left=bins[i], right=bins[i + 1], color="gray"
         )
 
         cphi2s = np.ones((sel.sum(), 3)) * data_["phi2"][:, None].numpy()
@@ -266,7 +468,7 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
             cphi2s,
             bins=50,
             weights=ws,
-            color=[cmap(0.01), cmap(0.99), "tab:olive"],
+            color=[cmap1(0.01), cmap1(0.99), cmap2(0.99)],
             alpha=0.75,
             density=True,
             stacked=True,
@@ -276,7 +478,7 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
         xmin, xmax = data["phi2"].min().numpy(), data["phi2"].max().numpy()
         x = np.linspace(xmin, xmax)
         bkg_wgt = mpars["background.weight",][sel].mean()
-        m = mpars["background.astrometric.phi2", "slope"][sel].mean()
+        m = mpars["background.astrometric.phi2pmphi1.phi2", "slope"][sel].mean()
         ax11i.plot(x, bkg_wgt * exp_distr(m, xmin, xmax).pdf(x), c="k")
 
         ax11i.set_xlabel(r"$\phi_2$ [$\degree$]")
@@ -286,7 +488,7 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
         # ---------------------------------------------------------------------------
         # PM-Phi1
 
-        ax12i = fig.add_subplot(gs1[2, i])
+        ax12i = fig.add_subplot(gs1[1, i])
 
         # Recovered
         cpmphi1s = np.ones((sel.sum(), 3)) * data_["pmphi1"][:, None].numpy()
@@ -295,7 +497,7 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
             cpmphi1s,
             bins=50,
             weights=ws,
-            color=[cmap(0.01), cmap(0.99), "tab:olive"],
+            color=[cmap1(0.01), cmap1(0.99), cmap2(0.99)],
             alpha=0.75,
             density=True,
             stacked=True,
@@ -304,7 +506,7 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
 
         xmin, xmax = data["pmphi1"].min().numpy(), data["pmphi1"].max().numpy()
         x = np.linspace(xmin, xmax)
-        m = mpars["background.astrometric.pmphi1", "slope"][sel].mean()
+        m = mpars["background.astrometric.phi2pmphi1.pmphi1", "slope"][sel].mean()
         ax12i.plot(x, bkg_wgt * exp_distr(m, xmin, xmax).pdf(x), c="k")
 
         ax12i.set_xlabel(r"$\mu_{\phi_1}^*$ [mas yr$^{-1}$]")
@@ -314,12 +516,12 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
         # ---------------------------------------------------------------------------
         # PM-Phi2
 
-        ax13i = fig.add_subplot(gs1[3, i])
+        ax13i = fig.add_subplot(gs1[2, i])
         ax13i.hist(
             np.ones((sel.sum(), 3)) * data_["pmphi2"][:, None].numpy(),
             bins=50,
             weights=np.stack((bkg_prob_, stream_prob_, spur_prob_), axis=1),
-            color=[cmap(0.01), cmap(0.99), "tab:olive"],
+            color=[cmap1(0.01), cmap1(0.99), cmap2(0.99)],
             alpha=0.75,
             density=True,
             stacked=True,
@@ -328,8 +530,11 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
 
         xmin, xmax = data["pmphi2"].min().numpy(), data["pmphi2"].max().numpy()
         x = np.linspace(xmin, xmax)
-        m = mpars["background.astrometric.pmphi2", "slope"][sel].mean()
-        ax13i.plot(x, bkg_wgt * exp_distr(m, xmin, xmax).pdf(x), c="k")
+        mu = mpars["background.astrometric.pmphi2.pmphi2", "mu"][sel].mean()
+        lnsigma = mpars["background.astrometric.pmphi2.pmphi2", "ln-sigma"][sel].mean()
+        bounds = model["background"]["astrometric"]["pmphi2"].coord_bounds["pmphi2"]
+        d = stats.norm(loc=mu, scale=xp.exp(lnsigma))
+        ax13i.plot(x, bkg_wgt * d.pdf(x) / (d.cdf(bounds[1]) - d.cdf(bounds[0])), c="k")
 
         ax13i.set_xlabel(r"$\mu_{phi_2}$ [mas yr$^{-1}$]")
         if i == 0:
@@ -338,7 +543,8 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
         # ---------------------------------------------------------------------------
         # Photometry
 
-        ax14i = fig.add_subplot(gs1[4, i])
+        ax14i = fig.add_subplot(gs1[3, i])
+        ax14i.set_rasterization_zorder(20)
 
         sorter = np.argsort(stream_prob_)
         ax14i.scatter(
@@ -346,17 +552,22 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
             data_["g"][sorter],
             c=stream_prob_[sorter],
             s=1,
-            rasterized=True,
         )
         isspur = spur_prob_ > 0.75
         ax14i.scatter(
             (data_["g"] - data_["r"])[isspur],
             data_["g"][isspur],
-            c="tab:olive",
+            c=cmap2(0.99),
             s=1,
-            rasterized=True,
         )
-        ax14i.set(xlabel=("g - r [mag]"), xlim=(0, 1), ylim=(22, 13))
+        ax14i.plot(
+            isochrone_data["g"] - isochrone_data["r"],
+            isochrone_data["g"]
+            + mpars["stream.photometric.distmod", "mu"][sel].mean().numpy(),
+            c="green",
+        )
+
+        ax14i.set(xlabel=("g - r [mag]"), xlim=(0, 1), ylim=(21, 13))
         ax14i.set_xticklabels([])
 
         if i == 0:
