@@ -16,7 +16,7 @@ table = QTable(
     # fmt: off
     rows=[
         [-70.0 * u.deg, np.NaN * u.deg, np.NaN * u.deg, -11.2 * MAS_YR, 1 * MAS_YR],  # noqa: E501
-        [-60.0 * u.deg, -0.8 * u.deg, 1.75 * u.deg, -12.5 * MAS_YR, 0.75 * MAS_YR],  # noqa: E501
+        [-60.0 * u.deg, -0.8 * u.deg, 1.75 * u.deg, -12.5 * MAS_YR, 0.80 * MAS_YR],  # noqa: E501
         [-50.0 * u.deg, -0.0 * u.deg, 1.75 * u.deg, -13.3 * MAS_YR, 0.75 * MAS_YR],  # noqa: E501
         [-40.0 * u.deg, -0.0 * u.deg, 1.75 * u.deg, -13.3 * MAS_YR, 0.75 * MAS_YR],  # noqa: E501
         [-30.0 * u.deg, -0.0 * u.deg, 1.75 * u.deg, -12.6 * MAS_YR, 0.75 * MAS_YR],  # noqa: E501
