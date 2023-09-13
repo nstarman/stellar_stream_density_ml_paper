@@ -79,7 +79,6 @@ masks_table["pm_loose"] = (
 with asdf.open(
     paths.data / "gd1" / "isochrone.asdf", lazy_load=False, copy_arrays=True
 ) as af:
-    isochrone = af["isochrone"]
     iso_tight = af["isochrone_tight"]
     iso_medium = af["isochrone_medium"]
     iso_loose = af["isochrone_loose"]
