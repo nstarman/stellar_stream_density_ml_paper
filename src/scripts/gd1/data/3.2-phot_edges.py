@@ -27,7 +27,8 @@ abs_mags, _, _ = brutus.seds.Isochrone(
 ).get_seds(
     eep=np.linspace(202, 600, 5000),
     apply_corr=True,
-    feh=-1.35,
+    feh=-1.2,
+    # feh=-1.35,
     # dist=7.8e3,
     dist=10,
     loga=np.log10(12e9),
