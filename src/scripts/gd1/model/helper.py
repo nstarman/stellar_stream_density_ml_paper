@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import sys
-import warnings
 from typing import TYPE_CHECKING
 
 import asdf
@@ -52,23 +51,32 @@ with asdf.open(
     isochrone_data = Data(**af["isochrone_data"])
 
 
+# TODO: load control points
+# # Load Control Points
+# stream_cp = QTable.read(paths.data / "gd1" / "control_points_stream.ecsv")
+# spur_cp = QTable.read(paths.data / "gd1" / "control_points_spur.ecsv")
+
+
 # =============================================================================
 
 
-def _p2alpha(p: Array, /, minval: float = 0.1) -> Array:
+def p2alpha(p: Array, /, minval: float = 0.1) -> Array:
+    """Convert probability to alpha."""
     out = minval + (1 - minval) * np.where(  # avoid NaN for p=0
         p == p.max(), 1, (p - p.min()) / (p.max() - p.min())
     )
     return np.clip(out, minval, 1)
 
 
-def _color_by_probable_member(
+def color_by_probable_member(
     *pandcmaps: tuple[Array, LinearSegmentedColormap]
 ) -> np.ndarray:
+    """Color by the most probable member."""
+    # probabilities
     ps = np.stack(tuple(p[0] for p in pandcmaps), 1)
-
+    # colors
     cs = np.stack(tuple(cmap(p) for p, cmap in pandcmaps), 0)
-
+    # color by most probable
     return cs[np.argmax(ps, 1), np.arange(len(ps))]
 
 
@@ -102,15 +110,6 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
     allstream_prob = xp.exp(xp.logaddexp(stream_lnlik, spur_lnlik) - tot_lnlik)
 
     psort = np.argsort(allstream_prob)
-    pmax = xp.max(stream_prob.max(), xp.tensor(1e-3))  # First eval is bad
-    if pmax > 1:
-        warnings.warn(f"pmax={pmax} > 1", stacklevel=1)
-        pmax = xp.tensor(1)
-
-    pmin = stream_prob.min()
-    if pmin < 0:
-        warnings.warn(f"pmin={pmin} > 1", stacklevel=1)
-        pmin = xp.tensor(0)
 
     # =============================================================================
     # Make Figure
@@ -119,9 +118,10 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
     gs = GridSpec(2, 1, figure=fig, height_ratios=(6, 5), hspace=0.12)
     gs0 = gs[0].subgridspec(8, 1, height_ratios=(1, 1, 5, 5, 5, 5, 5, 5))
 
-    colors = _color_by_probable_member(
+    colors = color_by_probable_member(
         (stream_prob[psort], cmap1), (spur_prob[psort], cmap2)
     )
+    alphas = p2alpha(allstream_prob[psort])
 
     # ---------------------------------------------------------------------------
     # Colormap
@@ -218,7 +218,7 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
         data["phi1"][psort],
         data["phi2"][psort],
         c=colors,
-        alpha=_p2alpha(allstream_prob[psort]),
+        alpha=alphas,
         s=2,
         zorder=-10,
     )
@@ -256,7 +256,7 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
         data["phi1"][psort],
         data["plx"][psort],
         c=colors,
-        alpha=_p2alpha(allstream_prob[psort]),
+        alpha=alphas,
         s=2,
         zorder=-10,
     )
@@ -294,7 +294,7 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
         data["phi1"][psort],
         data["pmphi1"][psort],
         c=colors,
-        alpha=_p2alpha(stream_prob[psort]),
+        alpha=alphas,
         s=2,
         zorder=-10,
     )
@@ -332,7 +332,7 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
         data["phi1"][psort],
         data["pmphi2"][psort],
         c=colors,
-        alpha=_p2alpha(stream_prob[psort]),
+        alpha=alphas,
         s=2,
         zorder=-10,
     )
