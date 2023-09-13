@@ -251,7 +251,7 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
 
     ax04 = fig.add_subplot(gs0[4, :])
     ax04.set_xticklabels([])
-    ax04.set(ylabel=r"$\phi_2$ [$\degree$]")
+    ax04.set(ylabel=r"$\varpi$ [mas]")
     ax04.set_rasterization_zorder(0)
 
     p1 = ax04.scatter(
@@ -364,8 +364,7 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
     # ---------------------------------------------------------------------------
     # Distance
 
-    ax07 = fig.add_subplot(gs0[7, :])
-    ax07.set(xlabel=r"$\phi_1$ [deg]", ylabel=r"$d$ [kpc]")
+    ax07 = fig.add_subplot(gs0[7, :], xlabel=r"$\phi_1$ [deg]", ylabel=r"$d$ [kpc]")
 
     mpa = mpars["stream.photometric.distmod"]
     d2sm = Distance(distmod=(mpa["mu"] - 2 * xp.exp(mpa["ln-sigma"])) * u.mag)
