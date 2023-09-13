@@ -35,7 +35,7 @@ except NameError:
     snkmk = {
         "load_from_static": False,
         "save_to_static": False,
-        "epochs": 250,
+        "epochs": 1_000,
         "diagnostic_plots": True,
     }
 

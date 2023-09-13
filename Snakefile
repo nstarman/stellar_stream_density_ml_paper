@@ -373,7 +373,7 @@ rule gd1_train_background_photometry_flow:
         load_from_static=True,  # set to False to recompute
         save_to_static=False,
         diagnostic_plots=True,
-        epochs=1_000,
+        epochs=2_000,
     cache:
         True
     script:
@@ -390,7 +390,7 @@ rule gd1_train_background_parallax_flow:
         load_from_static=True,  # set to False to recompute
         save_to_static=False,
         diagnostic_plots=True,
-        epochs=250,
+        epochs=1_000,
     cache:
         True
     script:
