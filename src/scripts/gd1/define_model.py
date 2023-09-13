@@ -129,7 +129,7 @@ background_astrometric_model = sml.IndependentModels(
 flow_scaler = scaler[("phi1", *phot_coords)]
 
 background_photometric_model = sml.builtin.compat.ZukoFlowModel(
-    net=zuko.flows.MAF(2, 1, transforms=4, hidden_features=[10, 10, 10, 10]),
+    net=zuko.flows.MAF(2, 1, hidden_features=[8, 8, 8]),
     jacobian_logdet=-xp.log(xp.prod(flow_scaler.scale[1:])),
     data_scaler=flow_scaler,
     coord_names=phot_coords,
