@@ -56,7 +56,7 @@ with asdf.open(
 
 
 def _p2alpha(p: Array, /, minval: float = 0.1) -> Array:
-    out = minval + (1 - minval) * np.where(
+    out = minval + (1 - minval) * np.where(  # avoid NaN for p=0
         p == p.max(), 1, (p - p.min()) / (p.max() - p.min())
     )
     return np.clip(out, minval, 1)
