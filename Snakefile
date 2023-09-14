@@ -595,6 +595,23 @@ rule pal5_model_script:
         "src/scripts/pal5/define_model.py"
 
 
+rule pal5_train_background_photometry_flow:
+    output:
+        "src/data/pal5/background_photometry_model.pt"
+    input:
+        "src/data/pal5/data.tmp",
+        "src/data/pal5/model.tmp",
+    params:
+        load_from_static=True,  # set to False to recompute
+        save_to_static=False,
+        diagnostic_plots=True,
+        epochs=2_000,
+    cache:
+        True
+    script:
+        "src/scripts/pal5/model/2-train_background_photometry_flow.py"
+
+
 rule pal5_train_model:
     output:
         "src/data/pal5/model.pt"

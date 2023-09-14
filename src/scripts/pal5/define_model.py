@@ -4,21 +4,20 @@ import sys
 
 import asdf
 import torch as xp
+import zuko
 from astropy.table import QTable
 from showyourwork.paths import user as user_paths
 
 import stream_ml.pytorch as sml
+from stream_ml.pytorch.params import ModelParameter, ModelParameters
+from stream_ml.pytorch.params.bounds import SigmoidBounds
+from stream_ml.pytorch.params.scaler import StandardLnWidth, StandardLocation
 
 paths = user_paths()
 
 # Add the parent directory to the path
 sys.path.append(paths.scripts.as_posix())
 # isort: split
-
-from scripts import paths
-from stream_ml.pytorch.params import ModelParameter, ModelParameters
-from stream_ml.pytorch.params.bounds import SigmoidBounds
-from stream_ml.pytorch.params.scaler import StandardLnWidth, StandardLocation
 
 ##############################################################################
 
@@ -33,7 +32,7 @@ astro_coords = ("phi2",)
 astro_coord_errs = ("phi2_err",)
 astro_coord_bounds = {k: v for k, v in all_coord_bounds.items() if k in astro_coords}
 
-phot_coords = ()
+phot_coords = ("g", "r")
 phot_coord_errs = ()
 phot_coord_bounds = {k: v for k, v in all_coord_bounds.items() if k in phot_coords}
 
@@ -64,6 +63,22 @@ background_astrometric_model = sml.builtin.Exponential(
             },
         }
     ),
+)
+
+# -----------------------------------------------------------------------------
+# Photometry
+
+flow_scaler = scaler[("phi1", *phot_coords)]
+
+background_photometric_model = sml.builtin.compat.ZukoFlowModel(
+    net=zuko.flows.MAF(2, 1, hidden_features=[8, 8, 8]),
+    jacobian_logdet=-xp.log(xp.prod(flow_scaler.scale[1:])),
+    data_scaler=flow_scaler,
+    coord_names=phot_coords,
+    coord_bounds=phot_coord_bounds,
+    params=ModelParameters(),
+    with_grad=False,
+    name="background_photometric_model",
 )
 
 # -----------------------------------------------------------------------------
