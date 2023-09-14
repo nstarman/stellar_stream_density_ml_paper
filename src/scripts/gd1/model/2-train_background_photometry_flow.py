@@ -85,32 +85,36 @@ for epoch in tqdm(range(snkmk["epochs"])):
         loss.backward()
         optimizer.step()
 
-        # Diagnostic plots (not in the paper)
-        if snkmk["diagnostic_plots"] and (
-            (epoch % 100 == 0) or (epoch == snkmk["epochs"] - 1)
-        ):
-            with xp.no_grad():
-                mpars = model.unpack_params(model(data))
-                prob = model.posterior(mpars, data, where=where)
-            psort = np.argsort(prob[off_stream])
+    xp.save(model.state_dict(), paths.data / "gd1" / "background_photometry_model.pt")
 
-            fig, ax = plt.subplots()
-            ax.scatter(
-                (data["g"] - data["r"])[~off_stream],
-                data["g"][~off_stream],
-                s=0.2,
-                c="black",
-            )
-            im = ax.scatter(
-                (data["g"] - data["r"])[off_stream][psort],
-                data["g"][off_stream][psort],
-                s=0.2,
-                c=prob[off_stream][psort],
-            )
-            plt.colorbar(im, ax=ax)
-            ax.set(xlim=(0, 0.8), ylim=(22, 13.5))
-            fig.savefig(figure_path / f"epoch_{epoch:05}.png")
-            plt.close(fig)
+    # -----------------------------------------------------------
+
+    # Diagnostic plots (not in the paper)
+    if snkmk["diagnostic_plots"] and (
+        (epoch % 100 == 0) or (epoch == snkmk["epochs"] - 1)
+    ):
+        with xp.no_grad():
+            mpars = model.unpack_params(model(data))
+            prob = model.posterior(mpars, data, where=where)
+        psort = np.argsort(prob[off_stream])
+
+        fig, ax = plt.subplots()
+        ax.scatter(
+            (data["g"] - data["r"])[~off_stream],
+            data["g"][~off_stream],
+            s=0.2,
+            c="black",
+        )
+        im = ax.scatter(
+            (data["g"] - data["r"])[off_stream][psort],
+            data["g"][off_stream][psort],
+            s=0.2,
+            c=prob[off_stream][psort],
+        )
+        plt.colorbar(im, ax=ax)
+        ax.set(xlim=(0, 0.8), ylim=(22, 13.5))
+        fig.savefig(figure_path / f"epoch_{epoch:05}.png")
+        plt.close(fig)
 
 xp.save(model.state_dict(), paths.data / "gd1" / "background_photometry_model.pt")
 
