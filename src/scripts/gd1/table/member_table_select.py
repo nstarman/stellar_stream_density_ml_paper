@@ -47,10 +47,10 @@ prob_idx = np.where(
 )[0]
 subselect = rng.choice(np.arange(len(prob_idx)), size=1, replace=False, shuffle=False)
 rows.extend(prob_idx[subselect])
-# 3 rows with non-zero joint probability
-prob_idx = np.where((strm_mle > 0.1) & (spur_mle > 0.7))[0]
-subselect = rng.choice(np.arange(len(prob_idx)), size=3, replace=False, shuffle=False)
-rows.extend(prob_idx[subselect])
+# # 3 rows with non-zero joint probability  # TODO
+# prob_idx = np.where((strm_mle > 0.1) & (spur_mle > 0.6))[0]
+# subselect = rng.choice(np.arange(len(prob_idx)), size=3, replace=False, shuffle=False)
+# rows.extend(prob_idx[subselect])
 
 table = QTable()
 # yada yada the source_id column
@@ -166,13 +166,14 @@ caption = r"""Subset of Membership Table.
 This table includes a selection of candidate member stars for the GD-1 stream,
 based on the membership likelihoods.  For each star we include the Gaia DR3
 source ID and astrometric solution, the Pan-STARRS1 photometry, and the
-membership likelihoods for the stream, spur, and background. The likelihoods are
-computed using the trained model described in \autoref{sub:results_gd1:results} and we
-include a quality flag ${\rm dim}(\boldsymbol{x})$, indicating the number of
-features used by the model.  For most stars all features are measured. We use
-dropout regularization to estimate the uncertainty in the likelihoods, and
-report the 5\% and 95\% quantiles of the distribution, as well as the
-dropout-disabled maximum-likelihood estimate (MLE) of the likelihood.
+membership likelihoods for the stream, spur, and background.  The likelihoods
+are computed using the trained model described in
+\autoref{sub:results_gd1:results} and we include a quality flag ${\rm
+dim}(\boldsymbol{x})$, indicating the number of features used by the model.  For
+most stars all features are measured.  We use dropout regularization to estimate
+the uncertainty in the likelihoods, and report the 5\% and 95\% quantiles of the
+distribution, as well as the dropout-disabled maximum-likelihood estimate (MLE)
+of the likelihood.
 \\
 We include as interesting cases:
     \capitem{} 1 star with the highest MLE for the stream,
