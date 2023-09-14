@@ -365,7 +365,9 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
     # ---------------------------------------------------------------------------
     # Distance
 
-    ax07 = fig.add_subplot(gs0[7, :], xlabel=r"$\phi_1$ [deg]", ylabel=r"$d$ [kpc]")
+    ax07 = fig.add_subplot(
+        gs0[7, :], xlabel=r"$\phi_1$ [deg]", ylabel=r"$d$ [kpc]", ylim=(7, 11)
+    )
 
     mpa = mpars["stream.photometric.distmod"]
     d2sm = Distance(distmod=(mpa["mu"] - 2 * xp.exp(mpa["ln-sigma"])) * u.mag)
