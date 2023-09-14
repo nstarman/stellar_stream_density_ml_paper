@@ -35,6 +35,7 @@ plt.style.use(paths.scripts / "paper.mplstyle")
 
 # =============================================================================
 
+# Load control points
 stream_cp = QTable.read(paths.data / "gd1" / "control_points_stream.ecsv")
 spur_cp = QTable.read(paths.data / "gd1" / "control_points_spur.ecsv")
 distance_cp = QTable.read(paths.data / "gd1" / "control_points_distance.ecsv")
@@ -126,6 +127,9 @@ spur_prob = xp.exp(spur_lnlik - tot_lnlik)
 allstream_prob = xp.exp(xp.logaddexp(stream_lnlik, spur_lnlik) - tot_lnlik)
 
 psort = np.argsort(allstream_prob)
+# data = data[psort]
+# stream_weight_percentiles = stream_weight_percentiles[psort]
+# spur_weight_percentiles = spur_weight_percentiles[psort]
 
 # =============================================================================
 # Make Figure
@@ -366,13 +370,6 @@ f2 = ax04.fill_between(
     alpha=0.25,
 )
 
-ax04.legend(
-    [d1, (p1, p2), (f1, f2)],
-    ["Data", "Control points", "Models"],
-    numpoints=1,
-    handler_map={tuple: HandlerTuple(ndivide=None)},
-    loc="upper left",
-)
 
 # ---------------------------------------------------------------------------
 # PM-Phi1
@@ -452,13 +449,6 @@ f2 = ax05.fill_between(
     alpha=0.25,
 )
 
-ax05.legend(
-    [d1, (p1, p2), (f1, f2)],
-    ["Data", "Control points", "Models"],
-    numpoints=1,
-    handler_map={tuple: HandlerTuple(ndivide=None)},
-    loc="lower left",
-)
 
 # ---------------------------------------------------------------------------
 # PM-Phi2
@@ -489,14 +479,6 @@ f2 = ax06.fill_between(
     (mpb["pmphi2", "mu"] + xp.exp(mpb["pmphi2", "ln-sigma"]))[spur_cutoff],
     color=cmap2(0.99),
     alpha=0.25,
-)
-
-ax06.legend(
-    [d1, (f1, f2)],
-    ["Data", "Models"],
-    numpoints=1,
-    handler_map={tuple: HandlerTuple(ndivide=None)},
-    loc="upper left",
 )
 
 
@@ -549,14 +531,6 @@ f2 = ax07.fill_between(
     d1sp[spur_cutoff].to_value("kpc"),
     alpha=0.25,
     color=cmap2(0.99),
-)
-
-ax07.legend(
-    [(f1, f2)],
-    [r"Models"],
-    numpoints=1,
-    handler_map={tuple: HandlerTuple(ndivide=None)},
-    loc="upper left",
 )
 
 fig.savefig(paths.figures / "gd1" / "results_full.pdf")
