@@ -268,8 +268,9 @@ gamma_edges = xp.concatenate(
 )
 
 stream_mass_function = sml.builtin.StepwiseMassFunction(
-    boundaries=(0, 0.55, 1.01),
-    log_probs=(0.0, 0.0),  # TODO: set a value
+    boundaries=(0, 0.35, 0.56, 1.01),
+    # log_probs=(0.0, 0.0, 0.0),  # TODO: set a value
+    log_probs=(-1, 0, -1),
 )
 
 # # Control points
