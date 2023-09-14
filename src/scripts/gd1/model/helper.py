@@ -45,6 +45,7 @@ if TYPE_CHECKING:
 # Matplotlib style
 plt.style.use(paths.scripts / "paper.mplstyle")
 
+# isochrone data
 with asdf.open(
     paths.data / "gd1" / "isochrone.asdf", "r", lazy_load=False, copy_arrays=True
 ) as af:
@@ -431,12 +432,12 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
         ],
         ncols=4,
         loc="upper right",
-        bbox_to_anchor=(1, -0.35),
+        bbox_to_anchor=(1, -0.45),
     )
     ax07.add_artist(legend1)
 
     # gridspec
-    gs1 = gs[1].subgridspec(4, 4, height_ratios=(1, 1, 1, 2), hspace=0)
+    gs1 = gs[1].subgridspec(5, 4, height_ratios=(1, 1, 1, 1, 2), hspace=0)
 
     # Bin the data for plotting
     bins = np.linspace(data["phi1"].min(), data["phi1"].max(), num=5, endpoint=True)
@@ -453,19 +454,19 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
         # ---------------------------------------------------------------------------
         # Phi2
 
-        ax11i = fig.add_subplot(gs1[0, i])
+        ax10i = fig.add_subplot(gs1[0, i], xlabel=r"$\phi_2$ [$\degree$]")
 
         # Connect to top plot(s)
         for ax in (ax01, ax02, ax03, ax04, ax05, ax06, ax07):
             ax.axvline(bins[i], color="gray", ls="--", zorder=-200)
             ax.axvline(bins[i + 1], color="gray", ls="--", zorder=-200)
         smlvis._slices.connect_slices_to_top(  # noqa: SLF001
-            fig, ax07, ax11i, left=bins[i], right=bins[i + 1], color="gray"
+            fig, ax07, ax10i, left=bins[i], right=bins[i + 1], color="gray"
         )
 
         cphi2s = np.ones((sel.sum(), 3)) * data_["phi2"][:, None].numpy()
         ws = np.stack((bkg_prob_, stream_prob_, spur_prob_), axis=1)
-        ax11i.hist(
+        ax10i.hist(
             cphi2s,
             bins=50,
             weights=ws,
@@ -480,16 +481,36 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
         x = np.linspace(xmin, xmax)
         bkg_wgt = mpars["background.weight",][sel].mean()
         m = mpars["background.astrometric.phi2pmphi1.phi2", "slope"][sel].mean()
-        ax11i.plot(x, bkg_wgt * exp_distr(m, xmin, xmax).pdf(x), c="k")
+        ax10i.plot(x, bkg_wgt * exp_distr(m, xmin, xmax).pdf(x), c="k")
 
-        ax11i.set_xlabel(r"$\phi_2$ [$\degree$]")
+        if i == 0:
+            ax10i.set_ylabel("frequency")
+
+        # ---------------------------------------------------------------------------
+        # Parallax
+
+        ax11i = fig.add_subplot(gs1[1, i], xlabel=r"$\phi_2$ [$\degree$]")
+
+        cplxs = np.ones((sel.sum(), 3)) * data_["plx"][:, None].numpy()
+        ws = np.stack((bkg_prob_, stream_prob_, spur_prob_), axis=1)
+        ax11i.hist(
+            cplxs,
+            bins=50,
+            weights=ws,
+            color=[cmap1(0.01), cmap1(0.99), cmap2(0.99)],
+            alpha=0.75,
+            density=True,
+            stacked=True,
+            label=["", "Stream Model (MLE)", "Spur Model (MLE)"],
+        )
+
         if i == 0:
             ax11i.set_ylabel("frequency")
 
         # ---------------------------------------------------------------------------
         # PM-Phi1
 
-        ax12i = fig.add_subplot(gs1[1, i])
+        ax12i = fig.add_subplot(gs1[2, i], xlabel=r"$\mu_{\phi_1}^*$ [mas yr$^{-1}$]")
 
         # Recovered
         cpmphi1s = np.ones((sel.sum(), 3)) * data_["pmphi1"][:, None].numpy()
@@ -510,14 +531,13 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
         m = mpars["background.astrometric.phi2pmphi1.pmphi1", "slope"][sel].mean()
         ax12i.plot(x, bkg_wgt * exp_distr(m, xmin, xmax).pdf(x), c="k")
 
-        ax12i.set_xlabel(r"$\mu_{\phi_1}^*$ [mas yr$^{-1}$]")
         if i == 0:
             ax12i.set_ylabel("frequency")
 
         # ---------------------------------------------------------------------------
         # PM-Phi2
 
-        ax13i = fig.add_subplot(gs1[2, i])
+        ax13i = fig.add_subplot(gs1[3, i], xlabel=r"$\mu_{phi_2}$ [mas yr$^{-1}$]")
         ax13i.hist(
             np.ones((sel.sum(), 3)) * data_["pmphi2"][:, None].numpy(),
             bins=50,
@@ -537,15 +557,20 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
         d = stats.norm(loc=mu, scale=xp.exp(lnsigma))
         ax13i.plot(x, bkg_wgt * d.pdf(x) / (d.cdf(bounds[1]) - d.cdf(bounds[0])), c="k")
 
-        ax13i.set_xlabel(r"$\mu_{phi_2}$ [mas yr$^{-1}$]")
         if i == 0:
             ax13i.set_ylabel("frequency")
 
         # ---------------------------------------------------------------------------
         # Photometry
 
-        ax14i = fig.add_subplot(gs1[3, i])
-        ax14i.set_rasterization_zorder(20)
+        ax14i = fig.add_subplot(
+            gs1[4, i],
+            xlabel=("g - r [mag]"),
+            xlim=(0, 1),
+            ylim=(21, 13),
+            xticklabels=[],
+            rasterization_zorder=20,
+        )
 
         sorter = np.argsort(stream_prob_)
         ax14i.scatter(
@@ -567,9 +592,6 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
             + mpars["stream.photometric.distmod", "mu"][sel].mean().numpy(),
             c="green",
         )
-
-        ax14i.set(xlabel=("g - r [mag]"), xlim=(0, 1), ylim=(21, 13))
-        ax14i.set_xticklabels([])
 
         if i == 0:
             ax14i.set_ylabel("g [mag]")
