@@ -5,6 +5,7 @@ import sys
 from typing import Any
 
 import matplotlib as mpl
+import matplotlib.path as mpath
 import numpy as np
 from astropy import units as u
 from astropy.coordinates import SkyCoord
@@ -55,7 +56,18 @@ c_pal5 = c_pal5_icrs.transform_to(frame)
 masks_table = QTable()
 
 # =============================================================================
+# Off-stream selection
+# Applying this mask to the data table will remove the off-stream region.
+
+footprint = np.load(paths.data / "pal5" / "footprint.npz")["footprint"]
+
+masks_table["off_stream"] = mpath.Path(footprint.T, readonly=True).contains_points(
+    np.c_[table["phi1"].to_value("deg"), table["phi2"].to_value("deg")]
+)
+
+# =============================================================================
 # M5
+# Applying this mask to the data table will remove the M5 stars.
 
 M5 = SkyCoord.from_name("messier 5")
 masks_table["M5"] = ~(M5.separation(c_pal5_icrs) < 0.8 * u.deg)
@@ -63,6 +75,7 @@ masks_table["M5"] = ~(M5.separation(c_pal5_icrs) < 0.8 * u.deg)
 
 # =============================================================================
 # Other Thing
+# Applying this mask to the data table will remove the other thing.
 
 masks_table["things"] = ~(
     (c_pal5.pm_phi1_cosphi2.value > -1)
@@ -74,6 +87,8 @@ masks_table["things"] = ~(
 
 # =============================================================================
 # Proper motion
+# Applying this mask to the data table will remove the stars outside the
+# proper motion box.
 
 pm_edges = QTable.read(paths.data / "pal5" / "pm_edges.ecsv")
 pm_edges.add_index("label", unique=True)

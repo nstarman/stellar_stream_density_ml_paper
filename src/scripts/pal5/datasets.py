@@ -22,6 +22,7 @@ with asdf.open(
     renamer = af["renamer"]
 
 table = QTable.read(paths.data / "pal5" / "gaia_ps1_xm.asdf")[sel]
+masks = QTable.read(paths.data / "pal5" / "masks.asdf")[sel]
 
 
 # TODO: where should this go?
@@ -53,11 +54,11 @@ data.array[~where.array] = xp.asarray(
     ]
 )
 
+# =============================================================================
+# Off-stream selection
+# This will select the off-stream region (it's the opposite of the mask).
 
-# # =============================================================================
-# # Off-stream selection
-
-# off_stream = (data["phi2"] < -1.7) | (data["phi2"] > 2)
+off_stream = ~masks["off_stream"]
 
 
 # =============================================================================

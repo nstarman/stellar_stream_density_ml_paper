@@ -121,8 +121,10 @@ dependencies:
     - src/data/pal5/gaia_ps1_xm_polygons.asdf
   src/scripts/pal5/data/2.5-variable_ndata.py:
     - src/data/pal5/gaia_ps1_xm.asdf
-  src/scripts/pal5/data/3.3-masks.py:
+  src/scripts/pal5/data/4-masks.py:
     - src/data/pal5/gaia_ps1_xm.asdf
+    - src/data/pal5/pm_edges.ecsv
+    - src/data/pal5/footprint.npz
   src/scripts/pal5/model/1-info.py:
     - src/data/pal5/gaia_ps1_xm.asdf
     - src/data/pal5/masks.asdf

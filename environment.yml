@@ -22,6 +22,7 @@ dependencies:
       - daft
       - gaiadr3-zeropoint>=0.0.4
       - gala>=1.6
+      - galstreams
       - nflows
       - pre-commit
       - pyia==1.3

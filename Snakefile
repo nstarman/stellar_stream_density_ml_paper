@@ -516,11 +516,24 @@ rule pal5_masks_pm:
         "src/scripts/pal5/data/3.1-pm_edges.py"
 
 
+rule pal5_masks_off_field:
+    output:
+        "src/data/pal5/footprint.npz"
+    conda:
+        "environment.yml"
+    cache:
+        True
+    script:
+        "src/scripts/pal5/data/3.3-off_field.py"
+
+
 rule pal5_masks:
     output:
         "src/data/pal5/masks.asdf"
     input:
         "src/data/pal5/gaia_ps1_xm.asdf",
+        "src/data/pal5/pm_edges.ecsv",
+        "src/data/pal5/footprint.npz",
     params:
         load_from_static=True,  # set to False to recompute
         save_to_static=False,
@@ -529,7 +542,7 @@ rule pal5_masks:
     cache:
         True
     script:
-        "src/scripts/pal5/data/3.3-masks.py"
+        "src/scripts/pal5/data/4-masks.py"
 
 
 rule pal5_control_points_stream:
