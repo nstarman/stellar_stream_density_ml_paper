@@ -42,7 +42,6 @@ rows.extend(prob_idx[subselect])
 
 table = QTable()
 # yada yada the source_id column
-# table[r"\texttt{source\_id}"] = [f"...{str(sid)[-4:]}" for sid in table[r"\texttt{source\_id}"]]  # noqa: E501
 table[r"\texttt{source\_id}"] = ["---"] * len(rows)
 
 # Astrometry
@@ -172,11 +171,19 @@ write_kwargs = {
     "latexdict": {
         "tabletype": "table*",
         "preamble": preamble[1:],
-        "col_align": r"@{}c<{\hspace{7pt}}*{4}{c<{\hspace{7pt}}}*{2}{c<{\hspace{7pt}}}c<{\hspace{7pt}}*{2}{l<{\hspace{7pt}}}@{}",  # noqa: E501
+        "col_align": (
+            r"@{}\n"
+            r"c<{\hspace{7pt}}  % source_id\n"
+            r"*{4}{c<{\hspace{7pt}}}  % astrometry\n"
+            r"*{2}{c<{\hspace{7pt}}}  % photometry\n"
+            r"c<{\hspace{7pt}}  % dims\n"
+            r"*{2}{l<{\hspace{7pt}}}  % likelihoods\n"
+            r"@{}"
+        ),
         "header_start": "\n".join(  # noqa: FLY002
             (
                 r"\toprule",
-                r"\multicolumn{5}{c}{Gaia} & \multicolumn{2}{c}{PS-1} & \multicolumn{1}{c}{} & \multicolumn{3}{c}{Membership Likelihood (${\rm MLE}_{5\%}^{95\%}$)}\\",  # noqa: E501
+                r"\multicolumn{5}{c}{Gaia} & \multicolumn{2}{c}{PS-1} & \multicolumn{1}{c}{} & \multicolumn{2}{c}{Membership Likelihood (${\rm MLE}_{5\%}^{95\%}$)}\\",  # noqa: E501
                 r"\cmidrule(lr){1-5} \cmidrule(lr){6-7} \cmidrule(lr){9-10}"
             )
         ),
@@ -199,12 +206,7 @@ lines = out.getvalue().split("\n")
 
 # color the lines
 end = lines.index("\\bottomrule\\bottomrule")
-lines.insert(end - 4, r"\rowcolor{gray!7}")
-lines.insert(end - 6, r"\rowcolor{gray!7}")
-lines.insert(end - 7, r"\rowcolor{gray!7}")
-lines.insert(end - 8, r"\rowcolor{gray!7}")
-lines.insert(end - 9, r"\rowcolor{gray!7}")
-lines.insert(end - 15, r"\rowcolor{gray!7}")
+lines.insert(end - 5, r"\rowcolor{gray!7}")
 
 # Save to disk
 with (paths.output / "pal5" / "member_table_select.tex").open("w") as f:
