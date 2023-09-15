@@ -78,6 +78,14 @@ table[r"$\mu_{\delta}$ [$\frac{\rm{mas}}{\rm{yr}}$]"] = [
         strict=True,
     )
 ]
+table[r"$\varpi$ [\rm{mas}]"] = [
+    rf"${v:0.2f} \pm {e:0.2f}$"
+    for v, e in zip(
+        data_table["plx"][sel][rows].to_value("mas"),
+        data_table["plx_error"][sel][rows].to_value("mas"),
+        strict=True,
+    )
+]
 
 # Photometry
 table["g [mag]"] = [
@@ -199,12 +207,12 @@ write_kwargs = {
     "latexdict": {
         "tabletype": "table*",
         "preamble": preamble[1:],
-        "col_align": r"@{}c<{\hspace{7pt}}*{4}{c<{\hspace{7pt}}}*{2}{c<{\hspace{7pt}}}c<{\hspace{7pt}}*{3}{l<{\hspace{7pt}}}@{}",  # noqa: E501
+        "col_align": r"@{}c<{\hspace{7pt}}*{5}{c<{\hspace{7pt}}}*{2}{c<{\hspace{7pt}}}c<{\hspace{7pt}}*{3}{l<{\hspace{7pt}}}@{}",  # noqa: E501
         "header_start": "\n".join(  # noqa: FLY002
             (
                 r"\toprule",
-                r"\multicolumn{5}{c}{Gaia} & \multicolumn{2}{c}{PS-1} & \multicolumn{1}{c}{} & \multicolumn{3}{c}{Membership Likelihood (${\rm MLE}_{5\%}^{95\%}$)}\\",  # noqa: E501
-                r"\cmidrule(lr){1-5} \cmidrule(lr){6-7} \cmidrule(lr){9-11}"
+                r"\multicolumn{6}{c}{Gaia} & \multicolumn{2}{c}{PS-1} & \multicolumn{1}{c}{} & \multicolumn{3}{c}{Membership Likelihood (${\rm MLE}_{5\%}^{95\%}$)}\\",  # noqa: E501
+                r"\cmidrule(lr){1-6} \cmidrule(lr){7-8} \cmidrule(lr){10-12}"
             )
         ),
         "header_end": r"\midrule",
