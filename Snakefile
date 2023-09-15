@@ -40,7 +40,7 @@ rule mock_make_data:
         "src/data/brutus/nn_c3k.h5",
     params:
         seed=10,
-        diagnostic_plots=True
+        diagnostic_plots=True,
     conda:
         "environment.yml"
     cache:
@@ -112,7 +112,7 @@ rule mock_train_flow:
         diagnostic_plots=True,
         epochs=400,
         batch_size=500,
-        lr=1e-3
+        lr=1e-3,
     conda:
         "environment.yml"
     cache:
@@ -137,7 +137,7 @@ rule mock_train_model:
         n_T=3,
         final_T=600,
         eta_min=1e-4,
-        lr=5e-3
+        lr=5e-3,
     conda:
         "environment.yml"
     cache:
@@ -457,7 +457,7 @@ rule gd1_member_table_select:
     input:
         "src/data/gd1/data.tmp",
         "src/data/gd1/model.tmp",
-        "src/data/gd1/membership_likelhoods.ecsv"
+        "src/data/gd1/membership_likelhoods.ecsv",
     conda:
         "environment.yml"
     cache:
@@ -472,7 +472,7 @@ rule gd1_member_table_full:
     input:
         "src/data/gd1/data.tmp",
         "src/data/gd1/model.tmp",
-        "src/data/gd1/membership_likelhoods.ecsv"
+        "src/data/gd1/membership_likelhoods.ecsv",
     conda:
         "environment.yml"
     cache:
@@ -687,7 +687,7 @@ rule pal5_member_table_select:
     input:
         "src/data/pal5/data.tmp",
         "src/data/pal5/model.tmp",
-        "src/data/pal5/membership_likelhoods.ecsv"
+        "src/data/pal5/membership_likelhoods.ecsv",
     conda:
         "environment.yml"
     cache:
@@ -702,7 +702,7 @@ rule pal5_member_table_full:
     input:
         "src/data/pal5/data.tmp",
         "src/data/pal5/model.tmp",
-        "src/data/pal5/membership_likelhoods.ecsv"
+        "src/data/pal5/membership_likelhoods.ecsv",
     conda:
         "environment.yml"
     cache:
