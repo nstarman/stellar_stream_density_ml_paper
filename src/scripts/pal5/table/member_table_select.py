@@ -172,7 +172,7 @@ write_kwargs = {
         "tabletype": "table*",
         "preamble": preamble[1:],
         "col_align": (
-            r"@{}\n"
+            r"@{}"
             r"c<{\hspace{7pt}}"  # source_id
             r"*{4}{c<{\hspace{7pt}}}"  # astrometry
             r"*{2}{c<{\hspace{7pt}}}"  # photometry
