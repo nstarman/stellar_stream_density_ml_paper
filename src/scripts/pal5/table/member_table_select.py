@@ -173,11 +173,11 @@ write_kwargs = {
         "preamble": preamble[1:],
         "col_align": (
             r"@{}\n"
-            r"c<{\hspace{7pt}}  % source_id\n"
-            r"*{4}{c<{\hspace{7pt}}}  % astrometry\n"
-            r"*{2}{c<{\hspace{7pt}}}  % photometry\n"
-            r"c<{\hspace{7pt}}  % dims\n"
-            r"*{2}{l<{\hspace{7pt}}}  % likelihoods\n"
+            r"c<{\hspace{7pt}}"  # source_id
+            r"*{4}{c<{\hspace{7pt}}}"  # astrometry
+            r"*{2}{c<{\hspace{7pt}}}"  # photometry
+            r"c<{\hspace{7pt}}"  # dims
+            r"*{2}{l<{\hspace{7pt}}}"  # likelihoods
             r"@{}"
         ),
         "header_start": "\n".join(  # noqa: FLY002
