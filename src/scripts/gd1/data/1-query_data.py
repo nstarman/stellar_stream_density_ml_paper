@@ -240,4 +240,4 @@ axs[1].set_ylim(-12, 6)
 axs[1].set_aspect("equal")
 axs[0].set_aspect("equal")
 
-fig.savefig(paths.figures / "gd1" / "diagnostic" / "query_boxes.png", dpi=300)
+fig.savefig(paths.scripts / "gd1" / "_diagnostics" / "query_boxes.png", dpi=300)

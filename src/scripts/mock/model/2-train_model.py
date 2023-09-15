@@ -66,7 +66,7 @@ with asdf.open(
 # ensure the folders exist
 (paths.data / "mock").mkdir(exist_ok=True, parents=True)
 (paths.static / "mock").mkdir(exist_ok=True, parents=True)
-diagnostic_path = paths.figures / "mock" / "diagnostic" / "model"
+diagnostic_path = paths.scripts / "mock" / "_diagnostics" / "model"
 diagnostic_path.mkdir(parents=True, exist_ok=True)
 
 # =============================================================================

@@ -68,7 +68,7 @@ with asdf.open(
 
     off_stream = af["off_stream"]
 
-figure_path = paths.figures / "mock" / "diagnostic" / "flow"
+figure_path = paths.scripts / "mock" / "_diagnostics" / "flow"
 figure_path.mkdir(parents=True, exist_ok=True)
 
 # =============================================================================

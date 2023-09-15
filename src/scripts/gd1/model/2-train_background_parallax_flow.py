@@ -50,7 +50,7 @@ if snkmk["load_from_static"]:
     sys.exit(0)
 
 
-figure_path = paths.figures / "gd1" / "diagnostic" / "plx_flow"
+figure_path = paths.figures / "gd1" / "_diagnostics" / "plx_flow"
 figure_path.mkdir(parents=True, exist_ok=True)
 
 # =============================================================================

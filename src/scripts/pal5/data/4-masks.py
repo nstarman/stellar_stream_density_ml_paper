@@ -166,4 +166,4 @@ ax3.set_xlabel(r"$\phi_1$ [deg]")
 ax3.set_ylabel(r"$\phi_2$ [deg]")
 
 fig.tight_layout()
-fig.savefig(paths.figures / "pal5" / "diagnostic" / "masks.png", dpi=300)
+fig.savefig(paths.scripts / "pal5" / "_diagnostics" / "masks.png", dpi=300)

@@ -46,7 +46,7 @@ if snkmk["load_from_static"]:
 
     sys.exit(0)
 
-diagnostic_path = paths.figures / "pal5" / "diagnostic" / "model"
+diagnostic_path = paths.scripts / "pal5" / "_diagnostics" / "model"
 diagnostic_path.mkdir(parents=True, exist_ok=True)
 
 
