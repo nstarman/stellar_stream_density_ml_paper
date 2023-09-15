@@ -588,7 +588,6 @@ rule pal5_model_script:
     input:
         "src/data/pal5/info.asdf",
         "src/data/pal5/control_points_stream.ecsv",
-        "src/data/pal5/control_points_spur.ecsv",
     cache:
         False
     script:
