@@ -145,6 +145,7 @@ dependencies:
     - src/data/pal5/gaia_ps1_xm.asdf
     - src/data/pal5/pm_edges.ecsv
     - src/data/pal5/masks.asdf
+    - src/data/pal5/info.asdf
   src/scripts/pal5/plot/photometric_background_selection.py:
     - src/data/pal5/data.tmp  # hack
   src/scripts/pal5/plot/results_full.py:
