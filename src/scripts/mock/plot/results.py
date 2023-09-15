@@ -66,7 +66,7 @@ fig = plt.figure(constrained_layout=True, figsize=(14, 13))
 gs = GridSpec(2, 1, height_ratios=(1, 1), figure=fig, hspace=0.0)
 gs0 = gs[0].subgridspec(4, 1, height_ratios=(1, 5, 5, 5), hspace=0)
 
-cmap = plt.get_cmap()
+cmap = plt.get_cmap("Stream1")
 
 # ---------------------------------------------------------------------------
 # Colormap
