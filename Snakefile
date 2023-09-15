@@ -443,6 +443,7 @@ rule gd1_member_likelihoods:
     input:
         "src/data/gd1/data.tmp",
         "src/data/gd1/model.tmp",
+        "src/data/gd1/model.pt",
     conda:
         "environment.yml"
     cache:
@@ -669,16 +670,17 @@ rule pal5_train_model:
 
 rule pal5_member_likelihoods:
     output:
-        "src/data/gd1/membership_likelhoods.ecsv"
+        "src/data/pal5/membership_likelhoods.ecsv"
     input:
-        "src/data/gd1/data.tmp",
-        "src/data/gd1/model.tmp",
+        "src/data/pal5/data.tmp",
+        "src/data/pal5/model.tmp",
+        "src/data/pal5/model.pt",
     conda:
         "environment.yml"
     cache:
         True
     script:
-        "src/scripts/gd1/model/4-likelihoods.py"
+        "src/scripts/pal5/model/4-likelihoods.py"
 
 
 rule pal5_member_table_select:
