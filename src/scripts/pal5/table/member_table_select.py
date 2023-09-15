@@ -35,10 +35,10 @@ rows.append(np.argmax(strm_mle))
 prob_idx = np.where(strm_mle > 0.9)[0]
 subselect = rng.choice(np.arange(len(prob_idx)), size=5, replace=False, shuffle=False)
 rows.extend(prob_idx[subselect])
-# 4 rows with a probability < 0.75
-prob_idx = np.where(strm_mle < 0.75)[0]
-subselect = rng.choice(np.arange(len(prob_idx)), size=4, replace=False, shuffle=False)
-rows.extend(prob_idx[subselect])
+# # 4 rows with a probability < 0.75
+# prob_idx = np.where(strm_mle < 0.75)[0]
+# subselect = rng.choice(np.arange(len(prob_idx)), size=4, replace=False, shuffle=False)
+# rows.extend(prob_idx[subselect])
 
 table = QTable()
 # yada yada the source_id column
