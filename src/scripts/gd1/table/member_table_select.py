@@ -169,7 +169,7 @@ preamble = r"""
 \small
 \setlength{\tabcolsep}{0pt}
 \newcommand\capitem{\\$\phantom{+}\ast$\ }
-"""
+"""[:-1]
 
 caption = r"""Subset of GD-1 Membership Table.
 \\

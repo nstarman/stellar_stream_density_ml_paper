@@ -183,7 +183,7 @@ write_kwargs = {
         "header_start": "\n".join(  # noqa: FLY002
             (
                 r"\toprule",
-                r"\multicolumn{5}{c}{Gaia} & \multicolumn{2}{c}{PS-1} & \multicolumn{1}{c}{} & \multicolumn{2}{c}{Membership Likelihood (${\rm MLE}_{5\%}^{95\%}$)}\\",  # noqa: E501
+                r"\multicolumn{5}{c}{Gaia} & \multicolumn{2}{c}{PS-1} & \multicolumn{1}{c}{} & \multicolumn{2}{c}{Membership (${\rm MLE}_{5\%}^{95\%}$)}\\",  # noqa: E501
                 r"\cmidrule(lr){1-5} \cmidrule(lr){6-7} \cmidrule(lr){9-10}"
             )
         ),
