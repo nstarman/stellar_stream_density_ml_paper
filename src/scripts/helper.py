@@ -1,12 +1,41 @@
 """Exposes common paths useful for manipulating datasets and generating figures."""
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+import numpy as np
 from scipy.interpolate import CubicSpline
 from torch import nn
 
-from stream_ml.core import ModelAPI
-from stream_ml.core.typing import Array, ArrayNamespace
 from stream_ml.core.utils.funcs import pairwise_distance
 from stream_ml.pytorch.builtin.compat._flow import _FlowModel
+
+if TYPE_CHECKING:
+    from matplotlib.colors import LinearSegmentedColormap
+
+    from stream_ml.core import ModelAPI
+    from stream_ml.core.typing import Array, ArrayNamespace
+
+
+def p2alpha(p: Array, /, minval: float = 0.1) -> Array:
+    """Convert probability to alpha."""
+    out = minval + (1 - minval) * np.where(  # avoid NaN for p=0
+        p == p.max(), 1, (p - p.min()) / (p.max() - p.min())
+    )
+    return np.clip(out, minval, 1)
+
+
+def color_by_probable_member(
+    *pandcmaps: tuple[Array, LinearSegmentedColormap]
+) -> np.ndarray:
+    """Color by the most probable member."""
+    # probabilities
+    ps = np.stack(tuple(p[0] for p in pandcmaps), 1)
+    # colors
+    cs = np.stack(tuple(cmap(p) for p, cmap in pandcmaps), 0)
+    # color by most probable
+    return cs[np.argmax(ps, 1), np.arange(len(ps))]
 
 
 def isochrone_spline(mags: Array, *, xp: ArrayNamespace[Array]) -> CubicSpline:

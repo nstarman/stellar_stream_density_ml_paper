@@ -6,7 +6,7 @@ dependencies:
   - pip=23.1
   - cython
 
-  - asdf
+  - asdf>=2.15
   - asdf-astropy
   - astroquery>0.4
   - astropy=5.2

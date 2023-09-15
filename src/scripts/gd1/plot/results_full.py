@@ -25,8 +25,7 @@ sys.path.append(paths.scripts.parent.as_posix())
 
 from scripts.gd1.datasets import data, where
 from scripts.gd1.define_model import model
-from scripts.gd1.model.helper import color_by_probable_member, p2alpha
-from scripts.helper import manually_set_dropout
+from scripts.helper import color_by_probable_member, manually_set_dropout, p2alpha
 from scripts.mpl_colormaps import stream_cmap1 as cmap1
 from scripts.mpl_colormaps import stream_cmap2 as cmap2
 

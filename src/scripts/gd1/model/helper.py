@@ -30,14 +30,12 @@ paths = user_paths()
 sys.path.append(paths.scripts.parent.as_posix())
 # isort: split
 
+from scripts.helper import color_by_probable_member, p2alpha
 from scripts.mpl_colormaps import stream_cmap1 as cmap1
 from scripts.mpl_colormaps import stream_cmap2 as cmap2
 
 if TYPE_CHECKING:
-    from matplotlib.colors import LinearSegmentedColormap
-
     from stream_ml.core import ModelAPI
-    from stream_ml.core.typing import Array
 
 # =============================================================================
 # Setup
@@ -59,26 +57,6 @@ with asdf.open(
 
 
 # =============================================================================
-
-
-def p2alpha(p: Array, /, minval: float = 0.1) -> Array:
-    """Convert probability to alpha."""
-    out = minval + (1 - minval) * np.where(  # avoid NaN for p=0
-        p == p.max(), 1, (p - p.min()) / (p.max() - p.min())
-    )
-    return np.clip(out, minval, 1)
-
-
-def color_by_probable_member(
-    *pandcmaps: tuple[Array, LinearSegmentedColormap]
-) -> np.ndarray:
-    """Color by the most probable member."""
-    # probabilities
-    ps = np.stack(tuple(p[0] for p in pandcmaps), 1)
-    # colors
-    cs = np.stack(tuple(cmap(p) for p, cmap in pandcmaps), 0)
-    # color by most probable
-    return cs[np.argmax(ps, 1), np.arange(len(ps))]
 
 
 def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
