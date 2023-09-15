@@ -297,6 +297,8 @@ rule gd1_masks:
 rule gd1_control_points_distance:
     output:
         "src/data/gd1/control_points_distance.ecsv"
+    conda:
+        "environment.yml"
     cache:
         True
     script:
@@ -306,6 +308,8 @@ rule gd1_control_points_distance:
 rule gd1_control_points_stream:
     output:
         "src/data/gd1/control_points_stream.ecsv"
+    conda:
+        "environment.yml"
     cache:
         True
     script:
@@ -315,6 +319,8 @@ rule gd1_control_points_stream:
 rule gd1_control_points_spur:
     output:
         "src/data/gd1/control_points_spur.ecsv"
+    conda:
+        "environment.yml"
     cache:
         True
     script:
@@ -330,6 +336,8 @@ rule gd1_info:
     params:
         pm_mask="pm_tight",
         phot_mask="cmd_medium",
+    conda:
+        "environment.yml"
     cache:
         True
     script:
@@ -343,6 +351,8 @@ rule gd1_data_script:
     input:
         "src/data/gd1/gaia_ps1_xm.asdf",
         "src/data/gd1/info.asdf",
+    conda:
+        "environment.yml"
     cache:
         False
     script:
@@ -357,6 +367,8 @@ rule gd1_model_script:
         "src/data/gd1/info.asdf",
         "src/data/gd1/control_points_stream.ecsv",
         "src/data/gd1/control_points_spur.ecsv",
+    conda:
+        "environment.yml"
     cache:
         False
     script:
@@ -374,6 +386,8 @@ rule gd1_train_background_photometry_flow:
         save_to_static=False,
         diagnostic_plots=True,
         epochs=2_000,
+    conda:
+        "environment.yml"
     cache:
         True
     script:
@@ -391,6 +405,8 @@ rule gd1_train_background_parallax_flow:
         save_to_static=False,
         diagnostic_plots=True,
         epochs=1_000,
+    conda:
+        "environment.yml"
     cache:
         True
     script:
@@ -413,6 +429,8 @@ rule gd1_train_model:
         epochs=1_250 * 10,
         lr=1e-3,
         weight_decay=1e-8,
+    conda:
+        "environment.yml"
     cache:
         True
     script:
@@ -425,6 +443,8 @@ rule gd1_member_likelihoods:
     input:
         "src/data/gd1/data.tmp",
         "src/data/gd1/model.tmp",
+    conda:
+        "environment.yml"
     cache:
         True
     script:
@@ -438,6 +458,8 @@ rule gd1_member_table_select:
         "src/data/gd1/data.tmp",
         "src/data/gd1/model.tmp",
         "src/data/gd1/membership_likelhoods.ecsv"
+    conda:
+        "environment.yml"
     cache:
         True
     script:
@@ -451,6 +473,8 @@ rule gd1_member_table_full:
         "src/data/gd1/data.tmp",
         "src/data/gd1/model.tmp",
         "src/data/gd1/membership_likelhoods.ecsv"
+    conda:
+        "environment.yml"
     cache:
         True
     script:
@@ -548,6 +572,8 @@ rule pal5_masks:
 rule pal5_control_points_stream:
     output:
         "src/data/pal5/control_points_stream.ecsv"
+    conda:
+        "environment.yml"
     cache:
         True
     script:
@@ -562,6 +588,8 @@ rule pal5_info:
         "src/data/pal5/masks.asdf",
     params:
         pm_mask="pm_tight_icrs",
+    conda:
+        "environment.yml"
     cache:
         True
     script:
@@ -575,6 +603,8 @@ rule pal5_data_script:
     input:
         "src/data/pal5/gaia_ps1_xm.asdf",
         "src/data/pal5/info.asdf",
+    conda:
+        "environment.yml"
     cache:
         False
     script:
@@ -588,6 +618,8 @@ rule pal5_model_script:
     input:
         "src/data/pal5/info.asdf",
         "src/data/pal5/control_points_stream.ecsv",
+    conda:
+        "environment.yml"
     cache:
         False
     script:
@@ -605,6 +637,8 @@ rule pal5_train_background_photometry_flow:
         save_to_static=False,
         diagnostic_plots=True,
         epochs=2_000,
+    conda:
+        "environment.yml"
     cache:
         True
     script:
@@ -625,6 +659,8 @@ rule pal5_train_model:
         epochs=1_250 * 10,
         lr=1e-3,
         weight_decay=1e-8,
+    conda:
+        "environment.yml"
     cache:
         True
     script:
@@ -637,6 +673,8 @@ rule pal5_member_likelihoods:
     input:
         "src/data/gd1/data.tmp",
         "src/data/gd1/model.tmp",
+    conda:
+        "environment.yml"
     cache:
         True
     script:
@@ -650,6 +688,8 @@ rule pal5_member_table_select:
         "src/data/pal5/data.tmp",
         "src/data/pal5/model.tmp",
         "src/data/pal5/membership_likelhoods.ecsv"
+    conda:
+        "environment.yml"
     cache:
         True
     script:
@@ -663,6 +703,8 @@ rule pal5_member_table_full:
         "src/data/pal5/data.tmp",
         "src/data/pal5/model.tmp",
         "src/data/pal5/membership_likelhoods.ecsv"
+    conda:
+        "environment.yml"
     cache:
         True
     script:
