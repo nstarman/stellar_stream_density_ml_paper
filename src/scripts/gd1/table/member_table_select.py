@@ -81,8 +81,8 @@ table[r"$\mu_{\delta}$ [$\frac{\rm{mas}}{\rm{yr}}$]"] = [
 table[r"$\varpi$ [\rm{mas}]"] = [
     rf"${v:0.2f} \pm {e:0.2f}$"
     for v, e in zip(
-        data_table["plx"][sel][rows].to_value("mas"),
-        data_table["plx_error"][sel][rows].to_value("mas"),
+        data_table["parallax"][sel][rows].to_value("mas"),
+        data_table["parallax_error"][sel][rows].to_value("mas"),
         strict=True,
     )
 ]
