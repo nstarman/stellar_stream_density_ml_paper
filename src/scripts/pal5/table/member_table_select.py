@@ -8,6 +8,8 @@ from astropy.table import QTable
 from numpy.lib.recfunctions import structured_to_unstructured
 from showyourwork.paths import user as user_paths
 
+from stream_ml.core.typing import Array
+
 paths = user_paths()
 
 # Add the parent directory to the path
@@ -40,6 +42,15 @@ rows.extend(prob_idx[subselect])
 # subselect = rng.choice(np.arange(len(prob_idx)), size=4, replace=False, shuffle=False)
 # rows.extend(prob_idx[subselect])
 
+
+def process_lines(vs: Array, es: Array) -> list[str]:
+    """Process to value +/- error string."""
+    return [
+        (rf"${v:0.2f} \pm {e:0.2f}$" if not np.isnan(v) else "---")
+        for v, e in zip(vs, es, strict=True)
+    ]
+
+
 table = QTable()
 # yada yada the source_id column
 table[r"\texttt{source\_id}"] = ["---"] * len(rows)
@@ -49,40 +60,24 @@ table[r"$\alpha$ [$\mathrm{{}^{\circ}}$]"] = data_table["ra"][sel][rows].to_valu
 table[r"$\delta$ [$\mathrm{{}^{\circ}}$]"] = data_table["dec"][sel][rows].to_value(
     "deg"
 )
-table[r"$\mu_{\alpha}^{*}$ [$\frac{\rm{mas}}{\rm{yr}}$]"] = [
-    f"${v:0.2f} \\pm {e:0.2f}$"
-    for v, e in zip(
-        data_table["pmra"][sel][rows].to_value("mas/yr"),
-        data_table["pmra_error"][sel][rows].to_value("mas/yr"),
-        strict=True,
-    )
-]
-table[r"$\mu_{\delta}$ [$\frac{\rm{mas}}{\rm{yr}}$]"] = [
-    rf"${v:0.2f} \pm {e:0.2f}$"
-    for v, e in zip(
-        data_table["pmdec"][sel][rows].to_value("mas/yr"),
-        data_table["pmdec_error"][sel][rows].to_value("mas/yr"),
-        strict=True,
-    )
-]
+table[r"$\mu_{\alpha}^{*}$ [$\frac{\rm{mas}}{\rm{yr}}$]"] = process_lines(
+    data_table["pmra"][sel][rows].to_value("mas/yr"),
+    data_table["pmra_error"][sel][rows].to_value("mas/yr"),
+)
+table[r"$\mu_{\delta}$ [$\frac{\rm{mas}}{\rm{yr}}$]"] = process_lines(
+    data_table["pmdec"][sel][rows].to_value("mas/yr"),
+    data_table["pmdec_error"][sel][rows].to_value("mas/yr"),
+)
 
 # Photometry
-table["g [mag]"] = [
-    rf"${v:0.2f} \pm {e:0.2f}$"
-    for v, e in zip(
-        data_table["g0"][sel][rows].to_value("mag"),
-        data_table["ps1_g_error"][sel][rows].to_value("mag"),
-        strict=True,
-    )
-]
-table["r [mag]"] = [
-    rf"${v:0.2f} \pm {e:0.2f}$"
-    for v, e in zip(
-        data_table["r0"][sel][rows].to_value("mag"),
-        data_table["ps1_r_error"][sel][rows].to_value("mag"),
-        strict=True,
-    )
-]
+table["g [mag]"] = process_lines(
+    data_table["g0"][sel][rows].to_value("mag"),
+    data_table["g0_error"][sel][rows].to_value("mag"),
+)
+table["r [mag]"] = process_lines(
+    data_table["r0"][sel][rows].to_value("mag"),
+    data_table["r0_error"][sel][rows].to_value("mag"),
+)
 
 table[r"${\rm dim}(\boldsymbol{x})$"] = np.sum(
     ~np.isnan(

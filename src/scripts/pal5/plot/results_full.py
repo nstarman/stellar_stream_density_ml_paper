@@ -46,7 +46,7 @@ with xp.no_grad():
     stream_lnlik = model.component_ln_posterior("stream", mpars, data, where=where)
     bkg_lnlik = model.component_ln_posterior("background", mpars, data, where=where)
     # tot_lnlik = model.ln_posterior(mpars, data, where=where)  # FIXME
-    tot_lnlik = xp.logsumexp(xp.stack((stream_lnlik, bkg_lnlik), 1), 1)
+    tot_lnlik = xp.logaddexp(stream_lnlik, bkg_lnlik)
 
 
 def _iter_mpars(key: str, subkey: str | None) -> np.ndarray:

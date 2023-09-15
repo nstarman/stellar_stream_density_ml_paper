@@ -38,12 +38,13 @@ with xp.no_grad():
 
     for i in tqdm(range(N), total=N):
         mpars = model.unpack_params(model(data))
-        stream_lik = model.component_posterior("stream", mpars, data, where=where)
-        bkg_lik = model.component_posterior("background", mpars, data, where=where)
-        tot_lik = model.posterior(mpars, data, where=where)
+        stream_lnlik = model.component_ln_posterior("stream", mpars, data, where=where)
+        bkg_lnlik = model.component_ln_posterior("background", mpars, data, where=where)
+        # tot_lnlik = model.ln_posterior(mpars, data, where=where)  # FIXME!
+        tot_lnlik = xp.logaddexp(stream_lnlik, bkg_lnlik)
 
-        stream_probs[:, i] = stream_lik / tot_lik
-        bkg_probs[:, i] = bkg_lik / tot_lik
+        stream_probs[:, i] = xp.exp(stream_lnlik - tot_lnlik)
+        bkg_probs[:, i] = xp.exp(bkg_lnlik - tot_lnlik)
 
 stream_prob_percentiles = np.c_[
     np.percentile(stream_probs, 5, axis=1),
@@ -64,12 +65,13 @@ manually_set_dropout(model, 0.0)
 with xp.no_grad():
     mpars = model.unpack_params(model(data))
 
-    stream_lik = model.component_ln_posterior("stream", mpars, data, where=where)
-    bkg_lik = model.component_ln_posterior("background", mpars, data, where=where)
-    tot_lik = model.ln_posterior(mpars, data, where=where)
+    stream_lnlik = model.component_ln_posterior("stream", mpars, data, where=where)
+    bkg_lnlik = model.component_ln_posterior("background", mpars, data, where=where)
+    # tot_lnlik = model.ln_posterior(mpars, data, where=where)  # FIXME!
+    tot_lnlik = xp.logaddexp(stream_lnlik, bkg_lnlik)
 
-stream_prob = xp.exp(stream_lik - tot_lik)
-bkg_prob = xp.exp(bkg_lik - tot_lik)
+bkg_prob = xp.exp(bkg_lnlik - tot_lnlik)
+stream_prob = xp.exp(stream_lnlik - tot_lnlik)
 
 # =============================================================================
 
