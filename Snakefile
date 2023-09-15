@@ -367,6 +367,7 @@ rule gd1_model_script:
         "src/data/gd1/info.asdf",
         "src/data/gd1/control_points_stream.ecsv",
         "src/data/gd1/control_points_spur.ecsv",
+        "src/data/gd1/control_points_distance.ecsv",
     conda:
         "environment.yml"
     cache:
@@ -421,6 +422,7 @@ rule gd1_train_model:
         "src/data/gd1/data.tmp",
         "src/data/gd1/model.tmp",
         "src/data/gd1/background_photometry_model.pt",
+        "src/data/gd1/background_parallax_model.pt",
     params:
         load_from_static=True,  # set to False to recompute
         save_to_static=False,
