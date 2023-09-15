@@ -45,6 +45,14 @@ table[r"$\mu_{\delta}$ [$\frac{\rm{mas}}{\rm{yr}}$]"] = [
         strict=True,
     )
 ]
+table[r"$\varpi$ [mas]"] = [
+    rf"${v:0.2f} \pm {e:0.2f}$"
+    for v, e in zip(
+        data_table["parallax"][sel].to_value("mas/yr"),
+        data_table["parallax_error"][sel].to_value("mas/yr"),
+        strict=True,
+    )
+]
 
 # Photometry
 table["g [mag]"] = [
@@ -67,7 +75,9 @@ table["r [mag]"] = [
 table[r"${\rm dim}(\boldsymbol{x})$"] = np.sum(
     ~np.isnan(
         structured_to_unstructured(
-            data_table[["ra", "dec", "pmra", "pmdec", "g0", "r0"]][sel].as_array()
+            data_table[["ra", "dec", "parallax", "pmra", "pmdec", "g0", "r0"]][
+                sel
+            ].as_array()
         )
     ),
     1,
@@ -151,12 +161,19 @@ write_kwargs = {
     "latexdict": {
         "tabletype": "table*",
         "preamble": preamble[1:],
-        "col_align": r"@{}r*{4}{c}*{2}{c}c*{3}{l}@{}",
+        "col_align": (
+            r"@{}"
+            r"r*{5}{c}"  # Astrometry
+            r"*{2}{c}"  # Photometry
+            r"c"  # dim(x)
+            r"*{3}{l}"  # Likelihood
+            r"@{}"
+        ),
         "header_start": "\n".join(  # noqa: FLY002
             (
                 r"\toprule",
-                r"\multicolumn{5}{c}{Gaia} & \multicolumn{2}{c}{PS-1} & \multicolumn{1}{c}{} & \multicolumn{3}{c}{Likelihood (${\rm MLE}_{5\%}^{95\%}$)}\\",  # noqa: E501
-                r"\cmidrule(lr){1-5} \cmidrule(lr){6-7} \cmidrule(lr){9-11}"
+                r"\multicolumn{6}{c}{Gaia} & \multicolumn{2}{c}{PS-1} & \multicolumn{1}{c}{} & \multicolumn{3}{c}{Likelihood (${\rm MLE}_{5\%}^{95\%}$)}\\",  # noqa: E501
+                r"\cmidrule(lr){1-6} \cmidrule(lr){7-8} \cmidrule(lr){10-12}"
             )
         ),
         "header_end": r"\midrule",

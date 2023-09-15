@@ -108,7 +108,9 @@ table["r [mag]"] = [
 table[r"${\rm dim}(\boldsymbol{x})$"] = np.sum(
     ~np.isnan(
         structured_to_unstructured(
-            data_table[["ra", "dec", "pmra", "pmdec", "g0", "r0"]][sel][rows].as_array()
+            data_table[["ra", "dec", "parallax", "pmra", "pmdec", "g0", "r0"]][sel][
+                rows
+            ].as_array()
         )
     ),
     1,
