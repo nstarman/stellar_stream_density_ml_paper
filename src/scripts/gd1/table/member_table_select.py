@@ -171,7 +171,7 @@ preamble = r"""
 \newcommand\capitem{\\$\phantom{+}\ast$\ }
 """
 
-caption = r"""Subset of Membership Table.
+caption = r"""Subset of GD-1 Membership Table.
 \\
 This table includes a selection of candidate member stars for the GD-1 stream,
 based on the membership likelihoods.  For each star we include the Gaia DR3

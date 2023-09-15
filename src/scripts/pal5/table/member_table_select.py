@@ -139,9 +139,9 @@ preamble = r"""
 \newcommand\capitem{\\$\phantom{+}\ast$\ }
 """
 
-caption = r"""Subset of Membership Table.
+caption = r"""Subset of Pal\;5 Membership Table.
 \\
-This table includes a selection of candidate member stars for the GD-1 stream,
+This table includes a selection of candidate member stars for the Pal\;5 stream,
 based on the membership likelihoods.  For each star we include the Gaia DR3
 source ID and astrometric solution, the Pan-STARRS1 photometry, and the
 membership likelihoods for the stream and background. The likelihoods are
