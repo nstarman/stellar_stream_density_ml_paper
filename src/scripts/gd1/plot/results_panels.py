@@ -228,7 +228,10 @@ for i, b in enumerate(np.unique(which_bin)):
     # ---------------------------------------------------------------------------
     # Phi2
 
-    ax10i = fig.add_subplot(gs1[0, i], xlabel=r"$\phi_2$ [$\degree$]")
+    ax10i = fig.add_subplot(
+        gs1[0, i],
+        xlabel=r"$\phi_2$ [$\degree$]",  # sharex=ax100 if i > 0 else None
+    )
 
     # Connect to top plot(s)
     for ax in (ax01, ax02, ax03):
@@ -259,13 +262,17 @@ for i, b in enumerate(np.unique(which_bin)):
 
     if i == 0:
         ax10i.set_ylabel("frequency")
+        ax100 = ax10i
     else:
         ax10i.set_yticklabels([])
 
     # ---------------------------------------------------------------------------
     # Parallax
 
-    ax11i = fig.add_subplot(gs1[1, i], xlabel=r"$\varpi$ [mas]")
+    ax11i = fig.add_subplot(
+        gs1[1, i],
+        xlabel=r"$\varpi$ [mas]",  # sharex=ax110 if i > 0 else None
+    )
 
     cplxs = np.ones((sel.sum(), 3)) * data_["plx"][:, None].numpy()
     ws = np.stack((bkg_prob_, stream_prob_, spur_prob_), axis=1)
@@ -282,13 +289,18 @@ for i, b in enumerate(np.unique(which_bin)):
 
     if i == 0:
         ax11i.set_ylabel("frequency")
+        ax110 = ax11i
     else:
         ax11i.set_yticklabels([])
 
     # ---------------------------------------------------------------------------
     # PM-Phi1
 
-    ax12i = fig.add_subplot(gs1[2, i], xlabel=r"$\mu_{\phi_1}^*$ [mas yr$^{-1}$]")
+    ax12i = fig.add_subplot(
+        gs1[2, i],
+        xlabel=r"$\mu_{\phi_1}^*$ [mas yr$^{-1}$]",
+        # sharex=ax120 if i > 0 else None,
+    )
 
     # Recovered
     cpmphi1s = np.ones((sel.sum(), 3)) * data_["pmphi1"][:, None].numpy()
@@ -311,6 +323,7 @@ for i, b in enumerate(np.unique(which_bin)):
 
     if i == 0:
         ax12i.set_ylabel("frequency")
+        ax120 = ax12i
     else:
         ax12i.set_yticklabels([])
 
