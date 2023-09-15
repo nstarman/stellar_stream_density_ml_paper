@@ -17,7 +17,7 @@ from stream_ml.visualization.background import (
 paths = user_paths()
 
 # Add the parent directory to the path
-sys.path.append(paths.scripts.as_posix())
+sys.path.append(paths.scripts.parent.as_posix())
 # isort: split
 
 from scripts.helper import manually_set_dropout

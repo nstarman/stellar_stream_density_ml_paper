@@ -11,7 +11,7 @@ from showyourwork.paths import user as user_paths
 paths = user_paths()
 
 # Add the parent directory to the path
-sys.path.append(paths.scripts.as_posix())
+sys.path.append(paths.scripts.parent.as_posix())
 # isort: split
 from scripts.gd1.datasets import data, where
 from scripts.gd1.define_model import model

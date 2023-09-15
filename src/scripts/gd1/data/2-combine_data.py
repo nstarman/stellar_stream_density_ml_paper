@@ -19,7 +19,7 @@ from zero_point import zpt
 paths = user_paths()
 
 # Add the parent directory to the path
-sys.path.append(paths.scripts.as_posix())
+sys.path.append(paths.scripts.parent.as_posix())
 # isort: split
 
 from scripts.gd1.frames import gd1_frame as frame
