@@ -11,6 +11,7 @@
 \usepackage{dsfont}
 \usepackage[inline]{enumitem}
 \usepackage{cleveref}
+\usepackage{transparent}
 \usepackage{todonotes}
 
 % Change the section names
@@ -98,7 +99,7 @@
     satellite galaxies, and their census has grown extensively in the Milky Way
     thanks to all-sky astrometric missions like {\it Gaia} and low-surface
     brightness photometric surveys (e.g., \citealt{2018ApJ...862..114S,
-    2021ApJ...914..123I}).  The formation of streams can be traced back to a
+    2021ApJ...914..123I} \JN{add more}).  The formation of streams can be traced back to a
     progenitor cluster, whose stars are gradually lost to the tidal field of the
     host galaxy and extend along a series of similar orbits producing tidal
     tails, which can sometimes span several tens of degrees across the sky. The
@@ -108,11 +109,10 @@
 
     The average properties of a stream (e.g., the mean position and velocity
     track of the tidal tails) can be used to reconstruct the global dark matter
-    distribution of the stellar halo (e.g., \JN{cite}), while local variations
+    distribution of the stellar halo (e.g., \citealt{1999ApJ...512L.109J, 2014ApJ...795...94B, 2014ApJ...795...95B,2022ApJ...940...22N,2023MNRAS.521.4936K}), while local variations
     in the stream track and surface density encode information about the
-    stream's encounters with baryonic structures such as (e.g.) the stellar bar
-    (\JN{cite}), and non-luminous structures like dark matter subhalos
-    (\JN{cite}). Importantly, these galactic components span orders of magnitude
+    stream's encounters with baryonic structures such as the stellar bar
+   (e.g., \citealt{2017MNRAS.470...60E, 2017NatAs...1..633P}) , and non-luminous structures like dark matter subhalos (e.g., \citealt{2017MNRAS.466..628B,2019ApJ...880...38B}). Importantly, these galactic components span orders of magnitude
     in mass and spatial extent, highlighting the sensitivity of streams in
     constraining the structure of the galaxy.
     
@@ -358,11 +358,8 @@
 \section{Method} \label{sec:method}
 
     We now introduce our method for characterizing stellar stream tracks and
-    computing stream membership likelihoods from N-D phase-space measurements.
-    % TODO: rephrase following sentence
-    We develop a flexible Bayesian model framework, that allows arbitrary
-    numbers of phase-space dimensions to be incorporated in the model and
-    permits missing phase-space observations.  Below, we offer a concise
+    computing membership probabilities from kinematic and photometric measurements of stars. 
+    We develop a flexible Bayesian modeling framework that incorporates all of the available kinematic information for a field of stars, including those with only partial phase-space measurements. Below, we offer a concise
     overview of our approach, followed by a more in-depth technical explanation
     in subsequent sections.  We start, in \autoref{sub:method:framing_the_data},
     by transforming the astrometric data into a stream-oriented on-sky reference
@@ -378,17 +375,17 @@
     Likewise, the background of the Galactic field may be described with
     $\phi_1$-conditioned distributions.
     % TODO: ⬆ I think this should be expanded.
-    Non-astrometric coordinates, e.g. photometry and metallicity, are also
+    Non-astrometric coordinates, e.g. photometry and metallicity \JN{do we ever actually do [Fe/H]$(\phi_1)$? If not, can remove metallicity}, are also
     modelled along the stream and background as functions of $\phi_1$.
 
     The distributions for the stream and background are collected in a single
     mixture model that describes the entire field.  We take the parameters of
-    the mixture model -- the mixing coefficients and component distribution
+    the mixture model -- the mixture weights and component distribution
     parameters -- to be general (continuous) functions of the conditioning
-    variable, $\phi_1$. This is done using feed-forward neural network that
-    takes the conditioning variable as its input and output the parameter value.
+    variable, $\phi_1$. This is done using a feed-forward neural network that
+    takes the conditioning variable as its input and outputs the parameter value(s) that characterize the distribution of stars at a $\phi_1$ ``slice".
     Mixture models of conditional probability distributions using neural
-    networks are called Mixture Density Networks (MDNs). Since the model
+    networks are called Mixture Density Networks (MDNs) \JN{cite CM Bishop}. Since the model
     coefficients may evolve with $\phi_1$, MNDs are well suited to characterize
     streams (and the background) with all their variations in position, width,
     and linear density.
@@ -397,7 +394,18 @@
 
 
     \subsection{Framing the Data} \label{sub:method:framing_the_data}
+        \JN{I like this section since we're really thinking deeply about ``what does it mean to construct a stream frame", which is important for this paper! Though I think the point can be made with less words and notation. I.e., I think we just want to establish that (a) streams can be parameterized as a function of some affine parameter, and (b) in a heliocentric frame even a stream on a circular orbit will not appear flat in on-sky angular coordinates. }
 
+        \JN{My modification of the paragraph below:  As a stream progenitor orbits the Galactic center of mass, its path can be approximated locally as an elliptical segment. The associated
+        arms of the stream generally align closely with its orbital plane. As viewed from a Galactocentirc reference frame, the stream assumes the form of a great circle enabling a 1:1 mapping from some phase parameter to a unique position along the stream. }
+
+        \JN{
+        While it would be ideal to characterize streams in a Galactocentirc frame, transformation to this frame requires knowledge of the solar motion around the galactic center, and accurate distances to a field stars (among other uncertain quantities). In a heliocentric frame, projection effects can obscure the shape of a stream leading to a non-trivial stream track.}  
+
+        \JN{
+        In a heliocentric frame, projection effects can obscure this simple description. Thankfully... (as before)}
+
+        
         As a stream progenitor orbits the Galactic center of mass (GCOM), its
         orbital path describes an ellipse in the orbital plane. The associated
         arms of the stream generally align closely with its orbital plane.  From
@@ -444,17 +452,32 @@
 
     \subsection{Likelihood Setup}\label{sub:method:likelihood_setup}
 
+        % \begin{figure}
+        %     \centering
+        %     \includegraphics[scale=0.5]{static/model/DAG_StreamDensity.pdf}
+        %     \caption{Probabilistic Graphical Model of the Mixture Density Network (MDN)}
+        %     \todo[inline]{TODO:}
+        %     \begin{enumerate}
+        %         \item remake this example this with
+        %         \url{https://github.com/daft-dev/daft}. See
+        %         \url{https://en.wikipedia.org/wiki/Mixture_model} for examples.
+        %     \end{enumerate}
+        %     \label{fig:DAG}
+        % \end{figure}
         \begin{figure}
+            \script{gd1/plot/pgm_stream.py}
             \centering
-            \includegraphics[scale=0.5]{static/model/DAG_StreamDensity.pdf}
+            \includegraphics[scale=0.5]{figures/gd1/pgm_stream.pdf}
             \caption{Probabilistic Graphical Model of the Mixture Density Network (MDN)}
-            \todo[inline]{TODO:}
-            \begin{enumerate}
-                \item remake this example this with
-                \url{https://github.com/daft-dev/daft}. See
-                \url{https://en.wikipedia.org/wiki/Mixture_model} for examples.
-            \end{enumerate}
-            \label{fig:DAG}
+            \label{fig:PGM_stream}
+        \end{figure}
+
+        \begin{figure}
+            \script{gd1/plot/pgm_background.py}
+            \centering
+            \includegraphics[scale=0.5]{figures/gd1/pgm_background.pdf}
+            \caption{Probabilistic Graphical Model of the Mixture Density Network (MDN) \JN{I think these could go side by side and take up the top of this page nicely (two column figure)}}
+            \label{fig:PGM_background}
         \end{figure}
 
         Mixture models (MMs) are a statistical method to represent a population
@@ -497,17 +520,18 @@
         in summations over its elements $x$. A full detailing of notation and
         symbols is included in \autoref{app:notation}.
 
-        The mixture coefficients $\qth{f}$ are normalized s.t.
+        The mixture coefficients $\qth{f}$ are normalized such that
         \begin{equation}
+        \label{eq:mixture_weight_sum}
             \sum_{\mrm{q}} \qth{f}(\phi_1) = 1 \qquad \forall \phi_1
         \end{equation}
-        In practice this is enforced by defining
+        In practice this is enforced by defining a background
         \begin{equation} \label{eq:mixture_weight_normalization}
             f_{b}(\phi_1) = 1 - \sum_{\rm{q}\in \mbs{I_Q}\backslash \{b\}} \qth{f}(\phi_1),
         \end{equation}
         the summation over all models except for some ``background" index $b \in
         \mbs{I_Q}$.  We discuss the mixture weights further in
-        \autoref{sub:method:mixture_weight}.
+        \autoref{sub:method:mixture_weight}. \JN{I think it's enough just to have Eq.~\ref{eq:mixture_weight_sum}.}
 
         In this work we consider primarily astrometric and photometric data,
         (notated $\mbs{W}$ and $\mbs{M}$, respectively, as detailed in
@@ -541,7 +565,7 @@
         where we have dropped the $(w), (m)$ superscript as the model types are
         evident from their inputs. We applied
         \autoref{eq:mixture_weight_normalization} to require only a single
-        mixture coefficient.  Of course, if more components are included in the
+        mixture coefficient.  \JN{I think we should simplify the sentences below, it interrupts the flow. For this work, can we just say: ``Note that the stream and background PDFs can consist of further components. This will become important for our characterization of the stream \stream{GD-1}, which appears spatially bifurcated.}Of course, if more components are included in the
         mixture then \autoref{eq:stream_and_bkg_prob} becomes the more general
         \autoref{eq:general_model}. However, this an implementation detail as
         any more complex model, e.g a model including a cold stream, extra-tidal
@@ -571,7 +595,7 @@
         \citep[e.g.,][]{Koposov+2019, Antoja+2020, Li+2022}, while most have
         partial coverage, lacking some feature dimensions.
         % TODO: terminology ND-phase-space vs feature columns
-        Most streams in \Gaia {\color{red} [cite]}, for instance, have proper
+        Most streams in \Gaia {\color{red} [cite]}\JN{Should be italics right?}, for instance, have proper
         motions but not radial velocities nor reliable parallax measurements.
         Followup surveys, like \dataarchive{S5} {\color{red} [cite]}, add many
         feature dimensions, however only for a select set of streams. Given the
@@ -624,7 +648,7 @@
         (CITE-x). The dependence of the mixture weight on the linear density is
         captured by the expression
         \begin{equation}\label{eq:fraction_param}
-            f_q\left(w_{i,0}\right) = \frac{N_q\left(\phi_1\right)}{N_{\rm tot}\left(\phi_1\right)},
+            f_q\left(\phi_1\right) = \frac{N_q\left(\phi_1\right)}{N_{\rm tot}\left(\phi_1\right)},
         \end{equation}
         where $N_q\left(\phi_1\right)$ is the number of stars in component $q$
         within an interval $[\phi_1, \phi_1 + \dif{\phi_1}]$, and $N_{\rm tot}$
@@ -640,10 +664,10 @@
         does not depend on the parameters of the on-stream or off-stream model.
         Instead, $N_{\rm tot}(\phi_1)$ is simply the number of stars in a small
         $\phi_1$ increment. We therefore model $N_{\rm tot}\left(\phi_1\right)$
-        as a post-processing step using a single normalzing flow in $\phi_1$. 
+        as a post-processing step using a single normalizing flow in $\phi_1$. 
 
         In particular, for a given field the distribution of $\phi_1$
-        coordinates is specified by the set $\{\phi_1\}_f$. A normalizng flow is
+        coordinates is specified by the set $\{\phi_1\}_f$. A normalizing flow is
         trained to this dataset, and will satisfy $\int d\phi_1
         P_{\phi_f}(\phi_1) = 1$ by construction. In order to re-weight the
         normalizing flow to obtain $N_{\rm tot}(\phi_1)$, we simply rescale
@@ -668,7 +692,7 @@
             $\astroM{\mbs{\Sigma}}(\phi_1)$. The probability for the data is
             then
             \begin{equation}
-                \cmp{S,w}{\pdf}(\nth{\mbs{w}} | \mbs{\theta}) \! = \mcal{N}_F \big(\nth{\mbs{w}} | \astroM{\mbs{\mu}}\!(\phi_1), {\cmp{w}{\nth{\mbs{\Sigma}}}}^2 \! + \!  \astroM{\mbs{\Sigma}}^2\!\left(\phi_1\right) \!\big),
+                \cmp{S,w}{\pdf}(\nth{\mbs{w}} | \mbs{\theta}) \! = \mcal{N}_F {\transparent{0.5}\big(}\nth{\mbs{w}} | \astroM{\mbs{\mu}}\!(\phi_1), {\cmp{w}{\nth{\mbs{\Sigma}}}}^2 \! + \!  \astroM{\mbs{\Sigma}}^2\!\left(\phi_1\right) \!\big),
             \end{equation}
             where $\astroM{\mbs{\theta}}$ is the set of neural network
             parameters that define $\astroM{\mbs{\mu}}$ and
@@ -1003,7 +1027,8 @@
             target density accurately characterizes the data. The neural network
             transformation is differentiable, so that jacobian factors can be
             combined to ensure that the the target distribution remains a valid
-            probability density (i.e., integrates to one) \TODO{[cite]}.  
+            probability density (i.e., integrates to one) \TODO{[cite]}.
+            For the neural networks we regularize the data (minus the mean, dividied by the standard deviation per feature column); thus we correct the overall normalization of the flow by the product of the jacobian of the regularization operation.
 
             Our implementation is as follows. For a given stream, we restrict
             the data to some field characterized by a polygon drawn around the
@@ -1259,7 +1284,7 @@
         lin-tanh-dropout network cannot be used is the normalizing flow used in
         the photometric background model
         (\autoref{sub:method:photometric_model:off_stream}). Here we use the
-        \package{nflows} package, with a conditional diagonal normal base
+        \package{zuko} package, with a conditional diagonal normal base
         distribution and composite transform network of a reverse permutation
         and masked affine auto-regressive transform layers. As noted in our data
         availability statement, all the codes used in this paper are bundled by
@@ -1523,9 +1548,7 @@
 % sec: results  (end)
 
 \section{Results: GD-1} \label{sec:results_gd1}
-
-    Having successful applied the density modeling framework to a mock stream,
-    we now apply the method to the stellar stream \stream{GD-1}.
+    We now apply our method for stream characterization to the stellar stream \stream{GD-1} , initially discovered by \citet{2006ApJ...643L..17G}. Previous work has identified several density variations along \stream{GD-1}, including a bifurcation that is well-modeled by an encounter with a dark matter subhalo. Characterizing the detailed density fluctuations of this stream is therefore important for constraining a population of perturbers.
     % TODO: some reiteration on the importance of GD-1
     We discuss the data selection in \autoref{sub:results_gd1:data}, model
     specifics in \autoref{sub:results_gd1:model}, and the results in
@@ -1550,8 +1573,9 @@
         where we use \package{gala}'s \citep{gala, galav1.3}
         \code{GD1Koposov10} frame \citep{Koposov+2010} to define $\phi_1$,
         $\phi_2$, and associated proper motions.  For downloading purposes we
-        split the query into 10 sub-regions in even $\phi_1$ increments. A plot
-        of the $\phi_1, \phi_2$ regions is included in the
+        split the query into 32 sub-regions in even $\phi_1$ increments.
+        % TODO: make this a \variable
+        A plot of the $\phi_1, \phi_2$ regions is included in the
         \href{\GitHubURL{}}{\package{ShowYourWork}} repository.  Stream-specific
         coordinates ($\phi_1, \phi_2$) are not included in \Gaia.  One could
         embed the coordinate transform in the ADQL \citep{ADQL2.0}, or define
@@ -1724,12 +1748,13 @@
         and 4 which apply to $\phi_2$ and $\mu_{\phi_1}$.
         The spur has 3 control points, but since the distance moduli between the stream and spur are linked, the stream control regions also apply.
 
+        % TODO: make this dynamically generated from the actual data.
         \begin{table}
             \centering
             \setlength{\tabcolsep}{0pt}
             \newcommand\capitem{\\$\phantom{+}\ast$\ }
             \caption{%
-                Stream Track Regions Prior%
+                Stream Track Regions Prior: %
                 This table includes all the region priors used to guide the model towards the known stream track. The model will converge to the
                 region $_{\rm minimum}^{\rm maximum}$.
                 See \autoref{sub:methods:priors:track_region_prior} for details.
@@ -1740,15 +1765,15 @@
                 \toprule
                 component & $\phi_1 \,\unit{\degree}$ & $\phi_2 \,\unit{\degree}$ & $\mu_{\phi_1} \,[\frac{\rm{mas}}{\rm{yr}}]$ & $\mu \,\unit{mag}$ & $(\simeq \parallax \,\unit{mas})$ \\
                 \midrule
-                stream & -70 & & & $_{14.2}^{14.8}$ & $_{0.11}^{0.14}$ \\ 
-                stream & -60 & $_{-2.55}^{\phantom{+}0.95}$ & $_{-13.25}^{-11.75}$ & & \\ 
-                stream & -50 & $_{-1.75}^{\phantom{+}1.75}$ & $_{-14.05}^{-12.55}$ & & \\ 
-                stream & -40 & $_{-1.75}^{\phantom{+}1.75}$ & $_{-14.05}^{-12.55}$ & $_{14.1}^{ 14.7}$ & $_{0.11}^{0.15}$ \\
-                spur & -35 & $_{0.45}^{2.15}$ & $_{-15.95}^{\phantom{0}-9.95}$ & & \\
-                stream & -30 & $_{-1.75}^{\phantom{+}1.75}$ & $_{-13.35}^{-11.85}$ & $_{14.1}^{ 14.7}$ & $_{0.11}^{0.15}$ \\
-                spur & -30 & $_{0.45}^{2.15}$ & $_{-15.60}^{\phantom{0}-9.60}$ & & \\
-                spur & -20 & $_{0.65}^{2.35}$ & $_{-16.50}^{\phantom{0}-6.50}$ & & \\
-                stream & 0 &  & & $_{14.7}^{15.3}$ & $_{0.09}^{0.15}$ \\
+                stream & -70 & & & ${\transparent{0.5}\big(}_{14.2}^{14.8}{\transparent{0.5}\big)}$ & ${\transparent{0.5}\big(}_{0.11}^{0.14}{\transparent{0.5}\big)}$ \\ 
+                stream & -60 & ${\transparent{0.5}\big(}_{-2.55}^{\phantom{+}0.95}{\transparent{0.5}\big)}$ & ${\transparent{0.5}\big(}_{-13.25}^{-11.75}{\transparent{0.5}\big)}$ & & \\ 
+                stream & -50 & ${\transparent{0.5}\big(}_{-1.75}^{\phantom{+}1.75}{\transparent{0.5}\big)}$ & ${\transparent{0.5}\big(}_{-14.05}^{-12.55}{\transparent{0.5}\big)}$ & & \\ 
+                stream & -40 & ${\transparent{0.5}\big(}_{-1.75}^{\phantom{+}1.75}{\transparent{0.5}\big)}$ & ${\transparent{0.5}\big(}_{-14.05}^{-12.55}{\transparent{0.5}\big)}$ & ${\transparent{0.5}\big(}_{14.1}^{ 14.7}{\transparent{0.5}\big)}$ & ${\transparent{0.5}\big(}_{0.11}^{0.15}{\transparent{0.5}\big)}$ \\
+                spur & -35 & ${\transparent{0.5}\big(}_{\phantom{+}0.45}^{\phantom{+}2.15}{\transparent{0.5}\big)}$ & ${\transparent{0.5}\big(}_{-15.95}^{\phantom{0}-9.95}{\transparent{0.5}\big)}$ & & \\
+                stream & -30 & ${\transparent{0.5}\big(}_{-1.75}^{\phantom{+}1.75}{\transparent{0.5}\big)}$ & ${\transparent{0.5}\big(}_{-13.35}^{-11.85}{\transparent{0.5}\big)}$ & ${\transparent{0.5}\big(}_{14.1}^{ 14.7}{\transparent{0.5}\big)}$ & ${\transparent{0.5}\big(}_{0.11}^{0.15}{\transparent{0.5}\big)}$ \\
+                spur & -30 & ${\transparent{0.5}\big(}_{\phantom{+}0.45}^{\phantom{+}2.15}{\transparent{0.5}\big)}$ & ${\transparent{0.5}\big(}_{-15.60}^{\phantom{0}-9.60}{\transparent{0.5}\big)}$ & & \\
+                spur & -20 & ${\transparent{0.5}\big(}_{\phantom{+}0.65}^{\phantom{+}2.35}{\transparent{0.5}\big)}$ & ${\transparent{0.5}\big(}_{-16.50}^{\phantom{0}-6.50}{\transparent{0.5}\big)}$ & & \\
+                stream & 0 &  & & ${\transparent{0.5}\big(}_{14.7}^{15.3}{\transparent{0.5}\big)}$ & ${\transparent{0.5}\big(}_{0.09}^{0.15}{\transparent{0.5}\big)}$ \\
                 \bottomrule\bottomrule
             \end{tabular}
             }
@@ -1859,6 +1884,7 @@
 
 % sub: gd1 (end)
 
+\clearpage
 \section{Palomar 5} \label{sec:results_pal5}
 
     We now apply the method to the stellar stream \stream{Palomar 5}.
@@ -1870,6 +1896,8 @@
     \subsection{Data Selection} \label{sub:results_pal5:data}
 
         \todo[inline]{rephrase (numbers are correct, phrasing is from GD-1}
+
+        
 
         We utilize data from \Gaia{} DR3 for the astrometric coordinates of each
         star.  To obtain more accurate color information, we cross-match the
@@ -1895,7 +1923,7 @@
         We correct the \PanStarrs{} photometry for dust
         extinction using the \textit{Bayestar19} \citep{Green+2019} models in
         the \package{dustmaps} package \citep{Green2018}.
-        For stars with missing parallax measurements we assume a distance of $8.5 \ \unit{kpc}$.  We include the $1-\sigma$ errors
+        For stars with missing parallax measurements we assume a distance of $20 \ \rm{kpc}$.  We include the $1-\sigma$ errors
         as a source of uncertainty in $\mbs{\Sigma}_n$, the per-star photometric
         uncertainty.
         We also correct the parallax for the zero-point using the \code{gaiadr3-zeropoint} package, which implements the findings from \cite{Lindegren+2021}.
@@ -1904,8 +1932,14 @@
         to identify stream members.
 
         We create data masks for a more refined selection around \stream{Pal\;5}.
+        
+        \begin{itemize}
+            \item M5 mask
+            \item that other thing
+        \end{itemize}
+        
         The two mask types, proper motion and photometric, are show in
-        \autoref{fig:gd1-data_selection}.  The proper motion masks select
+        \autoref{fig:pal5-data_selection}.  The proper motion masks select
         rectangular regions, containing the primary overdensity of \stream{Pal\;5}
         % and a surrounding area following the tail of the distribution.  The
         % tighter mask (red) has corners $(\mu_{\phi_1}, \mu_{\phi_2}) =
@@ -1925,15 +1959,193 @@
         the stream has much larger signal-to-noise, though is still only a small
         percent of the total data.
 
+        \begin{figure*}[h]
+            \script{pal5/plot/data_selection.py}
+            \centering
+            \includegraphics[width=1\linewidth]{figures/pal5/data_selection.pdf}
+            \caption{%
+                Data selections for \stream{Pal\;5}, within the data cube
+                described in \autoref{sub:results_pal5:data}.
+            }
+            \label{fig:pal5-data_selection}
+        \end{figure*}
+        
+
     % sub data_selection (end)
 
     \subsection{Model Specification} \label{sub:results_pal5:model}
 
         \todo[inline]{rephrase (numbers are correct, phrasing is from GD-1}
 
+        The modeling framework, detailed in the \autoref{sec:method} sections, is
+        modular, allowing many model components to be combined, nested, added
+        to the mixture, and linked via priors.
+        The model we require for \stream{GD-1} is similar to 
+        the model built for the mock stream in \autoref{sub:results_mock:model},
+        but has additional components for \stream{GD-1}'s spur.
+        In this section we will discuss how the total model is built, noting 
+        similarities to the example mocks-stream model.
+
+        All full Bayesian stream models necessarily include a background model,
+        which we model in both astrometric and photometric spaces.
+        The photometric background is too complex to capture with simple analytic
+        distributions. Instead, we train a normalizing flow on the magnitudes $g, r$,
+        conditioned on $\phi_1$. We refer readers to
+        \autoref{sub:method:photometric_model:off_stream} for discussion of the photometric distribution and how a normalizing flow
+        can characterize this complex distribution, including its variation over $\phi_1$.
+        The flow's flexibility, while necessary in this context, also poses
+        a problem: the flow captures the stream as easily as the background.
+        Consequently we select on-stream and off-stream regions using the known
+        $\phi_1,\phi_2$ range of the stream, as shown in the
+        upper panel of \autoref{fig:gd1-photometric_background_selection}.
+        In the lower panel are plotted these selections in photometric coordinates,
+        where an isochrone is apparent in the on-stream selection.
+        The normalizing flow is trained on the off-stream selection, and will be
+        fixed (not trainable, nor contribute to the gradient) when incorporated into the larger model.
+
+        \begin{figure}
+            \script{pal5/plot/photometric_background_selection.py}
+            \centering
+            \includegraphics[width=1\linewidth]{figures/pal5/photometric_background_selection.pdf}
+            \caption{Caption}
+            \label{fig:pal5-photometric_background_selection}
+        \end{figure}
+
+        Unlike for the photometry, the astrometric background may be (mostly) fit with simple analytic distributions.
+        \begin{itemize}
+            \item $\phi_2, \mu_{\phi_1} \sim \rm{TruncExp}(\lambda; a, b)$:
+                a truncated exponential distribution (see \autoref{app:sub:exponential_distribution}). 
+                The distribution has 2 slope parameters (one per coordinate) and we use a 4-layer 
+                \texttt{LinTanh} neural network with shape (1, 64, 2) and 15\% dropout.
+            \item $\mu_{\phi_2} \sim \rm{Trunc}\mcal{N}(\mu, \Sigma; a, b)$:
+                a truncated normal distribution (see \autoref{app:sub:normal_distribution}).
+                The distribution has 4 parameters (2 per coordinate) and we use a 4-layer 
+                \texttt{LinTanh} neural network with shape (1, 32, 4) and 15\% dropout.
+        \end{itemize}
+        We also model the parallax $\parallax$ distribution. For much of the extent of
+        \stream{GD1's} field the parallax is well modeled by a truncated skew-normal
+        distribution, $\parallax \sim \rm{TruncSkew}\mcal{N}(\mu, \Sigma; a, b)$, however for
+        $\phi_1 \in [-100, -60]$ this does not hold. Rather then splitting the model at a
+        somewhat arbitrary $\phi_1$ or interpolating between two distributions \TODO{[CITE]}
+        we instead fit the parallax with a $\phi_1$-conditioned normalizing flow.
+        \todo[inline]{flow details}
+
+        We model the main stream of \stream{GD-1} similarly to the mock stream --
+        as an independent addition of both astrometric and photometric models.
+        The astrometric model is a 5-dimensional Gaussian in
+        a Gaussian track in $\phi_2, \parallax, \mu_{\phi_1}, \mu_{\phi_2}, \parallax$,
+        using the model defined in \autoref{ssub:method:astrometric_model:on_stream}.
+        The parameter network is a 5-layer \texttt{LinTanh} with shape (1, 128, 10),
+        where the 10 outputs are
+        $\mbs{\theta} = [\mu_{\phi_2}, \sigma_{\phi_2}, \mu_\parallax, \sigma_\parallax, \mu_{\mu_{\phi_1}^*},
+        \sigma_{\mu_{\phi_1}^*}, \mu_{\mu_{\phi_2}},
+        \sigma_{\mu_{\phi_2}}, \mu_\parallax, \sigma_\parallax](\phi_1)$.
+        In testing the network is sufficiently
+        large to permit 15\% dropout and retain robust predictions.
+
+        The photometric model is a distance modulus-shifted isochrone, using the
+        model from \autoref{ssub:method:photometric_model:on_stream}.
+        % We use the same isochrone parameters used in the photometric selection.
+        We use a 12 Gyr, [Fe/H] = -1.2 MIST isochrone with no assumed intrinsic dispersion.
+        Using the method described in \autoref{ssub:method:linking_to_astrometrics}
+        the distance modulus track is set by the parallax track in the astrometric model. Thus the photometric model has no independent parameters and consequently no neural network.
+        % TODO: talk about priors on the ishochrone, e.g PDM
+
+        We model the spur of \stream{GD-1} as a separate component to the main
+        stream. We use an identical model as the stream: a 5-D astrometric Gaussian and isochrone in the photometry. We impose the prior that the spur and stream
+        share the same parallax and distance modulus.
+
+        The parameter phase-space is large and a random initialization will take significant
+        time to converge towards the stream track. This initial training is
+        unnecessary as the rough stream track is known \textit{a priori}.
+        To guide the astrometric model towards the known \stream{GD-1},
+        we set down ``control regions" (see \autoref{sub:methods:priors:track_region_prior})
+        along \stream{GD-1}'s main track and on the spur.
+        These control points act as Gaussian priors
+        on the model. We set the Gaussian error on these control points to large
+        values, so that their influence on the model is not dominant. Indeed, we
+        find that the value of the control points is to help reduce training
+        time, since otherwise it will take the flexible density model longer
+        time to converge to the actual stream.
+        We include all the track regions in \autoref{tab:gd1_track_prior}.
+        The main stream has six points: 3 of which apply to the distance modulus
+        and 4 which apply to $\phi_2$ and $\mu_{\phi_1}$.
+        The spur has 3 control points, but since the distance moduli between the stream and spur are linked, the stream control regions also apply.
+
+        % TODO: make this dynamically generated from the actual data.
+        \begin{table}
+            \centering
+            \setlength{\tabcolsep}{0pt}
+            \newcommand\capitem{\\$\phantom{+}\ast$\ }
+            \caption{%
+                Stream Track Regions Prior: %
+                This table includes all the region priors used to guide the model towards the known stream track. The model will converge to the
+                region $_{\rm minimum}^{\rm maximum}$.
+                See \autoref{sub:methods:priors:track_region_prior} for details.
+            }
+            \label{tab:pal5_track_prior}
+            {\rowcolors{2}{gray!10}{white!10}
+            \begin{tabular}{@{}*{4}{r<{\hspace{7pt}}}l<{\hspace{7pt}}@{}}
+                \toprule
+                $\phi_1 \,\unit{\degree}$ & $\phi_2 \,\unit{\degree}$ & $\mu_{\phi_1} \,[\frac{\rm{mas}}{\rm{yr}}]$ & $\mu \,\unit{mag}$ & $(\simeq \parallax \,\unit{mas})$ \\
+                \midrule
+                0 & & & & \\ 
+                \bottomrule\bottomrule
+            \end{tabular}
+            }
+        \end{table}
+
+        All the component models are tied together into a mixture model.
+        Instead of grouping together the stream components in a hierarchical
+        mixture model (background + (stream + spur)) we keep the structure flat,
+        using a single mixture (background + stream + spur) and reducing the number
+        of neural networks. The singular weight parameter network is a 4-layer (1, 32, 2) \texttt{LinTanh} network with 15\% dropout.
+        The stream weights are in the range $f \in [10^{-3}, 0.3]$, while 
+        the spur weights are $f \in [10^{-3}, 0.1]$ and set to 0 $\phi_1 < -45, -15 < \phi_1$. By \autoref{eq:mixture_weight_normalization} the background  brings the cumulative weight to one, normalizing the mixture.
+
     % sub model_specification (end)
 
     \subsection{Trained Density Model} \label{sub:results_pal5:results}
+
+        \begin{figure*}[h]
+            \script{pal5/plot/results_full.py}
+            \centering
+            \includegraphics[width=1\linewidth]{figures/pal5/results_full.pdf}
+            \caption{CAPTION}
+            \label{fig:pal5-results-full}
+            TODO:
+            \begin{itemize}
+                \item Add plot of the stream linear density
+                \item Color palette for the spur
+                \item more subtle stream MLE path
+                \item rerun model with larger pmphi2 sigma
+                \item add the isochrones to the cmd plots
+            \end{itemize}
+        \end{figure*}
+
+        \begin{figure*}[h]
+            \script{pal5/plot/results_panels.py}
+            \centering
+            \includegraphics[width=1\linewidth]{figures/pal5/results_panels.pdf}
+            \caption{CAPTION}
+            TODO:
+            \begin{itemize}
+                \item Add plot of the stream linear density
+                \item Color palette for the spur
+                \item add the isochrones to the cmd plots
+            \end{itemize}
+            \label{fig:pal5-results-panels}
+        \end{figure*}
+
+        \begin{figure*}
+            \script{pal5/plot/smooth_likelihood.py}
+            \centering
+            \includegraphics[scale=0.8]{figures/pal5/smooth_likelihood.pdf}
+            \caption{Caption}
+            \label{fig:pal5-heatmap}
+        \end{figure*}
+
+        \variable{output/pal5/member_table_select.tex}
 
     % sub trained_density_model
 
