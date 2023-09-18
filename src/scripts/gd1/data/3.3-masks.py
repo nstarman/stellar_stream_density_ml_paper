@@ -86,17 +86,14 @@ with asdf.open(
 mags = np.c_[table["g0"] - table["i0"], table["g0"]]
 
 # Tight
-cmd_tight = mpath.Path(iso_tight, readonly=True).contains_points(mags)
-masks_table["cmd_tight"] = cmd_tight
+masks_table["cmd_tight"] = mpath.Path(iso_tight, readonly=True).contains_points(mags)
 
 # Medium
-cmd_med = mpath.Path(iso_medium, readonly=True).contains_points(mags)
-masks_table["cmd_medium"] = cmd_med
+masks_table["cmd_medium"] = mpath.Path(iso_medium, readonly=True).contains_points(mags)
 
 
 # Loose
-cmd_loose = mpath.Path(iso_loose, readonly=True).contains_points(mags)
-masks_table["cmd_loose"] = cmd_loose
+masks_table["cmd_loose"] = mpath.Path(iso_loose, readonly=True).contains_points(mags)
 
 
 # =============================================================================

@@ -2,8 +2,8 @@
 
 import shutil
 import sys
-from typing import Any
 
+import asdf
 import matplotlib as mpl
 import matplotlib.path as mpath
 import numpy as np
@@ -29,7 +29,11 @@ SAVE_LOC = paths.data / "pal5" / "masks.asdf"
 try:
     snkmk = snakemake.params
 except NameError:
-    snkmk = {"load_from_static": False, "save_to_static": False}
+    snkmk = {
+        "load_from_static": False,
+        "save_to_static": False,
+        "diagnostic_plots": True,
+    }
 
 
 if snkmk["load_from_static"]:
@@ -102,7 +106,24 @@ masks_table["pm_tight_icrs"] = (
     & (table["pmdec"] < pm_tight["pm_phi2_max"])
 )
 
+
 # =============================================================================
+# Photometric selection
+# Applying this mask to the data table will remove the stars outside the
+# photometric box.
+
+with asdf.open(
+    paths.data / "pal5" / "isochrone.asdf", lazy_load=False, copy_arrays=True
+) as af:
+    iso_15 = af["isochrone_15"]
+
+mags = np.c_[table["g0"] - table["i0"], table["g0"]]
+
+masks_table["cmd_15"] = mpath.Path(iso_15, readonly=True).contains_points(mags)
+
+
+# =============================================================================
+# Save
 
 masks_table.write(SAVE_LOC)
 
@@ -113,14 +134,25 @@ if snkmk["save_to_static"]:
 # =============================================================================
 # Diagnostic plot
 
-fig = plt.figure(figsize=(15, 7))
-gs = mpl.gridspec.GridSpec(4, 2, width_ratios=[1, 3])
-ax1 = fig.add_subplot(gs[1:-1, 0])
-ax2 = fig.add_subplot(gs[0:2, 1])
-ax3 = fig.add_subplot(gs[2:, 1])
+if not snkmk["diagnostic_plots"]:
+    sys.exit(0)
 
+fig = plt.figure(figsize=(15, 7))
+gs = mpl.gridspec.GridSpec(2, 2, width_ratios=[1, 3])
+ax00 = fig.add_subplot(gs[0, 0])
+ax10 = fig.add_subplot(gs[1, 0])
+ax01 = fig.add_subplot(gs[0, 1])
+ax11 = fig.add_subplot(gs[1, 1])
+
+# Initial mask getting rid of other clusters
 _mask = masks_table["M5"] & masks_table["things"]
-ax1.hist2d(
+# Full mask, including pm & photo selection
+_mask_full = _mask & masks_table["pm_tight_icrs"] & masks_table["cmd_15"]
+
+# -----------------------------------------------
+# PM
+
+ax10.hist2d(
     table["pmra"][_mask].value,
     table["pmdec"][_mask].value,
     bins=(np.linspace(-10, 10, 128), np.linspace(-10, 10, 128)),
@@ -128,42 +160,47 @@ ax1.hist2d(
     norm=mpl.colors.LogNorm(),
 )
 
+row = pm_edges.loc["tight_icrs"]
+rec = mpl.patches.Rectangle(
+    (row["pm_phi1_min"].value, row["pm_phi2_min"].value),
+    row["pm_phi1_max"].value - row["pm_phi1_min"].value,
+    row["pm_phi2_max"].value - row["pm_phi2_min"].value,
+    color="tab:red",
+)
+rec.set_facecolor((*rec.get_facecolor()[:-1], 0.05))
+ax10.add_patch(rec)
 
-def _sel_patch(row: Any, k1: str, k2: str, **kwargs: Any) -> Any:
-    """Add a Rectangular patch to the plot."""
-    rec = mpl.patches.Rectangle(
-        (row[k1 + "_min"].value, row[k2 + "_min"].value),
-        row[k1 + "_max"].value - row[k1 + "_min"].value,
-        row[k2 + "_max"].value - row[k2 + "_min"].value,
-        **kwargs
-    )
-    rec.set_facecolor((*rec.get_facecolor()[:-1], 0.05))
-
-    return rec
-
-
-ax1.add_patch(_sel_patch(pm_edges.loc["tight_icrs"], "pm_phi1", "pm_phi2", color="red"))
-
-ax2.plot(
-    c_pal5.phi1[masks_table["pm_tight_icrs"]],
-    table["pmdec"][masks_table["pm_tight_icrs"]],
+ax01.plot(
+    c_pal5.phi1[_mask_full],
+    table["pmdec"][_mask_full],
     c="black",
     marker=",",
     linestyle="none",
     alpha=1,
 )
-ax2.set_ylabel(r"$\mu_{\phi_1}^*$ [deg]")
+ax01.set_ylabel(r"$\mu_{\phi_1}^*$ [deg]")
 
-ax3.plot(
-    c_pal5.phi1[masks_table["pm_tight_icrs"]],
-    c_pal5.phi2[masks_table["pm_tight_icrs"]],
+# -----------------------------------------------
+# Photometry
+
+ax10.hist2d(
+    table["g0"][_mask].value - table["r0"][_mask].value,
+    table["g0"][_mask].value,
+    bins=(np.linspace(-0.5, 1.5, 128), np.linspace(12, 23, 128)),
+    cmap="Greys",
+    norm=mpl.colors.LogNorm(),
+)
+
+ax11.plot(
+    c_pal5.phi1[_mask_full],
+    c_pal5.phi2[_mask_full],
     c="black",
     marker=",",
     linestyle="none",
     alpha=1,
 )
-ax3.set_xlabel(r"$\phi_1$ [deg]")
-ax3.set_ylabel(r"$\phi_2$ [deg]")
+ax11.set_xlabel(r"$\phi_1$ [deg]")
+ax11.set_ylabel(r"$\phi_2$ [deg]")
 
 fig.tight_layout()
 fig.savefig(paths.scripts / "pal5" / "_diagnostics" / "masks.png", dpi=300)

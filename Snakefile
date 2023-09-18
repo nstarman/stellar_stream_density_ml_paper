@@ -543,6 +543,19 @@ rule pal5_masks_pm:
         "src/scripts/pal5/data/3.1-pm_edges.py"
 
 
+rule pal5_masks_iso:
+    output:
+        "src/data/pal5/isochrone.asdf"
+    params:
+        diagnostic_plots=True,
+    conda:
+        "environment.yml"
+    cache:
+        True
+    script:
+        "src/scripts/pal5/data/3.2-phot_edges.py"
+
+
 rule pal5_masks_off_field:
     output:
         "src/data/pal5/footprint.npz"
@@ -564,6 +577,7 @@ rule pal5_masks:
     params:
         load_from_static=True,  # set to False to recompute
         save_to_static=False,
+        diagnostic_plots=True,
     conda:
         "environment.yml"
     cache:
