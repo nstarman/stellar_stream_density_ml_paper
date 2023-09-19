@@ -4,6 +4,7 @@ import shutil
 import sys
 
 import asdf
+import galstreams
 import matplotlib as mpl
 import matplotlib.path as mpath
 import numpy as np
@@ -19,7 +20,6 @@ paths = user_paths()
 sys.path.append(paths.scripts.parent.as_posix())
 # isort: split
 
-import contextlib
 
 from scripts.pal5.frames import pal5_frame as frame
 
@@ -70,6 +70,14 @@ footprint = np.load(paths.data / "pal5" / "footprint.npz")["footprint"]
 masks_table["off_stream"] = mpath.Path(footprint.T, readonly=True).contains_points(
     np.c_[table["phi1"].to_value("deg"), table["phi2"].to_value("deg")]
 )
+
+# =============================================================================
+# Pal5 Cluster
+# Applying this mask to the data table will remove the Pal5 cluster stars.
+
+P5 = SkyCoord.from_name("palomar 5")
+masks_table["P5"] = ~(P5.separation(c_pal5) < 0.5 * u.deg)
+
 
 # =============================================================================
 # M5
@@ -136,8 +144,7 @@ masks_table["phot_15"] = mpath.Path(iso_15, readonly=True).contains_points(
 # Save
 
 # Try removing the file first. ASDF can be weird about overwriting.
-with contextlib.suppress(FileNotFoundError):
-    SAVE_LOC.remove()
+SAVE_LOC.unlink(missing_ok=True)
 # Save
 masks_table.write(SAVE_LOC)
 
@@ -167,6 +174,8 @@ _mask = masks_table["M5"] & masks_table["things"]
 # Full mask, including pm & photo selection
 _mask_full = _mask & masks_table["pm_tight_icrs"] & masks_table["phot_15"]
 
+pal5 = galstreams.MWStreams()["Pal5-PW19"]
+
 # -----------------------------------------------
 # PM
 
@@ -178,12 +187,20 @@ ax00.hist2d(
     norm=mpl.colors.LogNorm(),
 )
 
+ax00.plot(
+    pal5.track.pm_ra_cosdec.value,
+    pal5.track.pm_dec.value,
+    c="tab:blue",
+    label="Pal 5",
+)
+
 row = pm_edges.loc["tight_icrs"]
 rec = mpl.patches.Rectangle(
     (row["pm_phi1_min"].value, row["pm_phi2_min"].value),
     row["pm_phi1_max"].value - row["pm_phi1_min"].value,
     row["pm_phi2_max"].value - row["pm_phi2_min"].value,
     color="tab:red",
+    label="Selection",
 )
 rec.set_facecolor((*rec.get_facecolor()[:-1], 0.05))
 ax00.add_patch(rec)
@@ -211,9 +228,17 @@ ax10.set_ylim(22, 12)
 # Applying to phi1, phi2
 
 ax01.plot(
-    c_pal5.phi1[_mask_full],
-    c_pal5.phi2[_mask_full],
+    c_pal5.phi1[_mask_full & ~masks_table["P5"]],
+    c_pal5.phi2[_mask_full & ~masks_table["P5"]],
     c="black",
+    marker=",",
+    linestyle="none",
+    alpha=1,
+)
+ax01.plot(
+    c_pal5.phi1[_mask_full & masks_table["P5"]],
+    c_pal5.phi2[_mask_full & masks_table["P5"]],
+    c="green",
     marker=",",
     linestyle="none",
     alpha=1,
