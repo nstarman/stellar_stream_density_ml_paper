@@ -186,14 +186,14 @@ We include as interesting cases:
     \capitem{} 1 star with the maximum MLE for the spur,
     \capitem{} 1 star with high spur MLE and low stream MLE
                ($\mathcal{L}^{(spur)}_{\rm MLE} > 0.9, \mathcal{L}^{(S)}_{\rm MLE} < 0.75$),
-    \capitem{} and 3 stars with significant MLE for both the stream and spur
-               ($\mathcal{L}^{(S)}_{\rm MLE} > 0.1, \mathcal{L}^{(spur)}_{\rm MLE} > 0.7$).
 \\
 For convenience we round the likelihoods to 2 decimal places, and only show the
 value and uncertainty when it is non-zero.
 \\
 \textit{The full table, including source ids, is available online.}
 """  # noqa: E501
+#     \capitem{} and 3 stars with significant MLE for both the stream and spur
+#                ($\mathcal{L}^{(S)}_{\rm MLE} > 0.1, \mathcal{L}^{(spur)}_{\rm MLE} > 0.7$).  # noqa: E501
 
 write_kwargs = {
     "format": "ascii.latex",
