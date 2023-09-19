@@ -19,6 +19,8 @@ paths = user_paths()
 sys.path.append(paths.scripts.parent.as_posix())
 # isort: split
 
+import contextlib
+
 from scripts.pal5.frames import pal5_frame as frame
 
 ##############################################################################
@@ -125,6 +127,10 @@ masks_table["phot_15"] = mpath.Path(iso_15, readonly=True).contains_points(
 # =============================================================================
 # Save
 
+# Try removing the file first. ASDF can be weird about overwriting.
+with contextlib.suppress(FileNotFoundError):
+    SAVE_LOC.remove()
+# Save
 masks_table.write(SAVE_LOC)
 
 if snkmk["save_to_static"]:
