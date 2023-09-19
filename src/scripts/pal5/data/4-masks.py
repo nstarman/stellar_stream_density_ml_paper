@@ -108,6 +108,14 @@ masks_table["pm_tight_icrs"] = (
     & (table["pmdec"] < pm_tight["pm_phi2_max"])
 )
 
+pm_med = pm_edges.loc["med_icrs"]
+masks_table["pm_med_icrs"] = (
+    (table["pmra"] > pm_med["pm_phi1_min"])
+    & (table["pmra"] < pm_med["pm_phi1_max"])
+    & (table["pmdec"] > pm_med["pm_phi2_min"])
+    & (table["pmdec"] < pm_med["pm_phi2_max"])
+)
+
 
 # =============================================================================
 # Photometric selection

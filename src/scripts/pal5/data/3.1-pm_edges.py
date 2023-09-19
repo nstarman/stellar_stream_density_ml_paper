@@ -7,7 +7,10 @@ from showyourwork.paths import user as user_paths
 paths = user_paths()
 
 table = QTable(
-    rows=[["tight_icrs", *(-3.5, -2) * u.mas / u.yr, *(-3.5, -2) * u.mas / u.yr]],
+    rows=[
+        ["tight_icrs", *(-3.5, -2) * u.mas / u.yr, *(-3.5, -2) * u.mas / u.yr],
+        ["med_icrs", *(-4, -1) * u.mas / u.yr, *(-4, -1) * u.mas / u.yr],
+    ],
     names=("label", "pm_phi1_min", "pm_phi1_max", "pm_phi2_min", "pm_phi2_max"),
     dtype=(str, float, float, float, float),
     units=(None, u.mas / u.yr, u.mas / u.yr, u.mas / u.yr, u.mas / u.yr),
@@ -20,4 +23,4 @@ table = QTable(
 )
 table.add_index("label", unique=True)
 
-table.write(paths.data / "pal5" / "pm_edges.ecsv")
+table.write(paths.data / "pal5" / "pm_edges.ecsv", overwrite=True)

@@ -604,7 +604,7 @@ rule pal5_info:
         "src/data/pal5/gaia_ps1_xm.asdf",
         "src/data/pal5/masks.asdf",
     params:
-        pm_mask="pm_tight_icrs",
+        pm_mask="pm_med_icrs",
         phot_mask="phot_15",
     conda:
         "environment.yml"
