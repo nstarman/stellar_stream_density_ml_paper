@@ -19,7 +19,7 @@ try:
 except NameError:
     snkmk = {
         "pm_mask": "pm_tight_icrs",
-        # "phot_mask": "cmd_medium",
+        "phot_mask": "phot_15",
     }
 
 
@@ -38,10 +38,10 @@ af = asdf.AsdfFile()
 
 sel = (
     # (table["parallax"] > 0 * u.milliarcsecond)  # TODO: allow negative parallax
-    # & masks[snkmk["phot_mask"]]
     masks["M5"]
     & masks["things"]
     & masks[snkmk["pm_mask"]]
+    & masks[snkmk["phot_mask"]]
 )
 table = table[sel]
 

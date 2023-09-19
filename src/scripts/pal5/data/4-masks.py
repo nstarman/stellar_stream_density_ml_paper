@@ -117,7 +117,7 @@ with asdf.open(
 ) as af:
     iso_15 = af["isochrone_15"]
 
-masks_table["cmd_15"] = mpath.Path(iso_15, readonly=True).contains_points(
+masks_table["phot_15"] = mpath.Path(iso_15, readonly=True).contains_points(
     np.c_[table["g0"], table["r0"]]
 )
 
@@ -151,7 +151,7 @@ ax11 = fig.add_subplot(
 # Initial mask getting rid of other clusters
 _mask = masks_table["M5"] & masks_table["things"]
 # Full mask, including pm & photo selection
-_mask_full = _mask & masks_table["pm_tight_icrs"] & masks_table["cmd_15"]
+_mask_full = _mask & masks_table["pm_tight_icrs"] & masks_table["phot_15"]
 
 # -----------------------------------------------
 # PM

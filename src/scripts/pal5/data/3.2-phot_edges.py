@@ -80,7 +80,7 @@ table = QTable.read(paths.data / "pal5" / "gaia_ps1_xm.asdf")
 
 fig = plt.figure(figsize=(4, 4))
 ax = fig.add_subplot(
-    xlabel="g - r [mag]", ylabel="g [mag]", xlim=(-0.5, 1.5), ylim=(21, 12)
+    xlabel="g - r [mag]", ylabel="g [mag]", xlim=(-0.5, 1.5), ylim=(22, 12)
 )
 
 ax.plot(table["g0"] - table["r0"], table["g0"], c="k", ls="none", marker=",")
