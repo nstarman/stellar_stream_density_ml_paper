@@ -20,7 +20,7 @@ try:
 except NameError:
     snkmk = {
         "pm_mask": "pm_tight",
-        "phot_mask": "cmd_medium",
+        "phot_mask": "phot_medium",
     }
 
 

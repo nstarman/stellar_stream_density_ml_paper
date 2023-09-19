@@ -335,7 +335,7 @@ rule gd1_info:
         "src/data/gd1/masks.asdf",
     params:
         pm_mask="pm_tight",
-        phot_mask="cmd_medium",
+        phot_mask="phot_medium",
     conda:
         "environment.yml"
     cache:

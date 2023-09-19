@@ -145,8 +145,8 @@ ax10.legend(loc="upper left")
 
 ax11 = subfigs[0].add_subplot(gs0[1, 1])
 ax11.hist2d(
-    table["phi1"][masks_table["cmd_medium"]].value,
-    table["phi2"][masks_table["cmd_medium"]].value,
+    table["phi1"][masks_table["phot_medium"]].value,
+    table["phi2"][masks_table["phot_medium"]].value,
     cmap="Blues",
     density=True,
     bins=200,
@@ -154,8 +154,8 @@ ax11.hist2d(
     norm=mpl.colors.LogNorm(),
 )
 ax11.hist2d(
-    table["phi1"][masks_table["cmd_tight"]].value,
-    table["phi2"][masks_table["cmd_tight"]].value,
+    table["phi1"][masks_table["phot_tight"]].value,
+    table["phi2"][masks_table["phot_tight"]].value,
     cmap="Blues",
     density=True,
     bins=200,
@@ -171,7 +171,7 @@ subfigs[1].suptitle("Applying Selections")
 
 sel = (
     masks_table["pm_tight"]
-    & masks_table["cmd_medium"]
+    & masks_table["phot_medium"]
     & (table["parallax"] > -0.5 * u.mas)
 )
 
@@ -228,7 +228,7 @@ for ax in (ax30, ax31, ax32, ax33):
 
 sel = (
     masks_table["pm_loose"]
-    & masks_table["cmd_medium"]
+    & masks_table["phot_medium"]
     & (table["parallax"] > -0.5 * u.mas)
 )
 
