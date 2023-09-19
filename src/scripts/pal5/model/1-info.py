@@ -37,11 +37,11 @@ af = asdf.AsdfFile()
 # TODO: move this to the data files
 
 sel = (
-    # (table["parallax"] > 0 * u.milliarcsecond)  # TODO: allow negative parallax
     masks["M5"]
     & masks["things"]
     & masks[snkmk["pm_mask"]]
     & masks[snkmk["phot_mask"]]
+    # & masks["Pal5"]  # TODO! as a separate model component
 )
 table = table[sel]
 
@@ -77,30 +77,6 @@ af["renamer"] = {
     "parallax_pmdec_corr": "plx_pmdec_corr",
     "pmra_pmdec_corr": "pmra_pmdec_corr",
     "bp_rp": "bp_rp",
-    # 'gaia_g',
-    # 'gaia_g_ferror',
-    # 'gaia_bp',
-    # 'gaia_bp_ferror',
-    # 'gaia_rp',
-    # 'gaia_rp_ferror',
-    # 'ruwe',
-    # 'ag_gspphot',
-    # 'ebpminrp_gspphot',
-    # 'original_ext_source_id',
-    # 'gaia_ps1_angular_distance',
-    # 'number_of_neighbours',
-    # 'number_of_mates',
-    # 'ps1_g',
-    # "ps1_g_error": "g_err",
-    # # 'ps1_r',
-    # "ps1_r_error": "r_err",
-    # # 'ps1_i',
-    # "ps1_i_error": "i_err",
-    # # 'ps1_z',
-    # "ps1_z_error": "z_err",
-    # # 'ps1_y',
-    # "ps1_y_error": "y_err",
-    # 'ps1_n_detections',
     "phi1": "phi1",
     "phi1_error": "phi1_err",
     "phi2": "phi2",

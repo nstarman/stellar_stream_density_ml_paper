@@ -76,7 +76,7 @@ masks_table["off_stream"] = mpath.Path(footprint.T, readonly=True).contains_poin
 # Applying this mask to the data table will remove the Pal5 cluster stars.
 
 P5 = SkyCoord.from_name("palomar 5")
-masks_table["P5"] = ~(P5.separation(c_pal5) < 0.5 * u.deg)
+masks_table["Pal5"] = ~(P5.separation(c_pal5) < 0.5 * u.deg)
 
 
 # =============================================================================
@@ -172,7 +172,7 @@ ax11 = fig.add_subplot(
 # Initial mask getting rid of other clusters
 _mask = masks_table["M5"] & masks_table["things"]
 # Full mask, including pm & photo selection
-_mask_full = _mask & masks_table["pm_tight_icrs"] & masks_table["phot_15"]
+_mask_full = _mask & masks_table["pm_med_icrs"] & masks_table["phot_15"]
 
 pal5 = galstreams.MWStreams()["Pal5-PW19"]
 track = pal5.track.transform_to(frame)
@@ -195,7 +195,7 @@ ax00.plot(
     label="Pal 5",
 )
 
-row = pm_edges.loc["tight_icrs"]
+row = pm_edges.loc["med_icrs"]
 rec = mpl.patches.Rectangle(
     (row["pm_phi1_min"].value, row["pm_phi2_min"].value),
     row["pm_phi1_max"].value - row["pm_phi1_min"].value,
@@ -229,16 +229,16 @@ ax10.set_ylim(22, 12)
 # Applying to phi1, phi2
 
 ax01.plot(
-    c_pal5.phi1[_mask_full & ~masks_table["P5"]],
-    c_pal5.phi2[_mask_full & ~masks_table["P5"]],
+    c_pal5.phi1[_mask_full & masks_table["Pal5"]],
+    c_pal5.phi2[_mask_full & masks_table["Pal5"]],
     c="black",
     marker=",",
     linestyle="none",
     alpha=1,
 )
 ax01.plot(
-    c_pal5.phi1[_mask_full & masks_table["P5"]],
-    c_pal5.phi2[_mask_full & masks_table["P5"]],
+    c_pal5.phi1[_mask_full & ~masks_table["Pal5"]],
+    c_pal5.phi2[_mask_full & ~masks_table["Pal5"]],
     c="green",
     marker=",",
     linestyle="none",
