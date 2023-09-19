@@ -23,6 +23,7 @@ dependencies:
       - gaiadr3-zeropoint>=0.0.4
       - gala>=1.6,<1.7
       - galstreams>1.0
+      - git+https://github.com/GalOrrery/interpolated-coordinates.git
       - nflows
       - pre-commit
       - pyia==1.3
