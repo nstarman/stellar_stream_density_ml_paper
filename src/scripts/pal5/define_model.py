@@ -1,6 +1,7 @@
 """Plot results."""
 
 import sys
+from dataclasses import replace
 
 import asdf
 import torch as xp
@@ -101,7 +102,7 @@ background_model = sml.IndependentModels(
 pal5_cp = QTable.read(paths.data / "pal5" / "control_points_stream.ecsv")
 
 # Selection of control points
-stream_strometric_prior = sml.prior.ControlRegions(
+stream_astrometric_prior = sml.prior.ControlRegions(
     center=sml.Data.from_format(
         pal5_cp, fmt="astropy.table", names=("phi1", "phi2"), renamer=renamer
     ).astype(xp.Tensor, dtype=xp.float32),
@@ -114,6 +115,7 @@ stream_strometric_prior = sml.prior.ControlRegions(
     lamda=1_000,
 )
 
+# the model
 stream_astrometric_model = sml.builtin.TruncatedNormal(
     net=sml.nn.sequential(
         data=1,
@@ -140,7 +142,7 @@ stream_astrometric_model = sml.builtin.TruncatedNormal(
             },
         }
     ),
-    priors=(stream_strometric_prior,),
+    priors=(stream_astrometric_prior,),
 )
 
 
@@ -156,6 +158,14 @@ stream_model = sml.IndependentModels(
 
 # =============================================================================
 # Mixture
+
+
+_stream_wgt_prior = sml.prior.HardThreshold(
+    threshold=1,  # turn off no matter what
+    param_name="stream.weight",
+    coord_name="phi1",
+    data_scaler=scaler,
+)
 
 
 _mx = {"stream": stream_model, "background": background_model}
@@ -176,22 +186,12 @@ model = sml.MixtureModel(
         }
     ),
     priors=(
-        sml.prior.HardThreshold(
-            threshold=1,
-            upper=-7,
-            set_to=1e-6,
-            param_name="stream.weight",
-            coord_name="phi1",
-            data_scaler=scaler,
-        ),
-        sml.prior.HardThreshold(
-            threshold=1,
-            lower=7,
-            set_to=1e-6,
-            param_name="stream.weight",
-            coord_name="phi1",
-            data_scaler=scaler,
-        ),
+        # turn off below -16
+        replace(_stream_wgt_prior, upper=-16, data_scaler=scaler),
+        # turn off above 10
+        replace(_stream_wgt_prior, lower=10, data_scaler=scaler),
+        # turn off around progenitor
+        replace(_stream_wgt_prior, lower=0.1, upper=0.1, data_scaler=scaler),
     ),
 )
 
