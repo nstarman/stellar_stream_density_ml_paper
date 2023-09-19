@@ -46,7 +46,7 @@ sel = (
 table = table[sel]
 
 # Save mask
-af["mask_info"] = {"pm_mask": snkmk["pm_mask"]}
+af["mask_info"] = {"pm_mask": snkmk["pm_mask"], "phot_mask": snkmk["phot_mask"]}
 af["mask"] = sel
 
 
