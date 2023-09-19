@@ -131,7 +131,7 @@ if snkmk["save_to_static"]:
     shutil.copyfile(SAVE_LOC, paths.static / "pal5" / "masks.asdf")
 
 
-# =============================================================================
+###############################################################################
 # Diagnostic plot
 
 if not snkmk["diagnostic_plots"]:
