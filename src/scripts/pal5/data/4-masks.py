@@ -117,9 +117,9 @@ with asdf.open(
 ) as af:
     iso_15 = af["isochrone_15"]
 
-mags = np.c_[table["g0"] - table["i0"], table["g0"]]
-
-masks_table["cmd_15"] = mpath.Path(iso_15, readonly=True).contains_points(mags)
+masks_table["cmd_15"] = mpath.Path(iso_15, readonly=True).contains_points(
+    np.c_[table["g0"], table["r0"]]
+)
 
 
 # =============================================================================
@@ -139,10 +139,14 @@ if not snkmk["diagnostic_plots"]:
 
 fig = plt.figure(figsize=(15, 7))
 gs = mpl.gridspec.GridSpec(2, 2, width_ratios=[1, 3])
-ax00 = fig.add_subplot(gs[0, 0])
-ax10 = fig.add_subplot(gs[1, 0])
-ax01 = fig.add_subplot(gs[0, 1])
-ax11 = fig.add_subplot(gs[1, 1])
+ax00 = fig.add_subplot(
+    gs[0, 0], xlabel=r"$\mu_{\alpha}^*$ [mas/yr]", ylabel=r"$\mu_\delta$ [mas/yr]"
+)
+ax10 = fig.add_subplot(gs[1, 0], xlabel=r"$g-r$ [mas/yr]", ylabel=r"$g$ [mas/yr]")
+ax01 = fig.add_subplot(gs[0, 1], xlabel=r"$\phi_1$ [deg]", ylabel=r"$\phi_2$ [deg]")
+ax11 = fig.add_subplot(
+    gs[1, 1], xlabel=r"$\phi_1$ [deg]", ylabel=r"$\mu_{\phi_1}^*$ [mas/yr]"
+)
 
 # Initial mask getting rid of other clusters
 _mask = masks_table["M5"] & masks_table["things"]
@@ -152,10 +156,10 @@ _mask_full = _mask & masks_table["pm_tight_icrs"] & masks_table["cmd_15"]
 # -----------------------------------------------
 # PM
 
-ax10.hist2d(
+ax00.hist2d(
     table["pmra"][_mask].value,
     table["pmdec"][_mask].value,
-    bins=(np.linspace(-10, 10, 128), np.linspace(-10, 10, 128)),
+    bins=(np.linspace(-10, 10, 96), np.linspace(-10, 10, 96)),
     cmap="Greys",
     norm=mpl.colors.LogNorm(),
 )
@@ -168,30 +172,31 @@ rec = mpl.patches.Rectangle(
     color="tab:red",
 )
 rec.set_facecolor((*rec.get_facecolor()[:-1], 0.05))
-ax10.add_patch(rec)
-
-ax01.plot(
-    c_pal5.phi1[_mask_full],
-    table["pmdec"][_mask_full],
-    c="black",
-    marker=",",
-    linestyle="none",
-    alpha=1,
-)
-ax01.set_ylabel(r"$\mu_{\phi_1}^*$ [deg]")
+ax00.add_patch(rec)
 
 # -----------------------------------------------
-# Photometry
+# CMD
 
 ax10.hist2d(
     table["g0"][_mask].value - table["r0"][_mask].value,
     table["g0"][_mask].value,
-    bins=(np.linspace(-0.5, 1.5, 128), np.linspace(12, 23, 128)),
+    bins=(np.linspace(-0.5, 1.5, 96), np.linspace(12, 23, 96)),
     cmap="Greys",
     norm=mpl.colors.LogNorm(),
 )
+ax10.plot(
+    iso_15[:, 0] - iso_15[:, 1],
+    iso_15[:, 0],
+    c="r",
+    lw=1,
+    label="Isochrone buffer",
+)
+ax10.set_ylim(22, 12)
 
-ax11.plot(
+# -----------------------------------------------
+# Applying to phi1, phi2
+
+ax01.plot(
     c_pal5.phi1[_mask_full],
     c_pal5.phi2[_mask_full],
     c="black",
@@ -199,8 +204,18 @@ ax11.plot(
     linestyle="none",
     alpha=1,
 )
-ax11.set_xlabel(r"$\phi_1$ [deg]")
-ax11.set_ylabel(r"$\phi_2$ [deg]")
+
+# -----------------------------------------------
+# Applying to phi1, pm_phi1
+
+ax11.plot(
+    c_pal5.phi1[_mask_full],
+    table["pm_phi1"][_mask_full],
+    c="black",
+    marker=",",
+    linestyle="none",
+    alpha=1,
+)
 
 fig.tight_layout()
 fig.savefig(paths.scripts / "pal5" / "_diagnostics" / "masks.png", dpi=300)
