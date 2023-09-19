@@ -175,6 +175,7 @@ _mask = masks_table["M5"] & masks_table["things"]
 _mask_full = _mask & masks_table["pm_tight_icrs"] & masks_table["phot_15"]
 
 pal5 = galstreams.MWStreams()["Pal5-PW19"]
+track = pal5.track.transform_to(frame)
 
 # -----------------------------------------------
 # PM
@@ -242,6 +243,13 @@ ax01.plot(
     marker=",",
     linestyle="none",
     alpha=1,
+)
+
+ax01.plot(
+    track.phi1.degree,
+    track.phi2.degree,
+    c="tab:blue",
+    label="Pal 5",
 )
 
 # -----------------------------------------------
