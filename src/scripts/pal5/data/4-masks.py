@@ -89,6 +89,7 @@ masks_table["M5"] = ~(M5.separation(c_pal5_icrs) < 0.8 * u.deg)
 
 # =============================================================================
 # Other Thing
+# TODO: get the name
 # Applying this mask to the data table will remove the other thing.
 
 masks_table["things"] = ~(
@@ -96,6 +97,18 @@ masks_table["things"] = ~(
     & (c_pal5.pm_phi1_cosphi2.value < 2)
     & (c_pal5.pm_phi2.value > -1)
     & (c_pal5.pm_phi2.value < 1)
+)
+
+# =============================================================================
+# Other Other Thing
+# TODO: get the name
+# Applying this mask to the data table will remove the other thing.
+
+masks_table["things2"] = ~(
+    (c_pal5.phi1.value > 12.7)
+    & (c_pal5.phi1.value < 13)
+    & (c_pal5.phi2.value > -1.7)
+    & (c_pal5.phi2.value < -1.3)
 )
 
 
@@ -170,7 +183,7 @@ ax11 = fig.add_subplot(
 )
 
 # Initial mask getting rid of other clusters
-_mask = masks_table["M5"] & masks_table["things"]
+_mask = masks_table["M5"] & masks_table["things"] & masks_table["things2"]
 # Full mask, including pm & photo selection
 _mask_full = _mask & masks_table["pm_med_icrs"] & masks_table["phot_15"]
 
