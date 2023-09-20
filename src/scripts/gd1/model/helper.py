@@ -555,20 +555,14 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
             rasterization_zorder=20,
         )
 
-        sorter = np.argsort(stream_prob_)
+        sorter = np.argsort(allstream_prob[sel])
         ax14i.scatter(
             data_["g"][sorter] - data_["r"][sorter],
             data_["g"][sorter],
-            c=stream_prob_[sorter],
+            c=colors[sel][sorter],
             s=1,
         )
-        isspur = spur_prob_ > 0.75
-        ax14i.scatter(
-            (data_["g"] - data_["r"])[isspur],
-            data_["g"][isspur],
-            c=cmap2(0.99),
-            s=1,
-        )
+        # isochrone
         ax14i.plot(
             isochrone_data["g"] - isochrone_data["r"],
             isochrone_data["g"]
