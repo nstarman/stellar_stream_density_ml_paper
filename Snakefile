@@ -341,7 +341,7 @@ rule gd1_info:
     cache:
         True
     script:
-        "src/scripts/gd1/model/1-info.py"
+        "src/scripts/gd1/model/0-info.py"
 
 
 # NOTE: this is a hacky way to aggregate the dependencies of the data script
@@ -613,7 +613,7 @@ rule pal5_info:
     cache:
         True
     script:
-        "src/scripts/pal5/model/1-info.py"
+        "src/scripts/pal5/model/0-info.py"
 
 
 # NOTE: this is a hacky way to aggregate the dependencies of the data script
