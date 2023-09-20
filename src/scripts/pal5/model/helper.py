@@ -2,6 +2,9 @@
 # ruff: noqa: ERA001
 
 
+import sys
+
+import asdf
 import astropy.units as u
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -21,7 +24,22 @@ from stream_ml.visualization.background import (
 
 paths = user_paths()
 
+# Add the parent directory to the path
+sys.path.append(paths.scripts.parent.as_posix())
+# isort: split
+
+from scripts.helper import color_by_probable_member, p2alpha
+from scripts.mpl_colormaps import stream_cmap1 as cmap1
+
 # =============================================================================
+
+pal5_cp = QTable.read(paths.data / "pal5" / "control_points_stream.ecsv")
+
+# isochrone data
+with asdf.open(
+    paths.data / "pal5" / "isochrone.asdf", "r", lazy_load=False, copy_arrays=True
+) as af:
+    isochrone_data = Data(**af["isochrone_data"])
 
 # Matplotlib style
 plt.style.use(paths.scripts / "paper.mplstyle")
@@ -46,9 +64,7 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
     stream_prob = xp.exp(stream_lnlik - tot_lnlik)
     allstream_prob = xp.exp(stream_lnlik - tot_lnlik)
 
-    psort = np.argsort(stream_prob)
-    pmax = xp.max(stream_prob.max(), xp.tensor(0.95))
-    pmin = stream_prob.min()
+    psort = np.argsort(allstream_prob)
 
     # =============================================================================
     # Make Figure
@@ -57,14 +73,15 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
     gs = GridSpec(2, 1, figure=fig, height_ratios=(1.2, 1), hspace=0)
     gs0 = gs[0].subgridspec(6, 1, height_ratios=(1, 5, 5, 5, 5, 5))
 
-    cmap = plt.get_cmap("Stream1")
+    colors = color_by_probable_member((stream_prob[psort], cmap1))
+    alphas = p2alpha(allstream_prob[psort])
 
     # ---------------------------------------------------------------------------
     # Colormap
 
     ax00 = fig.add_subplot(gs0[0, :])
     cbar = fig.colorbar(
-        mpl.cm.ScalarMappable(cmap=cmap),
+        mpl.cm.ScalarMappable(cmap=cmap1),
         cax=ax00,
         orientation="horizontal",
         label="Stream Probability",
@@ -103,8 +120,8 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
     ax02.scatter(
         data["phi1"][psort],
         data["phi2"][psort],
-        c=allstream_prob[psort],
-        alpha=0.1 + (1 - 0.1) / (pmax - pmin) * (allstream_prob[psort] - pmin),
+        c=colors,
+        alpha=alphas,
         s=2,
         zorder=-10,
     )
@@ -117,7 +134,7 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
         label="Model (MLE)",
     )
 
-    pal5_cp = QTable.read(paths.data / "pal5" / "control_points_stream.ecsv")
+    # Control points
     ax02.errorbar(
         pal5_cp["phi1"].value,
         pal5_cp["phi2"].value,
@@ -137,15 +154,14 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
         rasterization_zorder=0,
     )
 
-    # ax03.scatter(
-    #     data["phi1"][psort],
-    #     data["pmphi1"][psort],
-    #     c=allstream_prob[psort],
-    #     alpha=0.1 + (1 - 0.1) / (pmax - pmin) * (stream_prob[psort] - pmin),
-    #     s=2,
-    #     zorder=-10,
-    # )
-    # ax03.set_rasterization_zorder(0)
+    ax03.scatter(
+        data["phi1"][psort],
+        data["pmphi1"][psort],
+        c=colors,
+        alpha=alphas,
+        s=2,
+        zorder=-10,
+    )
     # ax03.fill_between(
     #     data["phi1"][stream_cutoff],
     #     (mpa["pmphi1", "mu"] - xp.exp(mpa["pmphi1", "ln-sigma"]))[stream_cutoff],
@@ -154,7 +170,15 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
     #     alpha=0.25,
     #     label="Model (MLE)",
     # )
-    # ax03.legend(loc="upper left")
+
+    # Control points
+    ax03.errorbar(
+        pal5_cp["phi1"].value,
+        pal5_cp["pmphi1"].value,
+        yerr=pal5_cp["w_pmphi1"].value,
+        ls="none",
+    )
+    ax03.legend(loc="upper left")
 
     # # ---------------------------------------------------------------------------
     # # PM-Phi2
@@ -171,7 +195,6 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
     #     s=2,
     #     zorder=-10,
     # )
-    # ax04.set_rasterization_zorder(0)
     # ax04.fill_between(
     #     data["phi1"][stream_cutoff],
     #     (mpa["pmphi2", "mu"] - xp.exp(mpa["pmphi2", "ln-sigma"]))[stream_cutoff],
@@ -180,12 +203,20 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
     #     alpha=0.25,
     #     label="Model (MLE)",
     # )
-    # ax04.legend(loc="upper left")
 
-    # # ---------------------------------------------------------------------------
-    # # Distance
+    # Control points
+    ax04.errorbar(
+        pal5_cp["phi1"].value,
+        pal5_cp["pmphi2"].value,
+        yerr=pal5_cp["w_pmphi2"].value,
+        ls="none",
+    )
+    ax04.legend(loc="upper left")
 
-    ax03 = fig.add_subplot(gs0[5, :], xlabel=r"$\phi_1$ [deg]", ylabel=r"$d$ [kpc]")
+    # ---------------------------------------------------------------------------
+    # Distance
+
+    ax05 = fig.add_subplot(gs0[5, :], xlabel=r"$\phi_1$ [deg]", ylabel=r"$d$ [kpc]")
 
     try:
         mpa = mpars["stream.photometric.distmod"]
@@ -200,14 +231,14 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
         d1sm = Distance(distmod=(mpa["mu"] - xp.exp(mpa["ln-sigma"])) * u.mag)
         d1sp = Distance(distmod=(mpa["mu"] + xp.exp(mpa["ln-sigma"])) * u.mag)
 
-        ax03.fill_between(
+        ax05.fill_between(
             data["phi1"][stream_cutoff],
             d2sm[stream_cutoff].to_value("kpc"),
             d2sp[stream_cutoff].to_value("kpc"),
             alpha=0.15,
             color="k",
         )
-        ax03.fill_between(
+        ax05.fill_between(
             data["phi1"][stream_cutoff],
             d1sm[stream_cutoff].to_value("kpc"),
             d1sp[stream_cutoff].to_value("kpc"),
@@ -215,7 +246,16 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
             color="k",
             label="Model (MLE)",
         )
-        ax03.legend(loc="upper left")
+
+    # Control points
+    ax05.errorbar(
+        pal5_cp["phi1"].value,
+        pal5_cp["distance"].value,
+        yerr=pal5_cp["w_distance"].value,
+        ls="none",
+    )
+
+    ax05.legend(loc="upper left")
 
     # =============================================================================
     # Slice plots
@@ -231,9 +271,9 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
     ax10.axis(False)
     ax10.legend(
         handles=[
-            mpl.patches.Patch(color=cmap(0.01), label="Background"),
+            mpl.patches.Patch(color=cmap1(0.01), label="Background"),
             mpl.lines.Line2D([0], [0], color="k", lw=4),
-            mpl.patches.Patch(color=cmap(0.99), label="Stream"),
+            mpl.patches.Patch(color=cmap1(0.99), label="Stream"),
         ],
         ncols=4,
     )
@@ -265,7 +305,7 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
             cphi2s[notna],
             bins=50,
             weights=ws[notna],
-            color=[cmap(0.01), cmap(0.99)],
+            color=[cmap1(0.01), cmap1(0.99)],
             alpha=0.75,
             density=True,
             stacked=True,
@@ -293,7 +333,7 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
             cpmphi1s,
             bins=50,
             weights=ws,
-            color=[cmap(0.01), cmap(0.99)],
+            color=[cmap1(0.01), cmap1(0.99)],
             alpha=0.75,
             density=True,
             stacked=True,
@@ -316,7 +356,7 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
             np.ones((sel.sum(), 2)) * data_["pmphi2"][:, None].numpy(),
             bins=50,
             weights=np.stack((bkg_prob_, stream_prob_), axis=1),
-            color=[cmap(0.01), cmap(0.99)],
+            color=[cmap1(0.01), cmap1(0.99)],
             alpha=0.75,
             density=True,
             stacked=True,
@@ -331,8 +371,8 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
         if i == 0:
             ax13i.set_ylabel("frequency")
 
-        # # ---------------------------------------------------------------------------
-        # # Photometry
+        # ---------------------------------------------------------------------------
+        # Photometry
 
         ax14i = fig.add_subplot(
             gs1[4, i],
@@ -343,13 +383,20 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
             rasterization_zorder=20,
         )
 
-        sorter = np.argsort(stream_prob_)
+        sorter = np.argsort(allstream_prob[sel])
         ax14i.scatter(
             data_["g"][sorter] - data_["r"][sorter],
             data_["g"][sorter],
-            c=stream_prob_[sorter],
+            c=colors[sel][sorter],
             s=1,
-            rasterized=True,
+        )
+
+        # isochrone
+        ax14i.plot(
+            isochrone_data["g"] - isochrone_data["r"],
+            isochrone_data["g"]
+            + mpars["stream.photometric.distmod", "mu"][sel].mean().numpy(),
+            c="green",
         )
 
         if i == 0:
