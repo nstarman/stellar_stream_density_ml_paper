@@ -4,6 +4,7 @@ import sys
 from dataclasses import replace
 
 import asdf
+import numpy as np
 import torch as xp
 import zuko
 from astropy.table import QTable
@@ -20,6 +21,8 @@ paths = user_paths()
 sys.path.append(paths.scripts.parent.as_posix())
 # isort: split
 
+from scripts.helper import isochrone_spline
+
 ##############################################################################
 
 with asdf.open(paths.data / "pal5" / "info.asdf", mode="r") as af:
@@ -34,7 +37,7 @@ astro_coord_errs = ("phi2_err",)
 astro_coord_bounds = {k: v for k, v in all_coord_bounds.items() if k in astro_coords}
 
 phot_coords = ("g", "r")
-phot_coord_errs = ()
+phot_coord_errs = ("g_err", "r_err")
 phot_coord_bounds = {k: v for k, v in all_coord_bounds.items() if k in phot_coords}
 
 coord_names = astro_coords + phot_coords
@@ -143,6 +146,77 @@ stream_astrometric_model = sml.builtin.TruncatedNormal(
         }
     ),
     priors=(stream_astrometric_prior,),
+)
+
+# -----------------------------------------------------------------------------
+# Photometry
+
+# Selection of control points
+stream_photometric_prior = sml.prior.ControlRegions(
+    center=sml.Data.from_format(
+        pal5_cp, fmt="astropy.table", names=("phi1", "distmod"), renamer=renamer
+    ).astype(xp.Tensor, dtype=xp.float32),
+    width=sml.Data.from_format(
+        pal5_cp,
+        fmt="astropy.table",
+        names=("w_distmod",),
+        renamer={"w_distmod": "distmod"},
+    ).astype(xp.Tensor, dtype=xp.float32),
+    lamda=1_000,
+)
+
+with asdf.open(paths.data / "pal5" / "isochrone.asdf", mode="r") as af:
+    abs_mags = sml.Data(**af["isochrone_data"]).astype(xp.Tensor, dtype=xp.float32)
+
+stream_isochrone_spl = isochrone_spline(abs_mags["g", "r"].array, xp=np)
+
+gamma_edges = xp.concatenate(
+    [
+        xp.linspace(00, 0.43, 30),
+        xp.linspace(0.43, 0.5, 15),
+        xp.linspace(0.501, 1, 30),
+    ]
+)
+
+stream_mass_function = sml.builtin.StepwiseMassFunction(
+    boundaries=(0, 0.35, 0.56, 1.01),
+    # log_probs=(0.0, 0.0, 0.0),  # TODO: set a value
+    log_probs=(-1, 0, -1),
+)
+
+stream_isochrone_model = sml.builtin.IsochroneMVNorm(
+    net=sml.nn.sequential(
+        data=1, hidden_features=32, layers=4, features=2, dropout=0.15
+    ),
+    data_scaler=flow_scaler,
+    # # coordinates
+    coord_names=("distmod",),
+    coord_bounds={"distmod": (13.0, 18.0)},
+    # coord_names=(),
+    # coord_bounds={},
+    # photometry
+    phot_names=phot_coords,
+    phot_apply_dm=(True, True),  # (g, r)
+    phot_err_names=phot_coord_errs,
+    phot_bounds=phot_coord_bounds,
+    # isochrone
+    gamma_edges=gamma_edges,
+    isochrone_spl=stream_isochrone_spl,
+    isochrone_err_spl=None,
+    stream_mass_function=stream_mass_function,
+    # params
+    params=ModelParameters(
+        {
+            "distmod": {
+                "mu": ModelParameter(bounds=SigmoidBounds(13.0, 18.0), scaler=None),
+                "ln-sigma": ModelParameter(
+                    bounds=SigmoidBounds(-7.6, -2.8), scaler=None
+                ),
+            },
+        }
+    ),
+    priors=(stream_photometric_prior,),
+    name="stream_isochrone_model",
 )
 
 
