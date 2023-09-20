@@ -302,7 +302,7 @@ rule gd1_control_points_distance:
     cache:
         True
     script:
-        "src/scripts/gd1/model/0-control_points_distance.py"
+        "src/scripts/gd1/model/1-control_points_distance.py"
 
 
 rule gd1_control_points_stream:
@@ -313,7 +313,7 @@ rule gd1_control_points_stream:
     cache:
         True
     script:
-        "src/scripts/gd1/model/0-control_points_stream.py"
+        "src/scripts/gd1/model/1-control_points_stream.py"
 
 
 rule gd1_control_points_spur:
@@ -324,7 +324,7 @@ rule gd1_control_points_spur:
     cache:
         True
     script:
-        "src/scripts/gd1/model/0-control_points_spur.py"
+        "src/scripts/gd1/model/1-control_points_spur.py"
 
 
 rule gd1_info:
@@ -596,7 +596,7 @@ rule pal5_control_points_stream:
     cache:
         True
     script:
-        "src/scripts/pal5/model/0-control_points_stream.py"
+        "src/scripts/pal5/model/1-control_points_stream.py"
 
 
 rule pal5_info:

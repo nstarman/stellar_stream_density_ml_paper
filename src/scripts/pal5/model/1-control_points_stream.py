@@ -42,14 +42,16 @@ itrack = InterpolatedSkyCoord(track, affine=track.phi1)
 
 x = np.linspace(track.phi1.min(), track.phi1.max(), len(table) - 1)
 
-# ([progenitor], [stream])
+#       ([progenitor], [stream])
 table["phi1"] = np.concatenate(([0], x))
+
+# phi2
 table["phi2"] = np.concatenate(([0], itrack(x).phi2))
 table["w_phi2"] = np.concatenate(([0.1], np.full_like(x.value, 1))) << u.deg
-
+# distance
 table["distance"] = np.concatenate(([np.nan], itrack(x).distance))
 table["w_distance"] = np.concatenate(([np.nan], np.full_like(x.value, 1.5))) << u.kpc
-
+# -> distmod
 table["distmod"] = Distance(table["distance"]).distmod
 table["w_distmod"] = (
     np.abs(
@@ -59,6 +61,10 @@ table["w_distmod"] = (
     / 2
 )
 
+# pmphi1
+
+
+# Save
 table.write(paths.data / "pal5" / "control_points_stream.ecsv", overwrite=True)
 
 
