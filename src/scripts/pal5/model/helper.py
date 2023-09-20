@@ -106,8 +106,6 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
     # ---------------------------------------------------------------------------
     # Phi2
 
-    mpa = mpars.get_prefixed("stream.astrometric")
-
     ax02 = fig.add_subplot(
         gs0[2, :],
         xticklabels=[],
@@ -116,6 +114,7 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
         rasterization_zorder=0,
         ylim=(np.nanmin(data["phi2"]), np.nanmax(data["phi2"])),
     )
+    mpa = mpars.get_prefixed("stream.astrometric")
 
     ax02.scatter(
         data["phi1"][psort],
@@ -152,6 +151,7 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
         ylabel=r"$\mu_{\phi_1}^*$ [mas yr$^{-1}$]",
         xticklabels=[],
         rasterization_zorder=0,
+        ylim=(np.nanmin(data["pmphi1"]), np.nanmax(data["pmphi1"])),
     )
 
     ax03.scatter(
@@ -178,7 +178,6 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
         yerr=pal5_cp["w_pmphi1"].value,
         ls="none",
     )
-    ax03.legend(loc="upper left")
 
     # # ---------------------------------------------------------------------------
     # # PM-Phi2
@@ -211,7 +210,6 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
         yerr=pal5_cp["w_pmphi2"].value,
         ls="none",
     )
-    ax04.legend(loc="upper left")
 
     # ---------------------------------------------------------------------------
     # Distance
@@ -255,8 +253,6 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
         ls="none",
     )
 
-    ax05.legend(loc="upper left")
-
     # =============================================================================
     # Slice plots
 
@@ -290,12 +286,13 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
 
         ax11i = fig.add_subplot(gs1[1, i], xlabel=r"$\phi_2$ [$\degree$]")
 
-        # Connect to top plot(s)
-        for ax in (ax01, ax02, ax03, ax04):
+        # Plot vertical lines
+        for ax in (ax01, ax02, ax03, ax04, ax05):
             ax.axvline(bins[i], color="gray", ls="--", zorder=-200)
             ax.axvline(bins[i + 1], color="gray", ls="--", zorder=-200)
+        # Connect to top plot(s)
         smlvis._slices.connect_slices_to_top(  # noqa: SLF001
-            fig, ax03, ax11i, left=bins[i], right=bins[i + 1], color="gray"
+            fig, ax05, ax11i, left=bins[i], right=bins[i + 1], color="gray"
         )
 
         notna = ~np.isnan(data_["phi2"])
@@ -391,13 +388,13 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
             s=1,
         )
 
-        # isochrone
-        ax14i.plot(
-            isochrone_data["g"] - isochrone_data["r"],
-            isochrone_data["g"]
-            + mpars["stream.photometric.distmod", "mu"][sel].mean().numpy(),
-            c="green",
-        )
+        # # isochrone
+        # ax14i.plot(
+        #     isochrone_data["g"] - isochrone_data["r"],
+        #     isochrone_data["g"]
+        #     + mpars["stream.photometric.distmod", "mu"][sel].mean().numpy(),
+        #     c="green",
+        # )
 
         if i == 0:
             ax14i.set_ylabel("g [mag]")
