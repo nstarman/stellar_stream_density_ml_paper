@@ -98,16 +98,17 @@ for epoch in tqdm(range(snkmk["epochs"])):
         psort = np.argsort(prob[off_stream])
 
         fig, ax = plt.subplots()
-        ax.scatter(
+        ax.plot(
             (data["g"] - data["r"])[~off_stream],
             data["g"][~off_stream],
-            s=0.2,
+            ls="none",
+            marker=",",
             c="black",
         )
         im = ax.scatter(
             (data["g"] - data["r"])[off_stream][psort],
             data["g"][off_stream][psort],
-            s=0.2,
+            s=0.1,
             c=prob[off_stream][psort],
         )
         plt.colorbar(im, ax=ax)
