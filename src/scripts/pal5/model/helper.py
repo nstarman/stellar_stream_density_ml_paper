@@ -18,6 +18,9 @@ from showyourwork.paths import user as user_paths
 import stream_ml.visualization as smlvis
 from stream_ml.core import ModelAPI
 from stream_ml.pytorch import Data
+from stream_ml.visualization.background import (
+    exponential_like_distribution as exp_distr,
+)
 
 paths = user_paths()
 
@@ -67,7 +70,7 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
     # Make Figure
 
     fig = plt.figure(constrained_layout="tight", figsize=(11, 15))
-    gs = GridSpec(2, 1, figure=fig, height_ratios=(1.2, 1), hspace=0)
+    gs = GridSpec(2, 1, figure=fig, height_ratios=(6, 5), hspace=0.12)
     gs0 = gs[0].subgridspec(6, 1, height_ratios=(1, 5, 5, 5, 5, 5))
 
     colors = color_by_probable_member((stream_prob, cmap1))
@@ -296,13 +299,12 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
             fig, ax05, ax10i, left=bins[i], right=bins[i + 1], color="gray"
         )
 
-        notna = ~np.isnan(data_["phi2"])
         cphi2s = np.ones((sel.sum(), 2)) * data_["phi2"][:, None].numpy()
         ws = np.stack((bkg_prob_, stream_prob_), axis=1)
         ax10i.hist(
-            cphi2s[notna],
+            cphi2s,
             bins=50,
-            weights=ws[notna],
+            weights=ws,
             color=[cmap1(0.01), cmap1(0.99)],
             alpha=0.75,
             density=True,
@@ -311,11 +313,11 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
             label=["", "Stream Model (MLE)"],
         )
 
-        # xmin, xmax = data["phi2"].min().numpy(), data["phi2"].max().numpy()
-        # x = np.linspace(xmin, xmax)
-        # bkg_wgt = mpars["background.weight",][sel].mean()
-        # m = mpars["background.astrometric.phi2.phi2", "slope"][sel].mean()
-        # ax10i.plot(x, bkg_wgt * exp_distr(m, xmin, xmax).pdf(x), c="k")
+        xmin, xmax = data["phi2"].min().numpy(), data["phi2"].max().numpy()
+        x = np.linspace(xmin, xmax)
+        bkg_wgt = mpars["background.weight",][sel].mean()
+        m = mpars["background.astrometric.phi2.phi2", "slope"][sel].mean()
+        ax10i.plot(x, bkg_wgt * exp_distr(m, xmin, xmax).pdf(x), c="k")
 
         if i == 0:
             ax10i.set_ylabel("frequency")
