@@ -3,6 +3,7 @@
 from dataclasses import asdict
 
 import asdf
+import astropy.units as u
 import numpy as np
 from astropy.table import QTable
 from showyourwork.paths import user as user_paths
@@ -39,10 +40,14 @@ af = asdf.AsdfFile()
 sel = (
     masks["M5"]
     & masks["things"]
+    & masks["things2"]
     & masks[snkmk["pm_mask"]]
     & masks[snkmk["phot_mask"]]
     # & masks["Pal5"]  # TODO! as a separate model component
 )
+# Let's also just use -20 < phi1 < 20
+sel &= (table["phi1"] > -20 * u.deg) & (table["phi1"] < 20 * u.deg)
+
 table = table[sel]
 
 # Save mask
