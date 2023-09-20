@@ -6,6 +6,7 @@ import sys
 
 import asdf
 import astropy.units as u
+import galstreams
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
@@ -30,19 +31,34 @@ sys.path.append(paths.scripts.parent.as_posix())
 
 from scripts.helper import color_by_probable_member, p2alpha
 from scripts.mpl_colormaps import stream_cmap1 as cmap1
+from scripts.pal5.frames import pal5_frame as frame
 
 # =============================================================================
+# Configuration
 
+# Matplotlib style
+plt.style.use(paths.scripts / "paper.mplstyle")
+
+
+# =============================================================================
+# Load data
+
+# galstreams
+allstreams = galstreams.MWStreams(implement_Off=True)
+pal5I21 = allstreams["Pal5-I21"].track.transform_to(frame)
+pal5PW19 = allstreams["Pal5-PW19"].track.transform_to(frame)
+
+# Control points
 pal5_cp = QTable.read(paths.data / "pal5" / "control_points_stream.ecsv")
 
-# isochrone data
+# Isochrone data
 with asdf.open(
     paths.data / "pal5" / "isochrone.asdf", "r", lazy_load=False, copy_arrays=True
 ) as af:
     isochrone_data = Data(**af["isochrone_data"])
 
-# Matplotlib style
-plt.style.use(paths.scripts / "paper.mplstyle")
+
+# =============================================================================
 
 
 def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
@@ -99,7 +115,8 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
         xticklabels=[],
         yscale="log",
     )
-
+    ax01.axhline(model.params[("stream.weight",)].bounds.lower[0], c="k", ls="--", lw=2)
+    ax01.axhline(model.params[("stream.weight",)].bounds.upper[0], c="k", ls="--", lw=2)
     ax01.plot(data["phi1"], stream_weight, c="k", ls="--", lw=2, label="Model (MLE)")
     ax01.legend(loc="upper left")
 
@@ -124,6 +141,15 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
         s=2,
         zorder=-10,
     )
+
+    # Control points
+    ax02.errorbar(
+        pal5_cp["phi1"].value,
+        pal5_cp["phi2"].value,
+        yerr=pal5_cp["w_phi2"].value,
+        ls="none",
+    )
+
     ax02.fill_between(
         data["phi1"][stream_cutoff],
         (mpa["phi2", "mu"] - xp.exp(mpa["phi2", "ln-sigma"]))[stream_cutoff],
@@ -133,12 +159,22 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
         label="Model (MLE)",
     )
 
-    # Control points
-    ax02.errorbar(
-        pal5_cp["phi1"].value,
-        pal5_cp["phi2"].value,
-        yerr=pal5_cp["w_phi2"].value,
-        ls="none",
+    # Literature
+    ax02.plot(
+        pal5I21.phi1.degree,
+        pal5I21.phi2.degree,
+        c="k",
+        ls="--",
+        alpha=0.5,
+        label="Ibata+21",
+    )
+    ax02.plot(
+        pal5PW19.phi1.degree,
+        pal5PW19.phi2.degree,
+        c="k",
+        ls="--",
+        alpha=0.5,
+        label="PW+19",
     )
 
     ax02.legend(loc="upper left")
