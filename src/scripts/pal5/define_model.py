@@ -52,7 +52,7 @@ coord_bounds: dict[str, tuple[float, float]] = {
 # -----------------------------------------------------------------------------
 # Astrometry
 
-background_astrometric_model = sml.builtin.Exponential(
+background_phi2_model = sml.builtin.Exponential(
     net=sml.nn.sequential(
         data=1, hidden_features=16, layers=2, features=len(coord_names), dropout=0.0
     ),
@@ -84,6 +84,14 @@ background_pm_model = sml.builtin.compat.ZukoFlowModel(
 )
 
 
+background_astrometric_model = sml.IndependentModels(
+    {
+        "phi2": background_phi2_model,
+        "pm": background_pm_model,
+    }
+)
+
+
 # -----------------------------------------------------------------------------
 # Photometry
 
@@ -106,7 +114,6 @@ background_photometric_model = sml.builtin.compat.ZukoFlowModel(
 background_model = sml.IndependentModels(
     {
         "astrometric": background_astrometric_model,
-        "pm": background_pm_model,
         # "photometric": background_photometric_model,
     }
 )

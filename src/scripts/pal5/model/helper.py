@@ -144,8 +144,8 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
 
     ax02.legend(loc="upper left")
 
-    # # ---------------------------------------------------------------------------
-    # # PM-Phi1
+    # ---------------------------------------------------------------------------
+    # PM-Phi1
 
     ax03 = fig.add_subplot(
         gs0[3, :],
@@ -315,7 +315,7 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
         xmin, xmax = data["phi2"].min().numpy(), data["phi2"].max().numpy()
         x = np.linspace(xmin, xmax)
         bkg_wgt = mpars["background.weight",][sel].mean()
-        m = mpars["background.astrometric.phi2", "slope"][sel].mean()
+        m = mpars["background.astrometric.phi2.phi2", "slope"][sel].mean()
         ax11i.plot(x, bkg_wgt * exp_distr(m, xmin, xmax).pdf(x), c="k")
 
         if i == 0:
