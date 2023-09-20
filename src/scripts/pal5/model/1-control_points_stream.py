@@ -18,6 +18,7 @@ paths = user_paths()
 sys.path.append(paths.scripts.parent.as_posix())
 # isort: split
 
+from scripts.pal5.datasets import data, masks
 from scripts.pal5.frames import pal5_frame as frame
 
 try:
@@ -41,6 +42,7 @@ track = pal5.track.transform_to(frame)[::-1]
 itrack = InterpolatedSkyCoord(track, affine=track.phi1)
 
 x = np.linspace(track.phi1.min(), track.phi1.max(), len(table) - 1)
+nans = np.full_like(x.value, np.nan)
 
 #       ([progenitor], [stream])
 table["phi1"] = np.concatenate(([0], x))
@@ -62,7 +64,14 @@ table["w_distmod"] = (
 )
 
 # pmphi1
+prog_pmphi1s = data["pmphi1"][~masks["Pal5"]]
+table["pmphi1"] = np.concatenate(([np.nanmean(prog_pmphi1s)], nans)) << u.mas / u.yr
+table["w_pmphi1"] = np.concatenate(([np.nanstd(prog_pmphi1s)], nans)) << u.mas / u.yr
 
+# pmphi2
+prog_pmphi2s = data["pmphi2"][~masks["Pal5"]]
+table["pmphi2"] = np.concatenate(([np.nanmean(prog_pmphi2s)], nans)) << u.mas / u.yr
+table["w_pmphi2"] = np.concatenate(([np.nanstd(prog_pmphi2s)], nans)) << u.mas / u.yr
 
 # Save
 table.write(paths.data / "pal5" / "control_points_stream.ecsv", overwrite=True)
