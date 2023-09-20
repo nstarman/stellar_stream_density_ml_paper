@@ -591,6 +591,8 @@ rule pal5_control_points_stream:
         "src/data/pal5/control_points_stream.ecsv"
     conda:
         "environment.yml"
+    params:
+        diagnostic_plots=True,
     cache:
         True
     script:

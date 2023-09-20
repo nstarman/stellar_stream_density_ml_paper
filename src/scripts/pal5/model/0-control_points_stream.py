@@ -6,8 +6,10 @@ import sys
 import astropy.units as u
 import galstreams
 import numpy as np
+from astropy.coordinates import Distance
 from astropy.table import QTable
 from interpolated_coordinates import InterpolatedSkyCoord
+from matplotlib import pyplot as plt
 from showyourwork.paths import user as user_paths
 
 paths = user_paths()
@@ -18,16 +20,24 @@ sys.path.append(paths.scripts.parent.as_posix())
 
 from scripts.pal5.frames import pal5_frame as frame
 
+try:
+    snkmk = snakemake.params
+except NameError:
+    snkmk = {
+        "diagnostic_plots": True,
+    }
+
+
 table = QTable(
-    np.empty((11, 3)),
-    names=("phi1", "phi2", "w_phi2"),
-    units=(u.deg, u.deg, u.deg),
-    meta={},
+    np.empty((11, 7)),
+    names=("phi1", "phi2", "w_phi2", "distance", "w_distance", "distmod", "w_distmod"),
+    units=(u.deg, u.deg, u.deg, u.kpc, u.kpc, u.mag, u.mag),
 )
 
 # Adding in regularly spaced points from :mod:`galstreams`
-pal5 = galstreams.MWStreams()["Pal5-PW19"]
-track = pal5.track.transform_to(frame)
+allstreams = galstreams.MWStreams(implement_Off=True)
+pal5 = allstreams["Pal5-I21"]
+track = pal5.track.transform_to(frame)[::-1]
 itrack = InterpolatedSkyCoord(track, affine=track.phi1)
 
 x = np.linspace(track.phi1.min(), track.phi1.max(), len(table) - 1)
@@ -35,10 +45,49 @@ x = np.linspace(track.phi1.min(), track.phi1.max(), len(table) - 1)
 # ([progenitor], [stream])
 table["phi1"] = np.concatenate(([0], x))
 table["phi2"] = np.concatenate(([0], itrack(x).phi2))
-table["w_phi2"] = np.concatenate(([0.1], np.zeros_like(x.value) + 1)) << u.deg
+table["w_phi2"] = np.concatenate(([0.1], np.full_like(x.value, 1))) << u.deg
 
+table["distance"] = np.concatenate(([np.nan], itrack(x).distance))
+table["w_distance"] = np.concatenate(([np.nan], np.full_like(x.value, 1.5))) << u.kpc
+
+table["distmod"] = Distance(table["distance"]).distmod
+table["w_distmod"] = (
+    np.abs(
+        Distance(table["distance"] + table["w_distance"]).distmod
+        - Distance(table["distance"] - table["w_distance"]).distmod
+    )
+    / 2
+)
 
 table.write(paths.data / "pal5" / "control_points_stream.ecsv", overwrite=True)
 
 
 ##############################################################################
+# Diagnostic plots
+
+if not snkmk["diagnostic_plots"]:
+    sys.exit(0)
+
+
+fig = plt.figure(figsize=(6, 4))
+ax = fig.add_subplot(xlabel=r"$\phi_1$ [deg]", ylabel=r"$d$ [kpc]")
+
+trackPW19 = allstreams["Pal5-PW19"].track.transform_to(frame)
+ax.plot(trackPW19.phi1, trackPW19.distance, label="PW-19")
+
+trackI21 = allstreams["Pal5-I21"].track.transform_to(frame)
+ax.plot(trackI21.phi1, trackI21.distance, label="I21")
+
+# From https://doi.org/10.3847/1538-4357/ab5afe
+# covers 3 degree wide bins of which these are the centers
+bonaca_19_phi1 = [-13.5, -10.5, -7.5, -4.5, -1.5, 1.5, 4.5, 7.5, 10.5] * u.deg
+# * u.kpc
+bonaca_19_distances = (
+    22.5 * u.kpc + [1.1, 0.9, 0.6, 0.4, 0.2, 0, -1.5, -3.6, -5.5] * u.kpc
+)
+ax.plot(bonaca_19_phi1, bonaca_19_distances, label="Bonaca+19")
+ax.legend(loc="best", fontsize=8)
+fig.savefig(
+    paths.scripts / "pal5" / "_diagnostics" / "control_points_distance_confusion.png",
+    dpi=300,
+)
