@@ -174,8 +174,9 @@ _mask = masks_table["M5"] & masks_table["things"]
 # Full mask, including pm & photo selection
 _mask_full = _mask & masks_table["pm_med_icrs"] & masks_table["phot_15"]
 
-pal5 = galstreams.MWStreams()["Pal5-PW19"]
-track = pal5.track.transform_to(frame)
+allstreams = galstreams.MWStreams(implement_Off=True)
+pal5PW19 = allstreams["Pal5-PW19"].track.transform_to(frame)
+pal5I21 = allstreams["Pal5-I21"].track.transform_to(frame)
 
 # -----------------------------------------------
 # PM
@@ -189,10 +190,16 @@ ax00.hist2d(
 )
 
 ax00.plot(
-    pal5.track.pm_ra_cosdec.value,
-    pal5.track.pm_dec.value,
+    pal5PW19.icrs.pm_ra_cosdec.value,
+    pal5PW19.icrs.pm_dec.value,
     c="tab:blue",
-    label="Pal 5",
+    label="Pal 5 - PW19",
+)
+ax00.plot(
+    pal5I21.icrs.pm_ra_cosdec.value,
+    pal5I21.icrs.pm_dec.value,
+    c="tab:blue",
+    label="Pal 5 - I21",
 )
 
 row = pm_edges.loc["med_icrs"]
@@ -246,8 +253,8 @@ ax01.plot(
 )
 
 ax01.plot(
-    track.phi1.degree,
-    track.phi2.degree,
+    pal5PW19.phi1.degree,
+    pal5PW19.phi2.degree,
     c="tab:blue",
     label="Pal 5",
 )
