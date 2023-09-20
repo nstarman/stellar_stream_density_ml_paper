@@ -130,9 +130,9 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
     # ---------------------------------------------------------------------------
     # Weight plot
 
-    ax02 = fig.add_subplot(gs0[2, :])
-    ax02.set(ylabel="Stream fraction", ylim=(0, 0.4))
-    ax02.set_xticklabels([])
+    ax02 = fig.add_subplot(
+        gs0[2, :], ylabel="Stream fraction", ylim=(0, 0.4), xticklabels=[]
+    )
 
     with xp.no_grad():
         helper.manually_set_dropout(model, 0.15)
@@ -190,10 +190,12 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
     mpa = mpars.get_prefixed("stream.astrometric")
     mpb = mpars.get_prefixed("spur.astrometric")
 
-    ax03 = fig.add_subplot(gs0[3, :])
-    ax03.set_xticklabels([])
-    ax03.set(ylabel=r"$\phi_2$ [$\degree$]")
-    ax03.set_rasterization_zorder(0)
+    ax03 = fig.add_subplot(
+        gs0[3, :],
+        xticklabels=[],
+        ylabel=r"$\phi_2$ [$\degree$]",
+        rasterization_zorder=0,
+    )
 
     p1 = ax03.scatter(
         data["phi1"][psort],
@@ -228,10 +230,9 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
     # ---------------------------------------------------------------------------
     # Parallax
 
-    ax04 = fig.add_subplot(gs0[4, :])
-    ax04.set_xticklabels([])
-    ax04.set(ylabel=r"$\varpi$ [mas]")
-    ax04.set_rasterization_zorder(0)
+    ax04 = fig.add_subplot(
+        gs0[4, :], ylabel=r"$\varpi$ [mas]", xticklabels=[], rasterization_zorder=0
+    )
 
     p1 = ax04.scatter(
         data["phi1"][psort],
@@ -266,10 +267,12 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
     # ---------------------------------------------------------------------------
     # PM-Phi1
 
-    ax05 = fig.add_subplot(gs0[5, :])
-    ax05.set_xticklabels([])
-    ax05.set(ylabel=r"$\mu_{\phi_1}^*$ [mas yr$^{-1}$]")
-    ax05.set_rasterization_zorder(0)
+    ax05 = fig.add_subplot(
+        gs0[5, :],
+        ylabel=r"$\mu_{\phi_1}^*$ [mas yr$^{-1}$]",
+        rasterization_zorder=0,
+        xticklabels=[],
+    )
 
     p1 = ax05.scatter(
         data["phi1"][psort],

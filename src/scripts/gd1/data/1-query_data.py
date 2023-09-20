@@ -212,7 +212,7 @@ if snkmk["save_to_static"]:
     shutil.copyfile(SAVE_LOC, paths.static / "gd1" / "gaia_ps1_xm_polygons.asdf")
 
 
-# =============================================================================
+##############################################################################
 # Diagnostic plot
 
 _p2_bnds = PHI2_BOUNDS.value

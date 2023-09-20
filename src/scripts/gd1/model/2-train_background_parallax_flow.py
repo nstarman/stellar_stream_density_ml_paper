@@ -95,7 +95,8 @@ for epoch in tqdm(range(snkmk["epochs"])):
 
             psort = np.argsort(prob[off_stream])
 
-            fig, ax = plt.subplots()
+            fig = plt.figure()
+            ax = fig.add_subplot(ylim=(data["plx"].min(), data["plx"].max()))
             ax.scatter(
                 data["phi1"][~off_stream],
                 data["plx"][~off_stream],
@@ -109,7 +110,6 @@ for epoch in tqdm(range(snkmk["epochs"])):
                 c=prob[off_stream][psort],
             )
             plt.colorbar(im, ax=ax)
-            ax.set_ylim(data["plx"].min(), data["plx"].max())
             fig.savefig(figure_path / f"epoch_{epoch:05}.png")
             plt.close(fig)
 
