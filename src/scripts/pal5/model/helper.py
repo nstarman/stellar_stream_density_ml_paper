@@ -57,7 +57,7 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
     gs = GridSpec(2, 1, figure=fig, height_ratios=(1.2, 1), hspace=0)
     gs0 = gs[0].subgridspec(6, 1, height_ratios=(1, 5, 5, 5, 5, 5))
 
-    cmap = plt.get_cmap()
+    cmap = plt.get_cmap("Stream1")
 
     # ---------------------------------------------------------------------------
     # Colormap
@@ -75,9 +75,13 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
     # ---------------------------------------------------------------------------
     # Weight plot
 
-    ax01 = fig.add_subplot(gs0[1, :])
-    ax01.set(ylabel="Stream fraction", ylim=(0, 0.5))
-    ax01.set_xticklabels([])
+    ax01 = fig.add_subplot(
+        gs0[1, :],
+        ylabel="Stream fraction",
+        ylim=(1e-4, 1),
+        xticklabels=[],
+        yscale="log",
+    )
 
     ax01.plot(data["phi1"], stream_weight, c="k", ls="--", lw=2, label="Model (MLE)")
     ax01.legend(loc="upper left")
@@ -87,9 +91,14 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
 
     mpa = mpars.get_prefixed("stream.astrometric")
 
-    ax02 = fig.add_subplot(gs0[2, :])
-    ax02.set_xticklabels([])
-    ax02.set(ylabel=r"$\phi_2$ [$\degree$]")
+    ax02 = fig.add_subplot(
+        gs0[2, :],
+        xticklabels=[],
+        xlabel="",
+        ylabel=r"$\phi_2$ [$\degree$]",
+        rasterization_zorder=0,
+        ylim=(np.nanmin(data["phi2"]), np.nanmax(data["phi2"])),
+    )
 
     ax02.scatter(
         data["phi1"][psort],
@@ -99,7 +108,6 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
         s=2,
         zorder=-10,
     )
-    ax02.set_rasterization_zorder(0)
     ax02.fill_between(
         data["phi1"][stream_cutoff],
         (mpa["phi2", "mu"] - xp.exp(mpa["phi2", "ln-sigma"]))[stream_cutoff],
@@ -110,17 +118,24 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
     )
 
     pal5_cp = QTable.read(paths.data / "pal5" / "control_points_stream.ecsv")
-    ax02.errorbar(pal5_cp["phi1"], pal5_cp["phi2"], yerr=pal5_cp["w_phi2"], ls="none")
+    ax02.errorbar(
+        pal5_cp["phi1"].value,
+        pal5_cp["phi2"].value,
+        yerr=pal5_cp["w_phi2"].value,
+        ls="none",
+    )
 
-    ax02.set_ylim(np.nanmin(data["phi2"]), np.nanmax(data["phi2"]))
     ax02.legend(loc="upper left")
 
     # # ---------------------------------------------------------------------------
     # # PM-Phi1
 
-    ax03 = fig.add_subplot(gs0[3, :])
-    ax03.set_xticklabels([])
-    ax03.set(ylabel=r"$\mu_{\phi_1}^*$ [mas yr$^{-1}$]")
+    ax03 = fig.add_subplot(
+        gs0[3, :],
+        ylabel=r"$\mu_{\phi_1}^*$ [mas yr$^{-1}$]",
+        xticklabels=[],
+        rasterization_zorder=0,
+    )
 
     # ax03.scatter(
     #     data["phi1"][psort],

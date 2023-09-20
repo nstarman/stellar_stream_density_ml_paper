@@ -32,8 +32,8 @@ with asdf.open(paths.data / "pal5" / "info.asdf", mode="r") as af:
     )
     all_coord_bounds = {k: tuple(v) for k, v in af["coord_bounds"].items()}
 
-astro_coords = ("phi2",)
-astro_coord_errs = ("phi2_err",)
+astro_coords = ("phi2", "pmphi1", "pmphi2")
+astro_coord_errs = ("phi2_err", "pmphi1_err", "pmphi2_err")
 astro_coord_bounds = {k: v for k, v in all_coord_bounds.items() if k in astro_coords}
 
 phot_coords = ("g", "r")
@@ -57,9 +57,9 @@ background_astrometric_model = sml.builtin.Exponential(
         data=1, hidden_features=16, layers=2, features=len(coord_names), dropout=0.0
     ),
     data_scaler=scaler,
-    coord_names=astro_coords,
-    coord_err_names=astro_coord_errs,
-    coord_bounds=astro_coord_bounds,
+    coord_names=("phi2",),
+    coord_err_names=("phi2_err",),
+    coord_bounds={"phi2": astro_coord_bounds["phi2"]},
     params=ModelParameters(
         {
             "phi2": {
@@ -69,15 +69,30 @@ background_astrometric_model = sml.builtin.Exponential(
     ),
 )
 
+pm_coords = ("pmphi1", "pmphi2")
+pm_flow_scaler = scaler[("phi1", *pm_coords)]
+
+background_pm_model = sml.builtin.compat.ZukoFlowModel(
+    net=zuko.flows.MAF(2, 1, hidden_features=[8, 8, 8]),
+    jacobian_logdet=-xp.log(xp.prod(pm_flow_scaler.scale[1:])),
+    data_scaler=pm_flow_scaler,
+    coord_names=pm_coords,
+    coord_bounds={k: coord_bounds[k] for k in pm_coords},
+    params=ModelParameters(),
+    with_grad=False,
+    name="background_pm_model",
+)
+
+
 # -----------------------------------------------------------------------------
 # Photometry
 
-flow_scaler = scaler[("phi1", *phot_coords)]
+phot_flow_scaler = scaler[("phi1", *phot_coords)]
 
 background_photometric_model = sml.builtin.compat.ZukoFlowModel(
     net=zuko.flows.MAF(2, 1, hidden_features=[8, 8, 8]),
-    jacobian_logdet=-xp.log(xp.prod(flow_scaler.scale[1:])),
-    data_scaler=flow_scaler,
+    jacobian_logdet=-xp.log(xp.prod(phot_flow_scaler.scale[1:])),
+    data_scaler=phot_flow_scaler,
     coord_names=phot_coords,
     coord_bounds=phot_coord_bounds,
     params=ModelParameters(),
@@ -91,6 +106,7 @@ background_photometric_model = sml.builtin.compat.ZukoFlowModel(
 background_model = sml.IndependentModels(
     {
         "astrometric": background_astrometric_model,
+        "pm": background_pm_model,
         # "photometric": background_photometric_model,
     }
 )
@@ -122,8 +138,8 @@ stream_astrometric_prior = sml.prior.ControlRegions(
 stream_astrometric_model = sml.builtin.TruncatedNormal(
     net=sml.nn.sequential(
         data=1,
-        hidden_features=32,
-        layers=3,
+        hidden_features=64,
+        layers=4,
         features=2 * len(astro_coords),
         dropout=0.0,
     ),
@@ -141,6 +157,26 @@ stream_astrometric_model = sml.builtin.TruncatedNormal(
                 "ln-sigma": ModelParameter(
                     bounds=SigmoidBounds(-3.0, 0.0),
                     scaler=StandardLnWidth.from_data_scaler(scaler, "phi2", xp=xp),
+                ),
+            },
+            "pmphi1": {
+                "mu": ModelParameter(
+                    bounds=SigmoidBounds(*coord_bounds["pmphi1"]),
+                    scaler=StandardLocation.from_data_scaler(scaler, "pmphi1", xp=xp),
+                ),
+                "ln-sigma": ModelParameter(
+                    bounds=SigmoidBounds(-3.0, 0.0),
+                    scaler=StandardLnWidth.from_data_scaler(scaler, "pmphi1", xp=xp),
+                ),
+            },
+            "pmphi2": {
+                "mu": ModelParameter(
+                    bounds=SigmoidBounds(*coord_bounds["pmphi2"]),
+                    scaler=StandardLocation.from_data_scaler(scaler, "pmphi2", xp=xp),
+                ),
+                "ln-sigma": ModelParameter(
+                    bounds=SigmoidBounds(-3.0, 0.0),
+                    scaler=StandardLnWidth.from_data_scaler(scaler, "pmphi2", xp=xp),
                 ),
             },
         }
@@ -188,7 +224,7 @@ stream_isochrone_model = sml.builtin.IsochroneMVNorm(
     net=sml.nn.sequential(
         data=1, hidden_features=32, layers=4, features=2, dropout=0.15
     ),
-    data_scaler=flow_scaler,
+    data_scaler=phot_flow_scaler,
     # # coordinates
     coord_names=("distmod",),
     coord_bounds={"distmod": (13.0, 18.0)},
@@ -265,7 +301,7 @@ model = sml.MixtureModel(
         # turn off above 10
         replace(_stream_wgt_prior, lower=10, data_scaler=scaler),
         # turn off around progenitor
-        replace(_stream_wgt_prior, lower=0.1, upper=0.1, data_scaler=scaler),
+        replace(_stream_wgt_prior, lower=-0.1, upper=0.1, data_scaler=scaler),
     ),
 )
 
