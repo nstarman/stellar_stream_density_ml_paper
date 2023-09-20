@@ -45,23 +45,23 @@ x = np.linspace(track.phi1.min(), track.phi1.max(), len(table) - 1)
 nans = np.full_like(x.value, np.nan)
 
 #       ([progenitor], [stream])
-table["phi1"] = np.concatenate(([0], x))
+table["phi1"] = np.concatenate(([0], x)) << u.deg
 
 # phi2
-table["phi2"] = np.concatenate(([0], itrack(x).phi2))
+table["phi2"] = np.concatenate(([0], itrack(x).phi2)) << u.deg
 table["w_phi2"] = np.concatenate(([0.1], np.full_like(x.value, 1))) << u.deg
 # distance
-table["distance"] = np.concatenate(([np.nan], itrack(x).distance))
+table["distance"] = np.concatenate(([np.nan], itrack(x).distance)) << u.kpc
 table["w_distance"] = np.concatenate(([np.nan], np.full_like(x.value, 1.5))) << u.kpc
 # -> distmod
-table["distmod"] = Distance(table["distance"]).distmod
+table["distmod"] = Distance(table["distance"]).distmod << u.mag
 table["w_distmod"] = (
     np.abs(
         Distance(table["distance"] + table["w_distance"]).distmod
         - Distance(table["distance"] - table["w_distance"]).distmod
     )
     / 2
-)
+) << u.mag
 
 # pmphi1
 prog_pmphi1s = data["pmphi1"][~masks["Pal5"]]

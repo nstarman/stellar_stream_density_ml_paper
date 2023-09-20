@@ -18,9 +18,6 @@ from showyourwork.paths import user as user_paths
 import stream_ml.visualization as smlvis
 from stream_ml.core import ModelAPI
 from stream_ml.pytorch import Data
-from stream_ml.visualization.background import (
-    exponential_like_distribution as exp_distr,
-)
 
 paths = user_paths()
 
@@ -73,7 +70,7 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
     gs = GridSpec(2, 1, figure=fig, height_ratios=(1.2, 1), hspace=0)
     gs0 = gs[0].subgridspec(6, 1, height_ratios=(1, 5, 5, 5, 5, 5))
 
-    colors = color_by_probable_member((stream_prob[psort], cmap1))
+    colors = color_by_probable_member((stream_prob, cmap1))
     alphas = p2alpha(allstream_prob[psort])
 
     # ---------------------------------------------------------------------------
@@ -119,7 +116,7 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
     ax02.scatter(
         data["phi1"][psort],
         data["phi2"][psort],
-        c=colors,
+        c=colors[psort],
         alpha=alphas,
         s=2,
         zorder=-10,
@@ -157,7 +154,7 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
     ax03.scatter(
         data["phi1"][psort],
         data["pmphi1"][psort],
-        c=colors,
+        c=colors[psort],
         alpha=alphas,
         s=2,
         zorder=-10,
@@ -179,21 +176,23 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
         ls="none",
     )
 
-    # # ---------------------------------------------------------------------------
-    # # PM-Phi2
+    # ---------------------------------------------------------------------------
+    # PM-Phi2
 
-    ax04 = fig.add_subplot(gs0[4, :])
-    ax04.set_xticklabels([])
-    ax04.set(ylabel=r"$\mu_{\phi_2}$ [mas yr$^{-1}$]")
+    ax04 = fig.add_subplot(
+        gs0[4, :],
+        ylabel=r"$\mu_{\phi_2}$ [mas yr$^{-1}$]",
+        xticklabels=[],
+    )
 
-    # ax04.scatter(
-    #     data["phi1"][psort],
-    #     data["pmphi2"][psort],
-    #     c=allstream_prob[psort],
-    #     alpha=0.1 + (1 - 0.1) / (pmax - pmin) * (stream_prob[psort] - pmin),
-    #     s=2,
-    #     zorder=-10,
-    # )
+    ax04.scatter(
+        data["phi1"][psort],
+        data["pmphi2"][psort],
+        c=colors[psort],
+        alpha=alphas,
+        s=2,
+        zorder=-10,
+    )
     # ax04.fill_between(
     #     data["phi1"][stream_cutoff],
     #     (mpa["pmphi2", "mu"] - xp.exp(mpa["pmphi2", "ln-sigma"]))[stream_cutoff],
@@ -256,23 +255,25 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
     # =============================================================================
     # Slice plots
 
-    gs1 = gs[1].subgridspec(5, 4, height_ratios=(0.01, 1, 1, 1, 2), hspace=0)
+    legend1 = plt.legend(
+        handles=[
+            mpl.patches.Patch(color=cmap1(0.01), label="Background (MLE)"),
+            mpl.lines.Line2D(
+                [0], [0], color="k", lw=3, ls="-", label="Background Distribution"
+            ),
+            mpl.patches.Patch(color=cmap1(0.99), label="Stream (MLE)"),
+        ],
+        ncols=4,
+        loc="upper right",
+        bbox_to_anchor=(1, -0.45),
+    )
+    ax05.add_artist(legend1)
+
+    gs1 = gs[1].subgridspec(4, 4, height_ratios=(1, 1, 1, 2), hspace=0)
 
     # Bin the data for plotting
     bins = np.linspace(data["phi1"].min(), data["phi1"].max(), num=5, endpoint=True)
     which_bin = np.digitize(data["phi1"], bins[:-1])
-
-    # Legend
-    ax10 = fig.add_subplot(gs1[0, :])
-    ax10.axis(False)
-    ax10.legend(
-        handles=[
-            mpl.patches.Patch(color=cmap1(0.01), label="Background"),
-            mpl.lines.Line2D([0], [0], color="k", lw=4),
-            mpl.patches.Patch(color=cmap1(0.99), label="Stream"),
-        ],
-        ncols=4,
-    )
 
     for i, b in enumerate(np.unique(which_bin)):
         sel = which_bin == b
@@ -284,7 +285,7 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
         # ---------------------------------------------------------------------------
         # Phi2
 
-        ax11i = fig.add_subplot(gs1[1, i], xlabel=r"$\phi_2$ [$\degree$]")
+        ax10i = fig.add_subplot(gs1[0, i], xlabel=r"$\phi_2$ [$\degree$]")
 
         # Plot vertical lines
         for ax in (ax01, ax02, ax03, ax04, ax05):
@@ -292,13 +293,13 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
             ax.axvline(bins[i + 1], color="gray", ls="--", zorder=-200)
         # Connect to top plot(s)
         smlvis._slices.connect_slices_to_top(  # noqa: SLF001
-            fig, ax05, ax11i, left=bins[i], right=bins[i + 1], color="gray"
+            fig, ax05, ax10i, left=bins[i], right=bins[i + 1], color="gray"
         )
 
         notna = ~np.isnan(data_["phi2"])
         cphi2s = np.ones((sel.sum(), 2)) * data_["phi2"][:, None].numpy()
         ws = np.stack((bkg_prob_, stream_prob_), axis=1)
-        ax11i.hist(
+        ax10i.hist(
             cphi2s[notna],
             bins=50,
             weights=ws[notna],
@@ -306,22 +307,23 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
             alpha=0.75,
             density=True,
             stacked=True,
+            log=True,
             label=["", "Stream Model (MLE)"],
         )
 
-        xmin, xmax = data["phi2"].min().numpy(), data["phi2"].max().numpy()
-        x = np.linspace(xmin, xmax)
-        bkg_wgt = mpars["background.weight",][sel].mean()
-        m = mpars["background.astrometric.phi2.phi2", "slope"][sel].mean()
-        ax11i.plot(x, bkg_wgt * exp_distr(m, xmin, xmax).pdf(x), c="k")
+        # xmin, xmax = data["phi2"].min().numpy(), data["phi2"].max().numpy()
+        # x = np.linspace(xmin, xmax)
+        # bkg_wgt = mpars["background.weight",][sel].mean()
+        # m = mpars["background.astrometric.phi2.phi2", "slope"][sel].mean()
+        # ax10i.plot(x, bkg_wgt * exp_distr(m, xmin, xmax).pdf(x), c="k")
 
         if i == 0:
-            ax11i.set_ylabel("frequency")
+            ax10i.set_ylabel("frequency")
 
-        # # ---------------------------------------------------------------------------
-        # # PM-Phi1
+        # ---------------------------------------------------------------------------
+        # PM-Phi1
 
-        ax12i = fig.add_subplot(gs1[2, i], xlabel=r"$\mu_{\phi_1}^*$ [mas yr$^{-1}$]")
+        ax12i = fig.add_subplot(gs1[1, i], xlabel=r"$\mu_{\phi_1}^*$ [mas yr$^{-1}$]")
 
         # Recovered
         cpmphi1s = np.ones((sel.sum(), 2)) * data_["pmphi1"][:, None].numpy()
@@ -345,11 +347,11 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
         if i == 0:
             ax12i.set_ylabel("frequency")
 
-        # # ---------------------------------------------------------------------------
-        # # PM-Phi2
+        # ---------------------------------------------------------------------------
+        # PM-Phi2
 
-        ax13i = fig.add_subplot(gs1[3, i], xlabel=r"$\mu_{phi_2}$ [mas yr$^{-1}$]")
-        ax13i.hist(
+        ax12i = fig.add_subplot(gs1[2, i], xlabel=r"$\mu_{phi_2}$ [mas yr$^{-1}$]")
+        ax12i.hist(
             np.ones((sel.sum(), 2)) * data_["pmphi2"][:, None].numpy(),
             bins=50,
             weights=np.stack((bkg_prob_, stream_prob_), axis=1),
@@ -363,16 +365,16 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
         # xmin, xmax = data["pmphi2"].min().numpy(), data["pmphi2"].max().numpy()
         # x = np.linspace(xmin, xmax)
         # m = mpars["background.astrometric.pmphi2", "slope"][sel].mean()
-        # ax13i.plot(x, bkg_wgt * exp_distr(m, xmin, xmax).pdf(x), c="k")
+        # ax12i.plot(x, bkg_wgt * exp_distr(m, xmin, xmax).pdf(x), c="k")
 
         if i == 0:
-            ax13i.set_ylabel("frequency")
+            ax12i.set_ylabel("frequency")
 
         # ---------------------------------------------------------------------------
         # Photometry
 
-        ax14i = fig.add_subplot(
-            gs1[4, i],
+        ax13i = fig.add_subplot(
+            gs1[3, i],
             xlabel=("g - r [mag]"),
             xlim=(0, 1),
             ylim=(22, 13),
@@ -381,7 +383,7 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
         )
 
         sorter = np.argsort(allstream_prob[sel])
-        ax14i.scatter(
+        ax13i.scatter(
             data_["g"][sorter] - data_["r"][sorter],
             data_["g"][sorter],
             c=colors[sel][sorter],
@@ -389,7 +391,7 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
         )
 
         # # isochrone
-        # ax14i.plot(
+        # ax13i.plot(
         #     isochrone_data["g"] - isochrone_data["r"],
         #     isochrone_data["g"]
         #     + mpars["stream.photometric.distmod", "mu"][sel].mean().numpy(),
@@ -397,8 +399,8 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
         # )
 
         if i == 0:
-            ax14i.set_ylabel("g [mag]")
+            ax13i.set_ylabel("g [mag]")
         else:
-            ax14i.set_yticklabels([])
+            ax13i.set_yticklabels([])
 
     return fig
