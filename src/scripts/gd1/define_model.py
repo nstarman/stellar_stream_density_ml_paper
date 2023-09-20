@@ -1,6 +1,7 @@
 """Plot results."""
 
 import sys
+from dataclasses import replace
 
 import asdf
 import numpy as np
@@ -478,6 +479,17 @@ def spur_shares_stream_distmod(params: dict) -> dict:
     return params
 
 
+_stream_wgt_prior = sml.prior.HardThreshold(
+    threshold=1,  # turn off no matter what
+    param_name="stream.weight",
+    coord_name="phi1",
+    data_scaler=scaler,
+)
+_spur_wgt_prior = replace(
+    _stream_wgt_prior, param_name="spur.weight", data_scaler=scaler
+)
+
+
 mm = {"stream": stream_model, "spur": spur_model, "background": background_model}
 model = sml.MixtureModel(
     mm,
@@ -498,38 +510,14 @@ model = sml.MixtureModel(
     ),
     unpack_params_hooks=(spur_shares_stream_distmod,),  # stream => spur parallax
     priors=(
-        sml.prior.HardThreshold(
-            1,
-            set_to=1e-4,
-            upper=-90,
-            param_name="stream.weight",
-            coord_name="phi1",
-            data_scaler=scaler,
-        ),
-        sml.prior.HardThreshold(
-            1,
-            set_to=1e-4,
-            lower=10,
-            param_name="stream.weight",
-            coord_name="phi1",
-            data_scaler=scaler,
-        ),
-        sml.prior.HardThreshold(
-            1,
-            set_to=1e-4,
-            upper=-45,
-            param_name="spur.weight",
-            coord_name="phi1",
-            data_scaler=scaler,
-        ),
-        sml.prior.HardThreshold(
-            1,
-            set_to=1e-4,
-            lower=-15,
-            param_name="spur.weight",
-            coord_name="phi1",
-            data_scaler=scaler,
-        ),
+        # stream: turn off below -90
+        replace(_stream_wgt_prior, upper=-90, data_scaler=scaler),
+        # stream: turn off above 10
+        replace(_stream_wgt_prior, lower=10, data_scaler=scaler),
+        # spur: turn off below -45
+        replace(_spur_wgt_prior, upper=-45, data_scaler=scaler),
+        # spur: turn off above -15
+        replace(_spur_wgt_prior, lower=-15, data_scaler=scaler),
     ),
 )
 
