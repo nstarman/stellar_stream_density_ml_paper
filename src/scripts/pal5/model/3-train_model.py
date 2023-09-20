@@ -51,6 +51,17 @@ diagnostic_path.mkdir(parents=True, exist_ok=True)
 
 
 # =============================================================================
+# Load saved model components
+
+model["background"]["astrometric"]["pm"].load_state_dict(
+    xp.load(paths.data / "pal5" / "background_pm_model.pt")
+)
+model["background"]["photometric"].load_state_dict(
+    xp.load(paths.data / "pal5" / "background_photometry_model.pt")
+)
+
+
+# =============================================================================
 # Training Parameters
 
 BATCH_SIZE = int(len(data) * 0.075)
