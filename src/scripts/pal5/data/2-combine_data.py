@@ -27,20 +27,19 @@ from scripts.pal5.frames import pal5_frame as frame
 ##############################################################################
 # Parameters
 
-SAVE_LOC = paths.data / "pal5" / "gaia_ps1_xm.asdf"
-
 snkmk: dict[str, Any]
 try:
     snkmk = dict(snakemake.params)
 except NameError:
     snkmk = {"load_from_static": False, "save_to_static": False}
 
-
-##############################################################################
+SAVE_LOC = paths.data / "pal5" / "gaia_ps1_xm.asdf"
 
 if snkmk["load_from_static"]:
     shutil.copyfile(paths.static / "pal5" / "gaia_ps1_xm.asdf", SAVE_LOC)
     sys.exit(0)
+
+##############################################################################
 
 # -----------------------------------------------------------------------------
 # Initial combination

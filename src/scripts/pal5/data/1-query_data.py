@@ -27,21 +27,21 @@ from scripts.pal5.frames import pal5_frame as frame
 ##############################################################################
 # Parameters
 
-SAVE_LOC = paths.data / "pal5" / "gaia_ps1_xm_polygons.asdf"
-
 snkmk: dict[str, Any]
 try:
     snkmk = dict(snakemake.params)
 except NameError:
     snkmk = {"load_from_static": False, "save_to_static": False}
 
+SAVE_LOC = paths.data / "pal5" / "gaia_ps1_xm_polygons.asdf"
 
 if snkmk["load_from_static"]:
     shutil.copyfile(paths.static / "pal5" / "gaia_ps1_xm_polygons.asdf", SAVE_LOC)
     sys.exit(0)
-else:  # Log into Gaia for the query
-    GAIA_LOGIN = Path(paths.static / "gaia.login").expanduser()
-    Gaia.login(credentials_file=GAIA_LOGIN, verbose=False)
+
+# Log into Gaia for the query
+GAIA_LOGIN = Path(paths.static / "gaia.login").expanduser()
+Gaia.login(credentials_file=GAIA_LOGIN, verbose=False)
 
 Gaia.ROW_LIMIT = -1  # no limit
 
