@@ -217,7 +217,7 @@ for i, b in enumerate(np.unique(which_bin)):
     xmin, xmax = data["phi2"].min().numpy(), data["phi2"].max().numpy()
     x = np.linspace(xmin, xmax)
     bkg_wgt = mpars["background.weight",][sel].mean()
-    m = mpars["background.astrometric.phi2", "slope"][sel].mean()
+    m = mpars["background.astrometric.phi2.phi2", "slope"][sel].mean()
     ax10i.plot(x, bkg_wgt * exp_distr(m, xmin, xmax).pdf(x), c="k")
 
     if i == 0:
