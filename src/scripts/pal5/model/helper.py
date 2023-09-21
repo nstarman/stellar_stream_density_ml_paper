@@ -74,7 +74,7 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
         tot_lnlik = xp.logaddexp(stream_lnlik, bkg_lnlik)
 
     stream_weight = mpars[("stream.weight",)]
-    stream_cutoff = stream_weight > 2e-2
+    stream_cutoff = stream_weight > 0  # everything has weight > 0
 
     bkg_prob = xp.exp(bkg_lnlik - tot_lnlik)
     stream_prob = xp.exp(stream_lnlik - tot_lnlik)
@@ -148,6 +148,7 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
         pal5_cp["phi2"].value,
         yerr=pal5_cp["w_phi2"].value,
         ls="none",
+        zorder=-9,
     )
 
     ax02.fill_between(
