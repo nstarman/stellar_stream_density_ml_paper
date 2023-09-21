@@ -146,8 +146,9 @@ ax01 = fig.add_subplot(
     gs[1, :],
     ylabel="Stream fraction",
     xlim=xlims,
-    ylim=(0, 0.4),
+    ylim=(1e-4, 1),
     xticklabels=[],
+    yscale="log",
     rasterization_zorder=0,
 )
 
@@ -233,6 +234,7 @@ ax03 = fig.add_subplot(
     xlabel="",
     ylabel=r"$\varpi$ [mas]",
     xlim=xlims,
+    ylim=(max(data["parallax"].min(), -2.5), data["parallax"].max()),
     xticklabels=[],
     rasterization_zorder=0,
 )
