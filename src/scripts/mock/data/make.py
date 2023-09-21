@@ -1,9 +1,6 @@
 """Simulate mock stream."""
 
-import contextlib
-import os
 from dataclasses import asdict
-from pathlib import Path
 
 import asdf
 import astropy.units as u
@@ -241,10 +238,9 @@ af.write_to(paths.data / "mock" / "data.asdf", all_array_storage="internal")
 af.close()
 
 
-# ----------
-# Diagnostics
-
-if snkmk["diagnostic_plots"]:
-    with contextlib.suppress(Exception):
-        nbpath = (Path(__file__).parent / "diagnostics.ipynb").as_posix()
-        os.system(f"jupyter execute {nbpath}")  # noqa: S605
+# # ----------
+# # Diagnostics
+# if snkmk["diagnostic_plots"]:
+#     with contextlib.suppress(Exception):
+#         nbpath = (Path(__file__).parent / "diagnostics.ipynb").as_posix()
+#         os.system(f"jupyter execute {nbpath}")
