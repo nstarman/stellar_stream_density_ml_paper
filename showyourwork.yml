@@ -76,7 +76,7 @@ dependencies:
     - src/data/gd1/gaia_ps1_xm.asdf
   src/scripts/gd1/data/3.3-masks.py:
     - src/data/gd1/gaia_ps1_xm.asdf
-  src/scripts/gd1/model/1-info.py:
+  src/scripts/gd1/model/0-info.py:
     - src/data/gd1/gaia_ps1_xm.asdf
     - src/data/gd1/masks.asdf
   src/scripts/gd1/datasets.py:
@@ -125,7 +125,7 @@ dependencies:
     - src/data/pal5/gaia_ps1_xm.asdf
     - src/data/pal5/pm_edges.ecsv
     - src/data/pal5/footprint.npz
-  src/scripts/pal5/model/1-info.py:
+  src/scripts/pal5/model/0-info.py:
     - src/data/pal5/gaia_ps1_xm.asdf
     - src/data/pal5/masks.asdf
   src/scripts/pal5/datasets.py:
