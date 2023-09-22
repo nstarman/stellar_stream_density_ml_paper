@@ -61,12 +61,3 @@ data.array[~where.array] = xp.asarray(
 # Off-stream selection
 
 off_stream = (data["phi2"] < -1.7) | (data["phi2"] > 2)
-
-
-# =============================================================================
-# Save temp file
-
-pth = paths.data / "gd1" / "data.tmp"
-if not pth.exists():
-    with pth.open("w") as f:
-        f.write("hack for snakemake")

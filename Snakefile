@@ -9,8 +9,7 @@ rule download_brutus_mist_file:
     params:
         load_from_static=True,  # set to False to train the model
         save_to_static=False,
-    cache:
-        True
+    cache: True
     script:
         "src/scripts/brutus/download_mist_file.py"
 
@@ -23,8 +22,7 @@ rule download_brutus_nn_file:
         save_to_static=False,
     conda:
         "environment.yml"
-    cache:
-        True
+    cache: True
     script:
         "src/scripts/brutus/download_nn_file.py"
 
@@ -43,8 +41,7 @@ rule mock_make_data:
         diagnostic_plots=True,
     conda:
         "environment.yml"
-    cache:
-        True
+    cache: True
     script:
         "src/scripts/mock/data/make.py"
 
@@ -56,8 +53,7 @@ rule mock_nstream_variable:
         "src/data/mock/data.asdf"
     conda:
         "environment.yml"
-    cache:
-        True
+    cache: True
     script:
         "src/scripts/mock/data/variable_nstream.py"
 
@@ -69,8 +65,7 @@ rule mock_nbackround_variable:
         "src/data/mock/data.asdf"
     conda:
         "environment.yml"
-    cache:
-        True
+    cache: True
     script:
         "src/scripts/mock/data/variable_nbackground.py"
 
@@ -82,8 +77,7 @@ rule mock_isochrone_age_variable:
         "src/data/mock/data.asdf"
     conda:
         "environment.yml"
-    cache:
-        True
+    cache: True
     script:
         "src/scripts/mock/data/variable_isochrone_age.py"
 
@@ -95,8 +89,7 @@ rule mock_isochrone_feh_variable:
         "src/data/mock/data.asdf"
     conda:
         "environment.yml"
-    cache:
-        True
+    cache: True
     script:
         "src/scripts/mock/data/variable_isochrone_feh.py"
 
@@ -115,8 +108,7 @@ rule mock_train_flow:
         lr=1e-3,
     conda:
         "environment.yml"
-    cache:
-        True
+    cache: True
     script:
         "src/scripts/mock/model/1-train_flow.py"
 
@@ -140,8 +132,7 @@ rule mock_train_model:
         lr=5e-3,
     conda:
         "environment.yml"
-    cache:
-        True
+    cache: True
     script:
         "src/scripts/mock/model/2-train_model.py"
 
@@ -154,8 +145,7 @@ rule mock_ncorrect_variable:
         "src/data/mock/model.pt",
     conda:
         "environment.yml"
-    cache:
-        True
+    cache: True
     script:
         "src/scripts/mock/plot/variable_ncorrect.py"
 
@@ -168,8 +158,7 @@ rule mock_falseident_variable:
         "src/data/mock/model.pt",
     conda:
         "environment.yml"
-    cache:
-        True
+    cache: True
     script:
         "src/scripts/mock/plot/variable_falseident.py"
 
@@ -186,8 +175,7 @@ rule download_dustmaps:
         save_to_static=False,
     conda:
         "environment.yml"
-    cache:
-        True
+    cache: True
     script:
         "src/scripts/dustmaps/download_dustmaps.py"
 
@@ -197,8 +185,7 @@ rule panstarrs1_corrections:
         "src/data/dustmaps/ps1_corrections.json"
     conda:
         "environment.yml"
-    cache:
-        True
+    cache: True
     script:
         "src/scripts/dustmaps/ps1_corrections.py"
 
@@ -214,8 +201,7 @@ rule gd1_query_data:
         save_to_static=False,
     conda:
         "environment.yml"
-    cache:
-        True
+    cache: True
     script:
         "src/scripts/gd1/data/1-query_data.py"
 
@@ -232,8 +218,7 @@ rule gd1_combine_data:
         save_to_static=False,
     conda:
         "environment.yml"
-    cache:
-        True
+    cache: True
     script:
         "src/scripts/gd1/data/2-combine_data.py"
 
@@ -245,8 +230,7 @@ rule gd1_variable_ndata:
         "src/data/gd1/gaia_ps1_xm.asdf",
     conda:
         "environment.yml"
-    cache:
-        True
+    cache: True
     script:
         "src/scripts/gd1/data/2.5-variable_ndata.py"
 
@@ -256,8 +240,7 @@ rule gd1_masks_pm:
         "src/data/gd1/pm_edges.ecsv"
     conda:
         "environment.yml"
-    cache:
-        True
+    cache: True
     script:
         "src/scripts/gd1/data/3.1-pm_edges.py"
 
@@ -270,8 +253,7 @@ rule gd1_masks_iso:
         "src/data/brutus/nn_c3k.h5",
     conda:
         "environment.yml"
-    cache:
-        True
+    cache: True
     script:
         "src/scripts/gd1/data/3.2-phot_edges.py"
 
@@ -288,8 +270,7 @@ rule gd1_masks:
         save_to_static=False,
     conda:
         "environment.yml"
-    cache:
-        True
+    cache: True
     script:
         "src/scripts/gd1/data/3.3-masks.py"
 
@@ -299,8 +280,7 @@ rule gd1_control_points_distance:
         "src/data/gd1/control_points_distance.ecsv"
     conda:
         "environment.yml"
-    cache:
-        True
+    cache: True
     script:
         "src/scripts/gd1/model/1-control_points_distance.py"
 
@@ -310,8 +290,7 @@ rule gd1_control_points_stream:
         "src/data/gd1/control_points_stream.ecsv"
     conda:
         "environment.yml"
-    cache:
-        True
+    cache: True
     script:
         "src/scripts/gd1/model/1-control_points_stream.py"
 
@@ -321,8 +300,7 @@ rule gd1_control_points_spur:
         "src/data/gd1/control_points_spur.ecsv"
     conda:
         "environment.yml"
-    cache:
-        True
+    cache: True
     script:
         "src/scripts/gd1/model/1-control_points_spur.py"
 
@@ -338,31 +316,27 @@ rule gd1_info:
         phot_mask="phot_medium",
     conda:
         "environment.yml"
-    cache:
-        True
+    cache: True
     script:
         "src/scripts/gd1/model/0-info.py"
 
 
 # NOTE: this is a hacky way to aggregate the dependencies of the data script
 rule gd1_data_script:
-    output:
-        temp("src/data/gd1/data.tmp")
+    output: touch("src/data/gd1/data.done")
     input:
         "src/data/gd1/gaia_ps1_xm.asdf",
         "src/data/gd1/info.asdf",
     conda:
         "environment.yml"
-    cache:
-        False
+    cache: False
     script:
         "src/scripts/gd1/datasets.py"
 
 
 # NOTE: this is a hacky way to aggregate the dependencies of the model script
 rule gd1_model_script:
-    output:
-        temp("src/data/gd1/model.tmp")
+    output: touch("src/data/gd1/model.done")
     input:
         "src/data/gd1/info.asdf",
         "src/data/gd1/control_points_stream.ecsv",
@@ -370,8 +344,7 @@ rule gd1_model_script:
         "src/data/gd1/control_points_distance.ecsv",
     conda:
         "environment.yml"
-    cache:
-        False
+    cache: False
     script:
         "src/scripts/gd1/define_model.py"
 
@@ -380,8 +353,8 @@ rule gd1_train_background_photometry_flow:
     output:
         "src/data/gd1/background_photometry_model.pt"
     input:
-        "src/data/gd1/data.tmp",
-        "src/data/gd1/model.tmp",
+        "src/data/gd1/data.done",
+        "src/data/gd1/model.done",
     params:
         load_from_static=True,  # set to False to recompute
         save_to_static=False,
@@ -389,8 +362,7 @@ rule gd1_train_background_photometry_flow:
         epochs=2_000,
     conda:
         "environment.yml"
-    cache:
-        True
+    cache: True
     script:
         "src/scripts/gd1/model/2-train_background_photometry_flow.py"
 
@@ -399,8 +371,8 @@ rule gd1_train_background_parallax_flow:
     output:
         "src/data/gd1/background_parallax_model.pt"
     input:
-        "src/data/gd1/data.tmp",
-        "src/data/gd1/model.tmp",
+        "src/data/gd1/data.done",
+        "src/data/gd1/model.done",
     params:
         load_from_static=True,  # set to False to recompute
         save_to_static=False,
@@ -408,8 +380,7 @@ rule gd1_train_background_parallax_flow:
         epochs=1_000,
     conda:
         "environment.yml"
-    cache:
-        True
+    cache: True
     script:
         "src/scripts/gd1/model/2-train_background_parallax_flow.py"
 
@@ -419,8 +390,8 @@ rule gd1_train_model:
     output:
         "src/data/gd1/model.pt"
     input:
-        "src/data/gd1/data.tmp",
-        "src/data/gd1/model.tmp",
+        "src/data/gd1/data.done",
+        "src/data/gd1/model.done",
         "src/data/gd1/background_photometry_model.pt",
         "src/data/gd1/background_parallax_model.pt",
     params:
@@ -433,8 +404,7 @@ rule gd1_train_model:
         weight_decay=1e-8,
     conda:
         "environment.yml"
-    cache:
-        True
+    cache: True
     script:
         "src/scripts/gd1/model/3-train_model.py"
 
@@ -443,13 +413,12 @@ rule gd1_member_likelihoods:
     output:
         "src/data/gd1/membership_likelhoods.ecsv"
     input:
-        "src/data/gd1/data.tmp",
-        "src/data/gd1/model.tmp",
+        "src/data/gd1/data.done",
+        "src/data/gd1/model.done",
         "src/data/gd1/model.pt",
     conda:
         "environment.yml"
-    cache:
-        True
+    cache: True
     script:
         "src/scripts/gd1/model/4-likelihoods.py"
 
@@ -458,13 +427,12 @@ rule gd1_member_table_select:
     output:
         "src/tex/output/gd1/member_table_select.tex"
     input:
-        "src/data/gd1/data.tmp",
-        "src/data/gd1/model.tmp",
+        "src/data/gd1/data.done",
+        "src/data/gd1/model.done",
         "src/data/gd1/membership_likelhoods.ecsv",
     conda:
         "environment.yml"
-    cache:
-        True
+    cache: True
     script:
         "src/scripts/gd1/table/member_table_select.py"
 
@@ -473,13 +441,12 @@ rule gd1_member_table_full:
     output:
         "src/tex/output/gd1/member_table_full.tex"
     input:
-        "src/data/gd1/data.tmp",
-        "src/data/gd1/model.tmp",
+        "src/data/gd1/data.done",
+        "src/data/gd1/model.done",
         "src/data/gd1/membership_likelhoods.ecsv",
     conda:
         "environment.yml"
-    cache:
-        True
+    cache: True
     script:
         "src/scripts/gd1/table/member_table_full.py"
 
@@ -495,8 +462,7 @@ rule pal5_query_data:
         save_to_static=False,
     conda:
         "environment.yml"
-    cache:
-        True
+    cache: True
     script:
         "src/scripts/pal5/data/1-query_data.py"
 
@@ -513,8 +479,7 @@ rule pal5_combine_data:
         save_to_static=False,
     conda:
         "environment.yml"
-    cache:
-        True
+    cache: True
     script:
         "src/scripts/pal5/data/2-combine_data.py"
 
@@ -526,8 +491,7 @@ rule pal5_variable_ndata:
         "src/data/pal5/gaia_ps1_xm.asdf",
     conda:
         "environment.yml"
-    cache:
-        True
+    cache: True
     script:
         "src/scripts/pal5/data/2.5-variable_ndata.py"
 
@@ -537,8 +501,7 @@ rule pal5_masks_pm:
         "src/data/pal5/pm_edges.ecsv"
     conda:
         "environment.yml"
-    cache:
-        True
+    cache: True
     script:
         "src/scripts/pal5/data/3.1-pm_edges.py"
 
@@ -550,8 +513,7 @@ rule pal5_masks_iso:
         diagnostic_plots=True,
     conda:
         "environment.yml"
-    cache:
-        True
+    cache: True
     script:
         "src/scripts/pal5/data/3.2-phot_edges.py"
 
@@ -561,8 +523,7 @@ rule pal5_masks_off_field:
         "src/data/pal5/footprint.npz"
     conda:
         "environment.yml"
-    cache:
-        True
+    cache: True
     script:
         "src/scripts/pal5/data/3.3-off_field.py"
 
@@ -580,8 +541,7 @@ rule pal5_masks:
         diagnostic_plots=True,
     conda:
         "environment.yml"
-    cache:
-        True
+    cache: True
     script:
         "src/scripts/pal5/data/4-masks.py"
 
@@ -593,8 +553,7 @@ rule pal5_control_points_stream:
         "environment.yml"
     params:
         diagnostic_plots=True,
-    cache:
-        True
+    cache: True
     script:
         "src/scripts/pal5/model/1-control_points_stream.py"
 
@@ -610,38 +569,33 @@ rule pal5_info:
         phot_mask="phot_15",
     conda:
         "environment.yml"
-    cache:
-        True
+    cache: True
     script:
         "src/scripts/pal5/model/0-info.py"
 
 
 # NOTE: this is a hacky way to aggregate the dependencies of the data script
 rule pal5_data_script:
-    output:
-        temp("src/data/pal5/data.tmp")
+    output: touch("src/data/pal5/data.done")
     input:
         "src/data/pal5/gaia_ps1_xm.asdf",
         "src/data/pal5/info.asdf",
     conda:
         "environment.yml"
-    cache:
-        False
+    cache: False
     script:
         "src/scripts/pal5/datasets.py"
 
 
 # NOTE: this is a hacky way to aggregate the dependencies of the model script
 rule pal5_model_script:
-    output:
-        temp("src/data/pal5/model.tmp")
+    output: touch("src/data/pal5/model.done")
     input:
         "src/data/pal5/info.asdf",
         "src/data/pal5/control_points_stream.ecsv",
     conda:
         "environment.yml"
-    cache:
-        False
+    cache: False
     script:
         "src/scripts/pal5/define_model.py"
 
@@ -650,8 +604,8 @@ rule pal5_train_background_photometry_flow:
     output:
         "src/data/pal5/background_photometry_model.pt"
     input:
-        "src/data/pal5/data.tmp",
-        "src/data/pal5/model.tmp",
+        "src/data/pal5/data.done",
+        "src/data/pal5/model.done",
     params:
         load_from_static=True,  # set to False to recompute
         save_to_static=False,
@@ -659,8 +613,7 @@ rule pal5_train_background_photometry_flow:
         epochs=2_000,
     conda:
         "environment.yml"
-    cache:
-        True
+    cache: True
     script:
         "src/scripts/pal5/model/2-train_background_photometry_flow.py"
 
@@ -669,8 +622,8 @@ rule pal5_train_model:
     output:
         "src/data/pal5/model.pt"
     input:
-        "src/data/pal5/data.tmp",
-        "src/data/pal5/model.tmp",
+        "src/data/pal5/data.done",
+        "src/data/pal5/model.done",
     params:
         load_from_static=True,  # set to False to recompute
         save_to_static=False,
@@ -681,8 +634,7 @@ rule pal5_train_model:
         weight_decay=1e-8,
     conda:
         "environment.yml"
-    cache:
-        True
+    cache: True
     script:
         "src/scripts/pal5/model/3-train_model.py"
 
@@ -691,13 +643,12 @@ rule pal5_member_likelihoods:
     output:
         "src/data/pal5/membership_likelhoods.ecsv"
     input:
-        "src/data/pal5/data.tmp",
-        "src/data/pal5/model.tmp",
+        "src/data/pal5/data.done",
+        "src/data/pal5/model.done",
         "src/data/pal5/model.pt",
     conda:
         "environment.yml"
-    cache:
-        True
+    cache: True
     script:
         "src/scripts/pal5/model/4-likelihoods.py"
 
@@ -706,13 +657,12 @@ rule pal5_member_table_select:
     output:
         "src/tex/output/pal5/member_table_select.tex"
     input:
-        "src/data/pal5/data.tmp",
-        "src/data/pal5/model.tmp",
+        "src/data/pal5/data.done",
+        "src/data/pal5/model.done",
         "src/data/pal5/membership_likelhoods.ecsv",
     conda:
         "environment.yml"
-    cache:
-        True
+    cache: True
     script:
         "src/scripts/pal5/table/member_table_select.py"
 
@@ -721,12 +671,11 @@ rule pal5_member_table_full:
     output:
         "src/tex/output/pal5/member_table_full.tex"
     input:
-        "src/data/pal5/data.tmp",
-        "src/data/pal5/model.tmp",
+        "src/data/pal5/data.done",
+        "src/data/pal5/model.done",
         "src/data/pal5/membership_likelhoods.ecsv",
     conda:
         "environment.yml"
-    cache:
-        True
+    cache: True
     script:
         "src/scripts/pal5/table/member_table_full.py"

@@ -59,12 +59,3 @@ data.array[~where.array] = xp.asarray(
 # This will select the off-stream region (it's the opposite of the mask).
 
 off_stream = ~masks["off_stream"]
-
-
-# =============================================================================
-# Save temp file
-
-pth = paths.data / "pal5" / "data.tmp"
-if not pth.exists():
-    with pth.open("w") as f:
-        f.write("hack for snakemake")

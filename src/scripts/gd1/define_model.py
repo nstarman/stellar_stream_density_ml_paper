@@ -520,11 +520,3 @@ model = sml.MixtureModel(
         replace(_spur_wgt_prior, lower=-15, data_scaler=scaler),
     ),
 )
-
-
-# -----------------------------------------------------------------------------
-
-pth = paths.data / "gd1" / "model.tmp"
-if not pth.exists():
-    with pth.open("w") as f:
-        f.write("hack for snakemake")

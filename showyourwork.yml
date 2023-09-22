@@ -88,33 +88,33 @@ dependencies:
     - src/data/gd1/control_points_spur.ecsv
     - src/data/gd1/control_points_distance.ecsv
   src/scripts/gd1/model/2-train_background_photometry_flow.py:
-    - src/data/gd1/data.tmp  # hack
-    - src/data/gd1/model.tmp  # hack
+    - src/data/gd1/data.done  # hack
+    - src/data/gd1/model.done  # hack
   src/scripts/gd1/model/2-train_parallax_photometry_flow.py:
-    - src/data/gd1/data.tmp  # hack
-    - src/data/gd1/model.tmp  # hack
+    - src/data/gd1/data.done  # hack
+    - src/data/gd1/model.done  # hack
   src/scripts/gd1/model/3-train_model.py:
-    - src/data/gd1/data.tmp  # hack
-    - src/data/gd1/model.tmp  # hack
+    - src/data/gd1/data.done  # hack
+    - src/data/gd1/model.done  # hack
     - src/data/gd1/background_photometry_model.pt
     - src/data/gd1/background_parallax_model.pt
   src/scripts/gd1/model/4-likelihoods.py:
-    - src/data/gd1/data.tmp  # hack
+    - src/data/gd1/data.done  # hack
     - src/data/gd1/model.pt  # hack
   src/scripts/gd1/plot/data_selection.py:
     - src/data/gd1/gaia_ps1_xm.asdf
     - src/data/gd1/pm_edges.ecsv
     - src/data/gd1/masks.asdf
   src/scripts/gd1/plot/photometric_background_selection.py:
-    - src/data/gd1/data.tmp  # hack
+    - src/data/gd1/data.done  # hack
   src/scripts/gd1/plot/results_full.py:
-    - src/data/gd1/data.tmp  # hack
+    - src/data/gd1/data.done  # hack
     - src/data/gd1/model.pt
   src/scripts/gd1/plot/results_panels.py:
-    - src/data/gd1/data.tmp  # hack
+    - src/data/gd1/data.done  # hack
     - src/data/gd1/model.pt
   src/scripts/gd1/plot/smooth_likelihood.py:
-    - src/data/gd1/data.tmp  # hack
+    - src/data/gd1/data.done  # hack
     - src/data/gd1/model.pt
   # Pal5
   src/scripts/pal5/data/2-combine_data.py:
@@ -135,11 +135,11 @@ dependencies:
     - src/data/pal5/info.asdf
     - src/data/pal5/control_points_stream.ecsv
   src/scripts/pal5/model/3-train_model.py:
-    - src/data/pal5/data.tmp  # hack
-    - src/data/pal5/model.tmp  # hack
+    - src/data/pal5/data.done  # hack
+    - src/data/pal5/model.done  # hack
     - src/data/gd1/background_photometry_model.pt
   src/scripts/pal5/model/4-likelihoods.py:
-    - src/data/pal5/data.tmp  # hack
+    - src/data/pal5/data.done  # hack
     - src/data/pal5/model.pt  # hack
   src/scripts/pal5/plot/data_selection.py:
     - src/data/pal5/gaia_ps1_xm.asdf
@@ -147,15 +147,15 @@ dependencies:
     - src/data/pal5/masks.asdf
     - src/data/pal5/info.asdf
   src/scripts/pal5/plot/photometric_background_selection.py:
-    - src/data/pal5/data.tmp  # hack
+    - src/data/pal5/data.done  # hack
   src/scripts/pal5/plot/results_full.py:
-    - src/data/pal5/data.tmp  # hack
+    - src/data/pal5/data.done  # hack
     - src/data/pal5/model.pt
   src/scripts/pal5/plot/results_panels.py:
-    - src/data/pal5/data.tmp  # hack
+    - src/data/pal5/data.done  # hack
     - src/data/pal5/model.pt
   src/scripts/pal5/plot/smooth_likelihood.py:
-    - src/data/pal5/data.tmp  # hack
+    - src/data/pal5/data.done  # hack
     - src/data/pal5/model.pt
 
 
