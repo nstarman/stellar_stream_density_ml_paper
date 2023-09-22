@@ -234,7 +234,7 @@ ax03 = fig.add_subplot(
     xlabel="",
     ylabel=r"$\varpi$ [mas]",
     xlim=xlims,
-    ylim=(max(data["parallax"].min(), -2.5), data["parallax"].max()),
+    ylim=(max(data["plx"].min(), -2.5), data["plx"].max()),
     xticklabels=[],
     rasterization_zorder=0,
 )
