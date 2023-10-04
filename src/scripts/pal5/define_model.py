@@ -168,7 +168,7 @@ stream_astrometric_model = sml.builtin.TruncatedNormal(
             },
             "pmphi1": {
                 "mu": ModelParameter(
-                    bounds=SigmoidBounds(*coord_bounds["pmphi1"]),
+                    bounds=SigmoidBounds(2.5, 4.75),  # *coord_bounds["pmphi1"]
                     scaler=StandardLocation.from_data_scaler(scaler, "pmphi1", xp=xp),
                 ),
                 "ln-sigma": ModelParameter(
@@ -178,7 +178,7 @@ stream_astrometric_model = sml.builtin.TruncatedNormal(
             },
             "pmphi2": {
                 "mu": ModelParameter(
-                    bounds=SigmoidBounds(*coord_bounds["pmphi2"]),
+                    bounds=SigmoidBounds(-0.5, 2.2),  # *coord_bounds["pmphi2"]
                     scaler=StandardLocation.from_data_scaler(scaler, "pmphi2", xp=xp),
                 ),
                 "ln-sigma": ModelParameter(
