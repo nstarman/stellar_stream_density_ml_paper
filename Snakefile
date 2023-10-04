@@ -632,6 +632,8 @@ rule pal5_train_model:
         epochs=1_250 * 10,
         lr=1e-3,
         weight_decay=1e-8,
+        # end point
+        early_stopping = 10600,
     conda:
         "environment.yml"
     cache: True
