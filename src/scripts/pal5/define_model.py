@@ -304,7 +304,7 @@ model = sml.MixtureModel(
     ),
     priors=(
         # turn off below -16
-        replace(_stream_wgt_prior, upper=-16, data_scaler=scaler),
+        replace(_stream_wgt_prior, upper=-12, data_scaler=scaler),
         # turn off above 10
         replace(_stream_wgt_prior, lower=10, data_scaler=scaler),
         # turn off around progenitor
