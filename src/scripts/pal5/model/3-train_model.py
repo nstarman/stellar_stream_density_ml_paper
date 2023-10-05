@@ -137,11 +137,13 @@ for epoch in epoch_iterator:
 
         helper.manually_set_dropout(model, 0.0)  # TODO!
 
-        xp.save(model.state_dict(), paths.data / "pal5" / f"model_{epoch:4d}.pt")
+        xp.save(
+            model.state_dict(), paths.data / "pal5" / "model" / f"model_{epoch:04d}.pt"
+        )
 
 
 # Save final state of the model
-xp.save(model.state_dict(), paths.data / "pal5" / f"model_{epoch:4d}.pt")
+xp.save(model.state_dict(), paths.data / "pal5" / "model" / f"model_{epoch:04d}.pt")
 
 
 # =============================================================================
@@ -150,7 +152,7 @@ xp.save(model.state_dict(), paths.data / "pal5" / f"model_{epoch:4d}.pt")
 
 # Load the early stopping model
 model.load_state_dict(
-    xp.load(paths.data / "pal5" / f"model_{snkmk['early_stopping']:4d}.pt")
+    xp.load(paths.data / "pal5" / "model" / f"model_{snkmk['early_stopping']:04d}.pt")
 )
 
 # Save the model
