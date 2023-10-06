@@ -107,9 +107,6 @@ for epoch in epoch_iterator:
         mpars = model.unpack_params(pred)
         loss_val = -model.ln_posterior_tot(mpars, step_data, where=step_where)
 
-        # if not loss_val.isfinite():  # FIXME!
-        #     raise ValueError
-
         # backward pass
         optimizer.zero_grad()
         loss_val.backward()
