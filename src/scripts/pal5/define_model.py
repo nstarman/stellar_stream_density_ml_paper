@@ -295,10 +295,10 @@ model = sml.MixtureModel(
     params=ModelParameters(
         {
             "stream.weight": ModelParameter(
-                bounds=SigmoidBounds(1e-4, 0.301), scaler=None
+                bounds=SigmoidBounds(1e-4, 0.91), scaler=None
             ),
             "background.weight": ModelParameter(
-                bounds=SigmoidBounds(0.7, 1.0), scaler=None
+                bounds=SigmoidBounds(0.1, 1.0), scaler=None
             ),
         }
     ),
