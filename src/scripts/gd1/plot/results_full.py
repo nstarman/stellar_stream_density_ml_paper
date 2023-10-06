@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import sys
+from collections.abc import Mapping
+from typing import Any
 
 import astropy.units as u
 import matplotlib as mpl
@@ -55,9 +57,23 @@ with xp.no_grad():
     tot_lnlik = xp.logsumexp(xp.stack((stream_lnlik, spur_lnlik, bkg_lnlik), 1), 1)
 
 
-def _iter_mpars(key: str, subkey: str | None) -> np.ndarray:
-    fullkey = (key,) if subkey is None else (key, subkey)
-    return xp.stack([mp[fullkey] for mp in dmpars], 1).mean(1)
+def recursive_iterate(
+    dmpars: list[sml.params.Params[str, Any]],
+    structure: dict[str, Any],
+    _prefix: str = "",
+) -> dict[str, Any]:
+    """Recursively iterate and compute the mean of each parameter."""
+    out = dict[str, Any]()
+    _prefix = _prefix.lstrip(".")
+    for k, v in structure.items():
+        if isinstance(v, Mapping):
+            out[k] = recursive_iterate(dmpars, v, _prefix=f"{_prefix}.{k}")
+            continue
+
+        key: tuple[str] | tuple[str, str] = (f"{_prefix}", k) if _prefix else (k,)
+        out[k] = xp.stack([mp[key] for mp in dmpars], 1).mean(1)
+
+    return out
 
 
 # Also evaluate the model with dropout on
@@ -68,37 +84,7 @@ with xp.no_grad():
     # evaluate the model
     dmpars = [model.unpack_params(model(data)) for i in range(100)]
     # Mpars
-    mpars = sml.params.Params(
-        {
-            f"{k}.weight": _iter_mpars(f"{k}.weight", None)
-            for k in ["stream", "stream.astrometric", "spur", "spur.astrometric"]
-        }
-        | {
-            k: v
-            for d in (
-                {
-                    f"{comp}.astrometric.{k}": {
-                        **{
-                            kk: _iter_mpars(f"{comp}.astrometric.{k}", kk)
-                            for kk in ["mu", "ln-sigma"]
-                        }
-                    }
-                    for k in ["phi2", "plx", "pmphi1", "pmphi2"]
-                }
-                | {
-                    f"{comp}.photometric.{k}": {
-                        **{
-                            kk: _iter_mpars(f"{comp}.photometric.{k}", kk)
-                            for kk in ["mu", "ln-sigma"]
-                        }
-                    }
-                    for k in ["distmod"]
-                }
-                for comp in ["stream", "spur"]
-            )
-            for k, v in d.items()
-        }
-    )
+    mpars = sml.params.Params(recursive_iterate(dmpars, dmpars[0]))
     # weights
     stream_weights = xp.stack([mp["stream.weight",] for mp in dmpars], 1)
     stream_weight_percentiles = np.c_[

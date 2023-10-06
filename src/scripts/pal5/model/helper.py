@@ -100,13 +100,11 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
 
     ax00 = fig.add_subplot(gs0[0, :])
     cbar = fig.colorbar(
-        mpl.cm.ScalarMappable(cmap=cmap1),
-        cax=ax00,
-        orientation="horizontal",
-        label="Stream Probability",
+        mpl.cm.ScalarMappable(cmap=cmap1), cax=ax00, orientation="horizontal"
     )
     cbar.ax.xaxis.set_ticks_position("top")
     cbar.ax.xaxis.set_label_position("top")
+    cbar.ax.text(0.5, 0.5, "Stream Probability", ha="center", va="center", fontsize=14)
 
     # ---------------------------------------------------------------------------
     # Weight plot
@@ -121,7 +119,7 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
     _bounds_kw = {"c": "gray", "ls": "-", "lw": 2, "alpha": 0.8}
     ax01.axhline(model.params[("stream.weight",)].bounds.lower[0], **_bounds_kw)
     ax01.axhline(model.params[("stream.weight",)].bounds.upper[0], **_bounds_kw)
-    ax01.plot(data["phi1"], stream_weight, c="k", ls="--", lw=2, label="Model (MLE)")
+    ax01.plot(data["phi1"], stream_weight, c="k", ls=":", lw=2, label="Model (MLE)")
     ax01.legend(loc="upper left")
 
     # ---------------------------------------------------------------------------
