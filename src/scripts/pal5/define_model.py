@@ -289,7 +289,7 @@ _mx = {"stream": stream_model, "background": background_model}
 model = sml.MixtureModel(
     _mx,
     net=sml.nn.sequential(
-        data=1, hidden_features=16, layers=3, features=len(_mx) - 1, dropout=0.0
+        data=1, hidden_features=16, layers=4, features=len(_mx) - 1, dropout=0.15
     ),
     data_scaler=scaler,
     params=ModelParameters(
