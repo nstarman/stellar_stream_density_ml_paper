@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import sys
+from collections.abc import Mapping
+from typing import Any
 
 import galstreams
 import matplotlib as mpl
@@ -11,6 +13,8 @@ import numpy as np
 import torch as xp
 from astropy.table import QTable
 from matplotlib.gridspec import GridSpec
+from matplotlib.legend_handler import HandlerTuple
+from matplotlib.lines import Line2D
 from showyourwork.paths import user as user_paths
 
 import stream_ml.pytorch as sml
@@ -46,28 +50,32 @@ progenitor_prob = np.zeros(len(masks))
 progenitor_prob[~masks["Pal5"]] = 1
 
 # Load model
-model.load_state_dict(xp.load(paths.data / "pal5" / "model.pt"))
+model.load_state_dict(xp.load(paths.data / "pal5" / "model" / "model_12499.pt"))
 model = model.eval()
 
 # =============================================================================
 
-# Evaluate model
-with xp.no_grad():
-    model.eval()
-    mpars = model.unpack_params(model(data))
 
-    stream_lnlik = model.component_ln_posterior("stream", mpars, data, where=where)
-    bkg_lnlik = model.component_ln_posterior("background", mpars, data, where=where)
-    # tot_lnlik = model.ln_posterior(mpars, data, where=where)  # FIXME
-    tot_lnlik = xp.logaddexp(stream_lnlik, bkg_lnlik)
+def recursive_iterate(
+    dmpars: list[sml.params.Params[str, Any]],
+    structure: dict[str, Any],
+    _prefix: str = "",
+) -> dict[str, Any]:
+    """Recursively iterate and compute the mean of each parameter."""
+    out = dict[str, Any]()
+    _prefix = _prefix.lstrip(".")
+    for k, v in structure.items():
+        if isinstance(v, Mapping):
+            out[k] = recursive_iterate(dmpars, v, _prefix=f"{_prefix}.{k}")
+            continue
+
+        key: tuple[str] | tuple[str, str] = (f"{_prefix}", k) if _prefix else (k,)
+        out[k] = xp.stack([mp[key] for mp in dmpars], 1).mean(1)
+
+    return out
 
 
 # Also evaluate the model with dropout on
-def _iter_mpars(key: str, subkey: str | None) -> np.ndarray:
-    fullkey = (key,) if subkey is None else (key, subkey)
-    return xp.stack([mp[fullkey] for mp in dmpars], 1).mean(1)
-
-
 with xp.no_grad():
     # turn dropout on
     model = model.train()
@@ -75,19 +83,7 @@ with xp.no_grad():
     # evaluate the model
     dmpars = [model.unpack_params(model(data)) for i in range(100)]
     # Mpars
-    mpars = sml.params.Params(
-        {
-            f"{k}.weight": _iter_mpars(f"{k}.weight", None)
-            for k in ["stream", "stream.astrometric"]
-        }
-        | {
-            f"stream.astrometric.{k}": {
-                kk: _iter_mpars(f"stream.astrometric.{k}", kk)
-                for kk in ["mu", "ln-sigma"]
-            }
-            for k in ["phi2", "pmphi1", "pmphi2"]
-        }
-    )
+    mpars = sml.params.Params(recursive_iterate(dmpars, dmpars[0]))
     # weights
     stream_weights = xp.stack([mp["stream.weight",] for mp in dmpars], 1)
     stream_weight_percentiles = np.c_[
@@ -95,16 +91,38 @@ with xp.no_grad():
         np.percentile(stream_weights, 95, axis=1),
     ]
 
+    # Likelihoods
+    stream_lnlik = model.component_ln_posterior("stream", mpars, data, where=where)
+    bkg_lnlik = model.component_ln_posterior("background", mpars, data, where=where)
+    # tot_lnlik = model.ln_posterior(mpars, data, where=where)  # FIXME
+    tot_lnlik = xp.logaddexp(stream_lnlik, bkg_lnlik)
+
     # turn dropout back off
     manually_set_dropout(model, 0)
     model = model.eval()
 
+
+# Evaluate model
+with xp.no_grad():
+    manually_set_dropout(model, 0)
+    model = model.eval()
+
+    mpars = model.unpack_params(model(data))
+
+    stream_lnlik = model.component_ln_posterior("stream", mpars, data, where=where)
+    bkg_lnlik = model.component_ln_posterior("background", mpars, data, where=where)
+    # tot_lnlik = model.ln_posterior(mpars, data, where=where)
+    tot_lnlik = xp.logaddexp(stream_lnlik, bkg_lnlik)
+
+
 stream_weight = mpars[("stream.weight",)]
-stream_cutoff = stream_weight > 0  # everything has weight > 0
+stream_cutoff = stream_weight > 1e-4  # everything has weight > 0
 
 bkg_prob = xp.exp(bkg_lnlik - tot_lnlik)
 stream_prob = xp.exp(stream_lnlik - tot_lnlik)
 allstream_prob = stream_prob
+
+# print(allstream_prob.max(), allstream_prob.min())
 
 psort = np.argsort(allstream_prob)
 
@@ -145,6 +163,12 @@ ax01 = fig.add_subplot(
     rasterization_zorder=0,
 )
 
+# Upper and lower bounds
+_bounds_kw = {"c": "gray", "ls": "-", "lw": 2, "alpha": 0.8}
+ax01.axhline(model.params[("stream.weight",)].bounds.lower[0], **_bounds_kw)
+ax01.axhline(model.params[("stream.weight",)].bounds.upper[0], **_bounds_kw)
+
+# 15% dropout
 f1 = ax01.fill_between(
     data["phi1"],
     stream_weight_percentiles[:, 0],
@@ -152,8 +176,9 @@ f1 = ax01.fill_between(
     color=cmap1(0.99),
     alpha=0.25,
 )
+# Mean
 (l1,) = ax01.plot(
-    data["phi1"], stream_weights.mean(1), c="k", ls="--", lw=2, label="Model (MLE)"
+    data["phi1"], stream_weights.mean(1), c="k", ls="--", lw=2, label="Model"
 )
 
 ax01.legend(
@@ -166,8 +191,6 @@ ax01.legend(
 # ---------------------------------------------------------------------------
 # Phi2
 
-mpa = mpars.get_prefixed("stream.astrometric")
-
 ax02 = fig.add_subplot(
     gs[2, :],
     xlabel="",
@@ -177,6 +200,7 @@ ax02 = fig.add_subplot(
     xticklabels=[],
     rasterization_zorder=0,
 )
+mpa = mpars.get_prefixed("stream.astrometric")
 
 # Stream control points
 ax02.errorbar(
@@ -207,15 +231,43 @@ d1 = ax02.scatter(
 )
 # Model
 f1 = ax02.fill_between(
-    data["phi1"][stream_cutoff],
-    (mpa["phi2", "mu"] - xp.exp(mpa["phi2", "ln-sigma"]))[stream_cutoff],
-    (mpa["phi2", "mu"] + xp.exp(mpa["phi2", "ln-sigma"]))[stream_cutoff],
+    data["phi1"],
+    (mpa["phi2", "mu"] - xp.exp(mpa["phi2", "ln-sigma"])),
+    (mpa["phi2", "mu"] + xp.exp(mpa["phi2", "ln-sigma"])),
     color=cmap1(0.99),
     alpha=0.25,
+    where=stream_cutoff,
+)
+
+# Literature
+ax02.plot(
+    pal5I21.phi1.degree,
+    pal5I21.phi2.degree,
+    c="k",
+    ls="--",
+    alpha=0.5,
+    label="Ibata+21",
+)
+ax02.plot(
+    pal5PW19.phi1.degree,
+    pal5PW19.phi2.degree,
+    c="k",
+    ls="--",
+    alpha=0.5,
+    label="PW+19",
+)
+
+legend_elements_data = (
+    Line2D([0], [0], marker="o", markerfacecolor=cmap1(0.01), markersize=10),
+    Line2D([0], [0], marker="o", markerfacecolor=cmap1(0.99), markersize=10),
 )
 
 ax02.legend(
-    [d1, p1, f1], ["Data", "Control points", "Models"], numpoints=1, loc="upper left"
+    [legend_elements_data, p1, f1],
+    ["Data", "Control points", "Models"],
+    numpoints=1,
+    loc="upper left",
+    handler_map={tuple: HandlerTuple(ndivide=None)},
 )
 
 
@@ -227,7 +279,7 @@ ax03 = fig.add_subplot(
     xlabel="",
     ylabel=r"$\varpi$ [mas]",
     xlim=xlims,
-    ylim=(max(data["plx"].min(), -2.5), data["plx"].max()),
+    ylim=(max(data["plx"].min(), -1), data["plx"].max()),
     xticklabels=[],
     rasterization_zorder=0,
 )
@@ -273,7 +325,6 @@ ax05 = fig.add_subplot(
     ylabel=r"$\mu_{\phi_2}$ [mas yr$^{-1}$]",
     xlim=xlims,
     rasterization_zorder=0,
-    xticklabels=[],
 )
 
 # Data
