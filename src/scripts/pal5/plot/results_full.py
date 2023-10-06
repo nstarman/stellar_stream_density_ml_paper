@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import sys
 
+import galstreams
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
@@ -22,21 +23,33 @@ sys.path.append(paths.scripts.parent.as_posix())
 
 from scripts.helper import manually_set_dropout, p2alpha
 from scripts.mpl_colormaps import stream_cmap1 as cmap1
-from scripts.pal5.datasets import data, where
+from scripts.pal5.datasets import data, masks, where
 from scripts.pal5.define_model import model
+from scripts.pal5.frames import pal5_frame as frame
 
 # Matplotlib style
 plt.style.use(paths.scripts / "paper.mplstyle")
 
 # =============================================================================
+# Load data
 
-# Load control points
+# galstreams
+allstreams = galstreams.MWStreams(implement_Off=True)
+pal5I21 = allstreams["Pal5-I21"].track.transform_to(frame)
+pal5PW19 = allstreams["Pal5-PW19"].track.transform_to(frame)
+
+# Control points
 stream_cp = QTable.read(paths.data / "pal5" / "control_points_stream.ecsv")
-# distance_cp = QTable.read(paths.data / "pal5" / "control_points_distance.ecsv")
+
+# Progenitor
+progenitor_prob = np.zeros(len(masks))
+progenitor_prob[~masks["Pal5"]] = 1
 
 # Load model
 model.load_state_dict(xp.load(paths.data / "pal5" / "model.pt"))
 model = model.eval()
+
+# =============================================================================
 
 # Evaluate model
 with xp.no_grad():
@@ -49,12 +62,12 @@ with xp.no_grad():
     tot_lnlik = xp.logaddexp(stream_lnlik, bkg_lnlik)
 
 
+# Also evaluate the model with dropout on
 def _iter_mpars(key: str, subkey: str | None) -> np.ndarray:
     fullkey = (key,) if subkey is None else (key, subkey)
     return xp.stack([mp[fullkey] for mp in dmpars], 1).mean(1)
 
 
-# Also evaluate the model with dropout on
 with xp.no_grad():
     # turn dropout on
     model = model.train()
@@ -68,29 +81,11 @@ with xp.no_grad():
             for k in ["stream", "stream.astrometric"]
         }
         | {
-            k: v
-            for d in (
-                {
-                    f"{comp}.astrometric.{k}": {
-                        **{
-                            kk: _iter_mpars(f"{comp}.astrometric.{k}", kk)
-                            for kk in ["mu", "ln-sigma"]
-                        }
-                    }
-                    for k in ["phi2"]
-                }
-                # | {
-                #     f"{comp}.photometric.{k}": {
-                #         **{
-                #             kk: _iter_mpars(f"{comp}.photometric.{k}", kk)
-                #             for kk in ["mu", "ln-sigma"]
-                #         }
-                #     }
-                #     for k in ["distmod"]
-                # }
-                for comp in ["stream"]
-            )
-            for k, v in d.items()
+            f"stream.astrometric.{k}": {
+                kk: _iter_mpars(f"stream.astrometric.{k}", kk)
+                for kk in ["mu", "ln-sigma"]
+            }
+            for k in ["phi2", "pmphi1", "pmphi2"]
         }
     )
     # weights
@@ -105,7 +100,7 @@ with xp.no_grad():
     model = model.eval()
 
 stream_weight = mpars[("stream.weight",)]
-stream_cutoff = stream_weight > 2e-2
+stream_cutoff = stream_weight > 0  # everything has weight > 0
 
 bkg_prob = xp.exp(bkg_lnlik - tot_lnlik)
 stream_prob = xp.exp(stream_lnlik - tot_lnlik)
@@ -117,12 +112,12 @@ psort = np.argsort(allstream_prob)
 # Make Figure
 
 fig = plt.figure(constrained_layout="tight", figsize=(11, 10))
-gs = GridSpec(7, 1, figure=fig, height_ratios=(1, 3, 5, 5, 5, 5, 5))
+gs = GridSpec(6, 1, figure=fig, height_ratios=(1, 3, 5, 5, 5, 5))
 
 colors = cmap1(stream_prob[psort])
-
 alphas = p2alpha(allstream_prob[psort])
-xlims = (data["phi1"].min(), 10)
+
+xlims = (data["phi1"].min(), data["phi1"].max())
 
 # ---------------------------------------------------------------------------
 # Colormap
@@ -130,13 +125,11 @@ xlims = (data["phi1"].min(), 10)
 # Stream probability
 ax00 = fig.add_subplot(gs[0, :])
 cbar = fig.colorbar(
-    mpl.cm.ScalarMappable(cmap=cmap1),
-    cax=ax00,
-    orientation="horizontal",
-    label="Stream Probability",
+    mpl.cm.ScalarMappable(cmap=cmap1), cax=ax00, orientation="horizontal"
 )
 cbar.ax.xaxis.set_ticks_position("top")
 cbar.ax.xaxis.set_label_position("top")
+cbar.ax.text(0.5, 0.5, "Stream Probability", ha="center", va="center", fontsize=14)
 
 
 # ---------------------------------------------------------------------------
@@ -239,42 +232,10 @@ ax03 = fig.add_subplot(
     rasterization_zorder=0,
 )
 
-# # Stream control points
-# ax03.errorbar(
-#     distance_cp["phi1"],
-#     distance_cp["parallax"],
-#     yerr=distance_cp["w_parallax"],
-#     fmt="o",
-#     color="k",
-#     capthick=3,
-#     elinewidth=3,
-#     capsize=3,
-#     zorder=-21,
-# )
-# p1 = ax03.errorbar(
-#     distance_cp["phi1"],
-#     distance_cp["parallax"],
-#     yerr=distance_cp["w_parallax"],
-#     fmt=".",
-#     c=cmap1(0.99),
-#     capsize=2,
-#     zorder=-20,
-#     label="Stream Control Points",
-# )
-
 # Data
 d1 = ax03.scatter(
     data["phi1"][psort], data["plx"][psort], c=colors, alpha=alphas, s=2, zorder=-10
 )
-
-# # Model
-# f1 = ax03.fill_between(
-#     data["phi1"][stream_cutoff],
-#     (mpa["plx", "mu"] - xp.exp(mpa["plx", "ln-sigma"]))[stream_cutoff],
-#     (mpa["plx", "mu"] + xp.exp(mpa["plx", "ln-sigma"]))[stream_cutoff],
-#     color=cmap1(0.99),
-#     alpha=0.25,
-# )
 
 
 # ---------------------------------------------------------------------------
@@ -290,41 +251,18 @@ ax04 = fig.add_subplot(
     rasterization_zorder=0,
 )
 
-# # Stream control points
-# ax04.errorbar(
-#     stream_cp["phi1"],
-#     stream_cp["pm_phi1"],
-#     yerr=stream_cp["w_pm_phi1"],
-#     fmt="o",
-#     color="k",
-#     capthick=3,
-#     elinewidth=3,
-#     capsize=3,
-#     zorder=-21,
-# )
-# p1 = ax04.errorbar(
-#     stream_cp["phi1"],
-#     stream_cp["pm_phi1"],
-#     yerr=stream_cp["w_pm_phi1"],
-#     fmt=".",
-#     c=cmap1(0.99),
-#     capsize=2,
-#     zorder=-20,
-#     label="Stream Control Points",
-# )
-
 # Data
 d1 = ax04.scatter(
     data["phi1"][psort], data["pmphi1"][psort], c=colors, alpha=alphas, s=2, zorder=-10
 )
-# # Model
-# f1 = ax04.fill_between(
-#     data["phi1"][stream_cutoff],
-#     (mpa["pmphi1", "mu"] - xp.exp(mpa["pmphi1", "ln-sigma"]))[stream_cutoff],
-#     (mpa["pmphi1", "mu"] + xp.exp(mpa["pmphi1", "ln-sigma"]))[stream_cutoff],
-#     color=cmap1(0.99),
-#     alpha=0.25,
-# )
+# Model
+ax04.fill_between(
+    data["phi1"][stream_cutoff],
+    (mpa["pmphi1", "mu"] - xp.exp(mpa["pmphi1", "ln-sigma"]))[stream_cutoff],
+    (mpa["pmphi1", "mu"] + xp.exp(mpa["pmphi1", "ln-sigma"]))[stream_cutoff],
+    color=cmap1(0.99),
+    alpha=0.25,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -342,42 +280,13 @@ ax05 = fig.add_subplot(
 ax05.scatter(
     data["phi1"][psort], data["pmphi2"][psort], c=colors, alpha=alphas, s=2, zorder=-10
 )
-# # Model
-# f1 = ax05.fill_between(
-#     data["phi1"][stream_cutoff],
-#     (mpa["pmphi2", "mu"] - xp.exp(mpa["pmphi2", "ln-sigma"]))[stream_cutoff],
-#     (mpa["pmphi2", "mu"] + xp.exp(mpa["pmphi2", "ln-sigma"]))[stream_cutoff],
-#     color=cmap1(0.99),
-#     alpha=0.25,
-# )
-
-
-# ---------------------------------------------------------------------------
-# Distance
-
-ax06 = fig.add_subplot(
-    gs[6, :], xlabel=r"$\phi_1$ [deg]", ylabel=r"$d$ [kpc]", xlim=xlims
+# Model
+ax05.fill_between(
+    data["phi1"][stream_cutoff],
+    (mpa["pmphi2", "mu"] - xp.exp(mpa["pmphi2", "ln-sigma"]))[stream_cutoff],
+    (mpa["pmphi2", "mu"] + xp.exp(mpa["pmphi2", "ln-sigma"]))[stream_cutoff],
+    color=cmap1(0.99),
+    alpha=0.25,
 )
-
-# mpa = mpars["stream.photometric.distmod"]
-# d2sm = Distance(distmod=(mpa["mu"] - 2 * xp.exp(mpa["ln-sigma"])) * u.mag)
-# d2sp = Distance(distmod=(mpa["mu"] + 2 * xp.exp(mpa["ln-sigma"])) * u.mag)
-# d1sm = Distance(distmod=(mpa["mu"] - xp.exp(mpa["ln-sigma"])) * u.mag)
-# d1sp = Distance(distmod=(mpa["mu"] + xp.exp(mpa["ln-sigma"])) * u.mag)
-
-# ax06.fill_between(
-#     data["phi1"][stream_cutoff],
-#     d2sm[stream_cutoff].to_value("kpc"),
-#     d2sp[stream_cutoff].to_value("kpc"),
-#     alpha=0.15,
-#     color=cmap1(0.99),
-# )
-# f1 = ax06.fill_between(
-#     data["phi1"][stream_cutoff],
-#     d1sm[stream_cutoff].to_value("kpc"),
-#     d1sp[stream_cutoff].to_value("kpc"),
-#     alpha=0.25,
-#     color=cmap1(0.99),
-# )
 
 fig.savefig(paths.figures / "pal5" / "results_full.pdf")
