@@ -210,6 +210,8 @@ ax30.text(
     verticalalignment="top",
 )
 ax30.grid(True)
+ax30.set_axisbelow(False)
+
 
 # Parallax
 ax31 = fig.add_subplot(gs1[0, 1], xlabel=r"$\phi_1$ [deg]", ylabel=r"$\varpi$ [mas]")
@@ -220,6 +222,7 @@ ax31.hist2d(
     density=True,
     bins=100,
 )
+ax31.set_axisbelow(False)
 
 # PM-Phi1
 ax32 = fig.add_subplot(
@@ -232,6 +235,7 @@ ax32.hist2d(
     density=True,
     bins=100,
 )
+ax32.set_axisbelow(False)
 
 # PM-Phi2
 ax33 = fig.add_subplot(
@@ -244,6 +248,7 @@ ax33.hist2d(
     density=True,
     bins=100,
 )
+ax33.set_axisbelow(False)
 
 # -----------------------------------------------------------------------------
 
