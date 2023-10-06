@@ -1,5 +1,6 @@
 """Train photometry background flow."""
 
+import sys
 from typing import Any
 
 import asdf
@@ -10,8 +11,13 @@ import numpy as np
 from astropy.table import QTable, Row
 from showyourwork.paths import user as user_paths
 
+import stream_ml.pytorch as sml
+
 paths = user_paths()
 
+# Add the parent directory to the path
+sys.path.append(paths.scripts.parent.as_posix())
+# isort: split
 
 ###############################################################################
 # Load stuff
@@ -22,20 +28,29 @@ plt.style.use(paths.scripts / "paper.mplstyle")
 table = QTable.read(paths.data / "pal5" / "gaia_ps1_xm.asdf")
 masks_table = QTable.read(paths.data / "pal5" / "masks.asdf")
 
+# Load PM edges
 pm_edges = QTable.read(paths.data / "pal5" / "pm_edges.ecsv")
 pm_edges.add_index("label", unique=True)
 
+# Load complete mask
 with asdf.open(
     paths.data / "pal5" / "info.asdf", lazy_load=False, copy_arrays=True
 ) as af:
     mask = af["mask"]
 
-# with asdf.open(
-#     paths.data / "pal5" / "isochrone.asdf", lazy_load=False, copy_arrays=True
-# ) as af:
-#     isochrone = af["isochrone"]
-#     iso_medium = af["isochrone_medium"]
+# Isochrone
+with asdf.open(
+    paths.data / "pal5" / "isochrone.asdf", lazy_load=False, copy_arrays=True
+) as af:
+    isochrone_data = sml.Data(**af["isochrone_data"])
+    isochrone_15 = af["isochrone_15"]
 
+# Apply phi1 mask
+table = table[masks_table["phi1_subset"]]
+mask = mask[masks_table["phi1_subset"]]
+masks_table = masks_table[masks_table["phi1_subset"]]  # has to be last
+
+# shortcut bounds
 p1min = table["phi1"].min().value
 p1max = table["phi1"].max().value
 p2min = table["phi2"].min().value
@@ -60,17 +75,22 @@ def _sel_patch(row: Row, k1: str, k2: str, **kwargs: Any) -> mpl.patches.Rectang
     return rec
 
 
-fig = plt.figure(layout="constrained", figsize=(11, 10))
-subfigs = fig.subfigures(2, 1, hspace=0.05)
+fig = plt.figure(layout="constrained", figsize=(11, 8))
+outer_grid = fig.add_gridspec(2, 1, wspace=0, hspace=0, height_ratios=[2, 1])
 
-gs0 = mpl.gridspec.GridSpec(2, 2, width_ratios=[1, 3], figure=subfigs[0])
-gs1 = mpl.gridspec.GridSpec(2, 4, width_ratios=[1, 1, 1, 1], figure=subfigs[1])
+gs0 = outer_grid[0, :].subgridspec(2, 2, width_ratios=[1, 3])
+gs1 = outer_grid[1, :].subgridspec(1, 4, width_ratios=[1, 1, 1, 1])
 
 
 # -----------------------------------------------------------------------------
 # PM space
 
-ax00 = subfigs[0].add_subplot(gs0[0, 0])
+ax00 = fig.add_subplot(
+    gs0[0, 0],
+    xlabel=r"$\mu_{\phi_1}$ [mas yr$^{-1}$]",
+    ylabel=r"$\mu_{\phi_2}$ [mas yr$^{-1}$]",
+    rasterization_zorder=100,
+)
 ax00.hist2d(
     table["pm_phi1"].value[_mask],
     table["pm_phi2"].value[_mask],
@@ -78,34 +98,20 @@ ax00.hist2d(
     cmap="Greys",
     norm=mpl.colors.LogNorm(),
 )
-# ax00.add_patch(_sel_patch(pm_edges.loc["loose"], "pm_phi1", "pm_phi2", color="y"))
-# ax00.add_patch(_sel_patch(pm_edges.loc["medium"], "pm_phi1", "pm_phi2", color="purple"))  # noqa: E501
 ax00.add_patch(
-    _sel_patch(pm_edges.loc["tight_icrs"], "pm_phi1", "pm_phi2", color="tab:red")
+    _sel_patch(pm_edges.loc["tight_icrs"], "pm_phi1", "pm_phi2", color="tab:blue")
 )
 
-ax00.set_rasterization_zorder(100)
-ax00.set(
-    xlabel=r"$\mu_{\phi_1}$ [mas yr$^{-1}$]", ylabel=r"$\mu_{\phi_2}$ [mas yr$^{-1}$]"
-)
+ax00.set_xlim(-10, None)
 
 # -----------------------------------------------------------------------------
 # PM selection
 
-ax01 = subfigs[0].add_subplot(gs0[0, 1])
-# ax01.plot(
-#     table["phi1"][masks_table["pm_loose"] ^ masks_table["pm_tight_icrs"]],
-#     table["phi2"][masks_table["pm_loose"] ^ masks_table["pm_tight_icrs"]],
-#     c="y",
-#     marker=",",
-#     linestyle="none",
-#     alpha=0.25,
-#     zorder=-10,
-# )
+ax01 = fig.add_subplot(gs0[0, 1])
 ax01.plot(
     table["phi1"][masks_table["pm_tight_icrs"]],
     table["phi2"][masks_table["pm_tight_icrs"]],
-    c="tab:red",
+    c="tab:blue",
     marker=",",
     linestyle="none",
     alpha=1,
@@ -122,10 +128,21 @@ ax01.set(
 # -----------------------------------------------------------------------------
 # Phot space
 
-ax10 = subfigs[0].add_subplot(gs0[1, 0])
-_mask = _mask & (
-    ((table["g0"] > 0) & (table["i0"] > 0))
-    & ((table["phi2"] > -2.5 * u.deg) & (table["phi2"] < 1 * u.deg))
+ax10 = fig.add_subplot(
+    gs0[1, 0],
+    xlabel=r"$g_0 - i_0$ [mag]",
+    ylabel=r"$g_0$ [mag]",
+    xlim=(-1, 3),
+    rasterization_zorder=0,
+)
+_mask = (
+    _mask
+    & (
+        ((table["g0"] > 0) & (table["i0"] > 0))
+        & ((table["phi2"] > -2.5 * u.deg) & (table["phi2"] < 1 * u.deg))
+    )
+    & masks_table["M5"]
+    & masks_table["things"]
 )
 ax10.hist2d(
     (table["g0"] - table["i0"]).value[_mask & masks_table["pm_tight_icrs"]],
@@ -136,155 +153,97 @@ ax10.hist2d(
     cmap="Greys",
 )
 
-# Isochrone
-# ax10.plot(*iso_medium.T, c="tab:blue", label="iso 0.3")
-
-ax10.set_rasterization_zorder(0)
-ax10.set(
-    xlabel=r"$g_0 - i_0$ [mag]", ylabel=r"$g_0$ [mag]", xlim=(-1, 3), ylim=(24, 12)
+ax10.plot(
+    isochrone_15[:, 0] - isochrone_15[:, 1],
+    isochrone_15[:, 0],
+    c="tab:blue",
+    label="isochrone",
 )
+
+ax10.set_ylim(24, 12)
 ax10.legend(loc="upper left")
 
 # -----------------------------------------------------------------------------
 # Phot selection
 
-ax11 = subfigs[0].add_subplot(gs0[1, 1])
-# ax11.hist2d(
-#     table["phi1"][masks_table["phot_medium"]].value,
-#     table["phi2"][masks_table["phot_medium"]].value,
-#     cmap="Blues",
-#     density=True,
-#     bins=200,
-#     alpha=0.5,
-#     norm=mpl.colors.LogNorm(),
-# )
-# ax11.hist2d(
-#     table["phi1"][masks_table["phot_tight"]].value,
-#     table["phi2"][masks_table["phot_tight"]].value,
-#     cmap="Blues",
-#     density=True,
-#     bins=200,
-#     norm=mpl.colors.LogNorm(),
-# )
-# ax11.set_rasterization_zorder(0)
-ax11.set(xlabel=r"$\phi_1$ [deg]", ylabel=r"$\phi_2$ [deg]")
-
-# -----------------------------------------------------------------------------
-# Combined Selection Tight
-
-subfigs[1].suptitle("Applying Selections")
-
-sel = (
-    masks_table["pm_tight_icrs"]
-    # & masks_table["phot_medium"]
-    & (table["parallax"] > -0.5 * u.mas)
-)
-
-# Phi2
-ax30 = subfigs[1].add_subplot(gs1[0, 0])
-ax30.hist2d(
-    table["phi1"].value[sel],
-    table["phi2"].value[sel],
-    cmap="Purples",
+ax11 = fig.add_subplot(gs0[1, 1], xlabel=r"$\phi_1$ [deg]", ylabel=r"$\phi_2$ [deg]")
+ax11.hist2d(
+    table["phi1"][~masks_table["phot_15"]].value,
+    table["phi2"][~masks_table["phot_15"]].value,
+    cmap="Blues",
     density=True,
-    bins=100,
+    bins=200,
+    alpha=0.5,
+    norm=mpl.colors.LogNorm(),
 )
-ax30.set(ylabel=r"$\phi_2$ [$\degree$]")
-
-# Parallax
-ax31 = subfigs[1].add_subplot(gs1[0, 1])
-ax31.hist2d(
-    table["phi1"].value[sel],
-    table["parallax"].value[sel],
-    cmap="Purples",
-    density=True,
-    bins=100,
-)
-ax31.set(ylabel=r"$\varpi$ [mas]")
-
-# PM-Phi1
-ax32 = subfigs[1].add_subplot(gs1[0, 2])
-ax32.hist2d(
-    table["phi1"].value[sel],
-    table["pm_phi1"].value[sel],
-    cmap="Purples",
-    density=True,
-    bins=100,
-)
-ax32.set(ylabel=r"$\mu_{\phi_1}^*$ [mas yr$^{-1}$]")
-
-# PM-Phi2
-ax33 = subfigs[1].add_subplot(gs1[0, 3])
-ax33.hist2d(
-    table["phi1"].value[sel],
-    table["pm_phi2"].value[sel],
-    cmap="Purples",
-    density=True,
-    bins=100,
-)
-ax33.set(ylabel=r"$\mu_{\phi_2}$ [mas yr$^{-1}$]")
-
-for ax in (ax30, ax31, ax32, ax33):
-    ax.xaxis.set_ticklabels([])
-
 
 # -----------------------------------------------------------------------------
 # Combined Selection
 
-# mask = (
-#     masks_table["pm_loose"]
-#     & masks_table["phot_medium"]
-#     & (table["parallax"] > -0.5 * u.mas)
-# )
+sel = (
+    masks_table["pm_tight_icrs"]
+    & masks_table["phot_15"]
+    & (table["parallax"] > -0.5 * u.mas)
+)
 
 # Phi2
-ax40 = subfigs[1].add_subplot(gs1[1, 0])
-ax40.hist2d(
-    table["phi1"].value[mask],
-    table["phi2"].value[mask],
-    cmap="Greens",
+ax30 = fig.add_subplot(
+    gs1[0, 0],
+    xlabel=r"$\phi_1$ [deg]",
+    ylabel=r"$\phi_2$ [$\degree$]",
+)
+ax30.hist2d(
+    table["phi1"].value[sel],
+    table["phi2"].value[sel],
+    cmap="Blues",
     density=True,
     bins=100,
+    norm=mpl.colors.LogNorm(),
 )
-ax40.set(xlabel=r"$\phi_1$ [$\degree$]", ylabel=r"$\phi_2$ [$\degree$]")
+# add text to the top left corner of the plot saying log-density
+ax30.text(
+    0.05,
+    0.95,
+    "log-density",
+    transform=ax30.transAxes,
+    fontsize=12,
+    verticalalignment="top",
+)
+ax30.grid(True)
 
 # Parallax
-ax41 = subfigs[1].add_subplot(gs1[1, 1])
-ax41.hist2d(
-    table["phi1"].value[mask],
-    table["parallax"].value[mask],
-    cmap="Greens",
+ax31 = fig.add_subplot(gs1[0, 1], xlabel=r"$\phi_1$ [deg]", ylabel=r"$\varpi$ [mas]")
+ax31.hist2d(
+    table["phi1"].value[sel],
+    table["parallax"].value[sel],
+    cmap="Blues",
     density=True,
     bins=100,
 )
-ax41.set(xlabel=r"$\phi_1$ [$\degree$]", ylabel=r"$\varpi$ [mas]")
 
 # PM-Phi1
-ax42 = subfigs[1].add_subplot(gs1[1, 2])
-ax42.hist2d(
+ax32 = fig.add_subplot(
+    gs1[0, 2], xlabel=r"$\phi_1$ [deg]", ylabel=r"$\mu_{\phi_1}^*$ [mas yr$^{-1}$]"
+)
+ax32.hist2d(
     table["phi1"].value[sel],
     table["pm_phi1"].value[sel],
-    cmap="Greens",
+    cmap="Blues",
     density=True,
     bins=100,
 )
-ax42.set(xlabel=r"$\phi_1$ [$\degree$]", ylabel=r"$\mu_{\phi_1}^*$ [mas yr$^{-1}$]")
 
 # PM-Phi2
-ax43 = subfigs[1].add_subplot(gs1[1, 3])
-ax43.hist2d(
+ax33 = fig.add_subplot(
+    gs1[0, 3], xlabel=r"$\phi_1$ [deg]", ylabel=r"$\mu_{\phi_2}$ [mas yr$^{-1}$]"
+)
+ax33.hist2d(
     table["phi1"].value[sel],
     table["pm_phi2"].value[sel],
-    cmap="Greens",
+    cmap="Blues",
     density=True,
     bins=100,
 )
-ax43.set(xlabel=r"$\phi_1$ [$\degree$]", ylabel=r"$\mu_{\phi_2}$ [mas yr$^{-1}$]")
-
-for ax in (ax40, ax41, ax42, ax43):
-    start, end = ax.get_xlim()
-    # ax.xaxis.set_ticks([-100, -75, -50, -25, 0, 25])
-    ax.xaxis.set_major_formatter(mpl.ticker.FormatStrFormatter("%0d"))
 
 # -----------------------------------------------------------------------------
 
