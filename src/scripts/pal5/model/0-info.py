@@ -43,7 +43,7 @@ sel = (
     & masks["things2"]
     & masks[snkmk["pm_mask"]]
     & masks[snkmk["phot_mask"]]
-    # & masks["Pal5"]  # TODO! as a separate model component
+    & masks["phi1_subset"]
 )
 # Let's also just use -20 < phi1 < 20
 sel &= (table["phi1"] > -20 * u.deg) & (table["phi1"] < 20 * u.deg)

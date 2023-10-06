@@ -154,6 +154,12 @@ masks_table["phot_15"] = mpath.Path(iso_15, readonly=True).contains_points(
 
 
 # =============================================================================
+# Phi1 Subset
+
+masks_table["phi1_subset"] = np.abs(table["phi1"]) <= 15 * u.deg
+
+
+# =============================================================================
 # Save
 
 # Try removing the file first. ASDF can be weird about overwriting.

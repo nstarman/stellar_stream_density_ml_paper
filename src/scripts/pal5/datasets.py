@@ -34,11 +34,6 @@ table["i0"][completeness_mask] = np.nan
 table["z0"][completeness_mask] = np.nan
 table["y0"][completeness_mask] = np.nan
 
-# Also let's limit this to the phi-1 range [-15, 15] deg
-phi1_mask = np.abs(table["phi1"]) <= 15 * u.deg
-table = table[phi1_mask]
-masks = masks[phi1_mask]
-
 
 # =============================================================================
 # Make Data object

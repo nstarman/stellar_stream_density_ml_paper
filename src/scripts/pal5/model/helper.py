@@ -81,7 +81,7 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
 
     bkg_prob = xp.exp(bkg_lnlik - tot_lnlik)
     stream_prob = xp.exp(stream_lnlik - tot_lnlik)
-    allstream_prob = xp.exp(stream_lnlik - tot_lnlik)
+    allstream_prob = stream_prob
 
     psort = np.argsort(allstream_prob)
 
