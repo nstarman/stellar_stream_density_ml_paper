@@ -80,38 +80,54 @@ bkg_prob = bkg_lik / (stream_lik + bkg_lik)
 # =============================================================================
 # Make Figure
 
-fig = plt.figure(constrained_layout=True, figsize=(14, 13))
-gs = GridSpec(2, 1, height_ratios=(1, 1), figure=fig, hspace=0.0)
-gs0 = gs[0].subgridspec(4, 1, height_ratios=(1, 5, 5, 5), hspace=0)
+figsize = (11, 15)
+fig = plt.figure(figsize=figsize)
+gs = GridSpec(
+    2,
+    1,
+    height_ratios=(6, 6),
+    figure=fig,
+    hspace=0.15,
+    left=0.07,
+    right=0.98,
+    top=0.965,
+    bottom=0.03,
+)
+
+gs0 = gs[0].subgridspec(4, 1, height_ratios=(1, 3, 6.5, 6.5), hspace=0.1)
 
 cmap = plt.get_cmap("Stream1")
+xlim = (data["phi1"].min(), data["phi1"].max())
 
 # ---------------------------------------------------------------------------
 # Colormap
 
 ax00 = fig.add_subplot(gs0[0, :])
 cbar = fig.colorbar(
-    mpl.cm.ScalarMappable(cmap=cmap),
-    cax=ax00,
-    orientation="horizontal",
-    label="Stream Probability",
+    mpl.cm.ScalarMappable(cmap=cmap), cax=ax00, orientation="horizontal"
 )
 cbar.ax.xaxis.set_ticks_position("top")
 cbar.ax.xaxis.set_label_position("top")
+cbar.ax.text(0.5, 0.5, "Stream Probability", ha="center", va="center", fontsize=14)
 
 
 # ---------------------------------------------------------------------------
 # Weight plot
 
-ax01 = fig.add_subplot(gs0[1, :])
-ax01.set(ylabel="Stream fraction", ylim=(0, 0.5))
-ax01.set_xticklabels([])
+ax01 = fig.add_subplot(
+    gs0[1, :],
+    xlim=xlim,
+    ylabel="Stream fraction",
+    ylim=(0, 0.5),
+    xticklabels=[],
+    aspect="auto",
+)
 
 # Truth
 phi1 = stream_table["phi1"].to_value("deg")
 
 Hs, bin_edges = np.histogram(phi1, bins=55)
-Ht, bin_edges = np.histogram(data["phi1"], bins=bin_edges)
+Ht, _ = np.histogram(data["phi1"], bins=bin_edges)
 ax01.bar(
     bin_edges[:-1],
     Hs / Ht,
@@ -121,20 +137,71 @@ ax01.bar(
     label="Ground Truth",
 )
 
-ax01.plot(data["phi1"], weight, c="k", ls="--", lw=2, label="Model (MLE)")
+# Model
+ax01.plot(
+    data["phi1"], np.exp(weight), c=cmap(0.99), ls="--", lw=2, label="Model (MLE)"
+)
 
+for tick in ax01.get_yticklabels():
+    tick.set_verticalalignment("bottom")
+ax01.yaxis.set_label_coords(-0.045, 0.5)
 ax01.legend(loc="upper left")
+
+# ---------------------------------------------------------------------------
+# Phi2 - variance
+
+mpa = mpars.get_prefixed("stream.astrometric")
+
+gs02 = gs0[2].subgridspec(2, 1, height_ratios=(1, 3), wspace=0.0, hspace=0.0)
+ax02 = fig.add_subplot(
+    gs02[0, :], xlim=xlim, xticklabels=[], ylabel=r"$\sigma_{\phi_2}$", aspect="auto"
+)
+
+# Truth
+bin_edges = np.histogram_bin_edges(phi1, bins=100)
+bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
+inds = np.digitize(stream_table["phi1"].value, bin_edges)
+true_mu = np.array(mpa["phi2", "mu"][table["label"] == "stream"])
+true_std = np.array(
+    [
+        np.std((stream_table["phi2"].value - true_mu)[inds == i])
+        for i in range(1, len(bin_edges))
+    ]
+)
+ax02.plot(bin_centers, true_std, c="k", label="Ground Truth")
+
+# Model
+ax02.fill_between(
+    data["phi1"],
+    np.exp(np.percentile(dmpars["stream.astrometric.phi2", "ln-sigma"], 5, axis=1)),
+    np.exp(np.percentile(dmpars["stream.astrometric.phi2", "ln-sigma"], 95, axis=1)),
+    color=cmap(0.99),
+    alpha=0.25,
+    where=where,
+)
+ax02.scatter(
+    data["phi1"][where],
+    np.exp(mpa["phi2", "ln-sigma"][where]),
+    s=1,
+    c=cmap(0.99),
+)
+
+for tick in ax02.get_yticklabels():
+    tick.set_verticalalignment("bottom")
 
 # ---------------------------------------------------------------------------
 # Phi2
 
-mpa = mpars.get_prefixed("stream.astrometric")
+ax03 = fig.add_subplot(
+    gs02[1, :],
+    xlim=xlim,
+    ylabel=r"$\phi_2$ [$\degree$]",
+    rasterization_zorder=0,
+    xticklabels=[],
+    aspect="auto",
+)
 
-ax02 = fig.add_subplot(gs0[2, :])
-ax02.set_xticklabels([])
-ax02.set(ylabel=r"$\phi_2$ [$\degree$]")
-
-ax02.scatter(
+ax03.scatter(
     phi1,
     stream_table["phi2"].to_value("deg"),
     s=10,
@@ -143,7 +210,7 @@ ax02.scatter(
     zorder=-100,
     label="Ground Truth",
 )
-line = ax02.scatter(
+line = ax03.scatter(
     data["phi1"][psort],
     data["phi2"][psort],
     c=stream_prob[psort],
@@ -152,14 +219,14 @@ line = ax02.scatter(
     zorder=-10,
     cmap="seismic",
 )
-ax02.set_rasterization_zorder(0)
 
-ax02.plot(
+# Model
+ax03.plot(
     data["phi1"][where],
     mpa["phi2", "mu"][where],
-    c="k",
+    c="salmon",
     ls="--",
-    lw=2,
+    lw=1,
     label="Model (MLE)",
 )
 
@@ -168,22 +235,67 @@ hdata = (
     mpl.lines.Line2D([], [], c=cmap(0.01), marker="o"),
     mpl.lines.Line2D([], [], c=cmap(0.99), marker="o"),
 )
-handles, labels = ax02.get_legend_handles_labels()
-ax02.legend(
+handles, labels = ax03.get_legend_handles_labels()
+ax03.legend(
     [hdata] + handles,
     ["data"] + labels,
     handler_map={tuple: mpl.legend_handler.HandlerTuple(ndivide=None)},
-    loc="center left",
+    loc="upper left",
 )
+
+# ---------------------------------------------------------------------------
+# Distance - variance
+
+gs04 = gs0[3].subgridspec(2, 1, height_ratios=(1, 3), wspace=0.0, hspace=0.0)
+ax04 = fig.add_subplot(
+    gs04[0, :], xlim=xlim, xticklabels=[], ylabel=r"$\sigma_{\varpi}$", aspect="auto"
+)
+
+# Truth
+true_mu = np.array(mpa["parallax", "mu"][table["label"] == "stream"])
+true_std = np.array(
+    [
+        np.std((stream_table["parallax"].value - true_mu)[inds == i])
+        for i in range(1, len(bin_edges))
+    ]
+)
+ax04.plot(bin_centers, true_std, c="k", label="Ground Truth")
+
+# Model
+ax04.fill_between(
+    data["phi1"],
+    np.exp(np.percentile(dmpars["stream.astrometric.parallax", "ln-sigma"], 5, axis=1)),
+    np.exp(
+        np.percentile(dmpars["stream.astrometric.parallax", "ln-sigma"], 95, axis=1)
+    ),
+    color=cmap(0.99),
+    alpha=0.25,
+    where=where,
+)
+ax04.scatter(
+    data["phi1"][where],
+    np.exp(mpa["parallax", "ln-sigma"][where]),
+    s=1,
+    c=cmap(0.99),
+)
+
+for tick in ax04.get_yticklabels():
+    tick.set_verticalalignment("bottom")
 
 # ---------------------------------------------------------------------------
 # Distance
 
-ax03 = fig.add_subplot(gs0[3, :])
-ax03.set(xlabel=r"$\phi_1$ [deg]", ylabel=r"$\varpi$ [mas yr$^-1$]")
+ax05 = fig.add_subplot(
+    gs04[1, :],
+    xlim=xlim,
+    xlabel=r"$\phi_1$ [deg]",
+    ylabel=r"$\varpi$ [mas yr$^-1$]",
+    rasterization_zorder=0,
+    aspect="auto",
+)
 
 k_dist = "parallax"
-ax03.scatter(
+ax05.scatter(
     phi1,
     stream_table["parallax"].to_value("mas"),
     s=10,
@@ -192,7 +304,7 @@ ax03.scatter(
     zorder=-100,
     label="Ground Truth",
 )
-ax03.scatter(
+ax05.scatter(
     data["phi1"][psort],
     data["parallax"][psort],
     c=stream_prob[psort],
@@ -201,21 +313,25 @@ ax03.scatter(
     zorder=-10,
     cmap="seismic",
 )
-ax03.set_rasterization_zorder(0)
 
-ax03.plot(
+ax05.plot(
     data["phi1"][where],
     mpa[k_dist, "mu"][where],
-    c="k",
+    c="salmon",
     ls="--",
-    lw=2,
+    lw=1,
     label="Model (MLE)",
 )
+
+xlabel = ax05.xaxis.get_label()
+xlabel.set_bbox({"facecolor": "white", "edgecolor": "white"})
 
 # =============================================================================
 # Slice plots
 
-gs1 = gs[1].subgridspec(4, 4)
+gs1 = gs[1].subgridspec(2, 4, hspace=0.2)
+gs10 = gs1[0, :].subgridspec(2, 4, hspace=0.4)
+gs11 = gs1[1, :].subgridspec(2, 4, hspace=0)
 
 # Legend
 legend1 = plt.legend(
@@ -226,9 +342,9 @@ legend1 = plt.legend(
     ],
     ncols=3,
     loc="upper right",
-    bbox_to_anchor=(1, -0.08),
+    bbox_to_anchor=(1, -0.3),
 )
-ax03.add_artist(legend1)
+ax05.add_artist(legend1)
 
 
 # Bin the data for plotting
@@ -241,14 +357,14 @@ for i, b in enumerate(np.unique(which_bin)):
     # ---------------------------------------------------------------------------
     # Phi2
 
-    ax10i = fig.add_subplot(gs1[0, i])
+    ax10i = fig.add_subplot(gs10[0, i], xlabel=r"$\phi_2$ [deg]")
 
     # Connect to top plot(s)
-    for ax in (ax01, ax02):
+    for ax in (ax01, ax02, ax03, ax04, ax05):
         ax.axvline(bins[i], color="gray", ls="--", zorder=-200)
         ax.axvline(bins[i + 1], color="gray", ls="--", zorder=-200)
     smlvis._slices.connect_slices_to_top(  # noqa: SL
-        fig, ax03, ax10i, left=bins[i], right=bins[i + 1], color="gray"
+        fig, ax05, ax10i, left=bins[i], right=bins[i + 1], color="gray"
     )
 
     # Recovered
@@ -281,15 +397,15 @@ for i, b in enumerate(np.unique(which_bin)):
         label=["", "Ground Truth"],
     )
 
-    ax10i.set_xlabel(r"$\phi_2$ [$\degree$]")
     if i == 0:
         ax10i.set_ylabel("frequency")
-        # ax10i.legend(loc="upper left")
+    else:
+        ax10i.set_yticklabels([])
 
     # ---------------------------------------------------------------------------
     # Distance
 
-    ax11i = fig.add_subplot(gs1[1, i])
+    ax11i = fig.add_subplot(gs10[1, i], xlabel=r"$\varpi$ [mas]")
 
     # Recovered
     cplxs = np.ones((sel.sum(), 2)) * table["parallax"][sel].value[:, None]
@@ -321,18 +437,15 @@ for i, b in enumerate(np.unique(which_bin)):
         label=["", "Ground Truth"],
     )
 
-    ax11i.set_xlabel(r"$\varpi$ [mas]")
     if i == 0:
         ax11i.set_ylabel("frequency")
-        # ax11i.legend(loc="upper left")
-
-    # ---------------------------------------------------------------------------
-    # Photometry
+    else:
+        ax11i.set_yticklabels([])
 
     # ------------------------------------------
     # Stream
 
-    ax12i = fig.add_subplot(gs1[2, i])
+    ax12i = fig.add_subplot(gs11[0, i], xticklabels=[])
 
     prob = stream_prob[sel]
     sorter = np.argsort(prob)
@@ -344,7 +457,6 @@ for i, b in enumerate(np.unique(which_bin)):
         s=1,
         rasterized=True,
     )
-    ax12i.set_xticklabels([])
 
     if i == 0:
         ax12i.set_ylabel("r [mag]")
@@ -354,7 +466,8 @@ for i, b in enumerate(np.unique(which_bin)):
     # ------------------------------------------
     # Background
 
-    ax13i = fig.add_subplot(gs1[3, i])
+    ax13i = fig.add_subplot(gs11[1, i], xlabel="g [mag]")
+
     prob = bkg_prob[sel]
     sorter = np.argsort(prob)
     ax13i.scatter(
@@ -365,7 +478,6 @@ for i, b in enumerate(np.unique(which_bin)):
         s=1,
         rasterized=True,
     )
-    ax13i.set(xlabel="g [mag]")
 
     if i == 0:
         ax13i.set_ylabel("r [mag]")
