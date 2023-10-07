@@ -118,9 +118,12 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
         yscale="log",
     )
     _bounds_kw = {"c": "gray", "ls": "-", "lw": 2, "alpha": 0.8}
-    ax01.axhline(model.params[(f"stream.{WEIGHT_NAME}",)].bounds.lower[0], **_bounds_kw)
-    ax01.axhline(model.params[(f"stream.{WEIGHT_NAME}",)].bounds.upper[0], **_bounds_kw)
-    ax01.plot(data["phi1"], stream_weight, c="k", ls=":", lw=2, label="Model (MLE)")
+    _bounds = model.params[(f"stream.{WEIGHT_NAME}",)].bounds
+    ax01.axhline(np.exp(_bounds.lower[0]), **_bounds_kw)
+    ax01.axhline(np.exp(_bounds.upper[0]), **_bounds_kw)
+    ax01.plot(
+        data["phi1"], np.exp(stream_weight), c="k", ls=":", lw=2, label="Model (MLE)"
+    )
     ax01.legend(loc="upper left")
 
     # ---------------------------------------------------------------------------
