@@ -22,7 +22,6 @@ sys.path.append(paths.scripts.parent.as_posix())
 
 from scripts.helper import manually_set_dropout, recursive_iterate
 from scripts.mock.define_model import model
-from scripts.mock.model import helper
 
 # =============================================================================
 
@@ -40,6 +39,9 @@ with asdf.open(paths.data / "mock" / "data.asdf") as af:
     table = af["table"]
     n_stream = af["n_stream"]
     n_background = af["n_background"]
+
+# =============================================================================
+# Likelihood
 
 # Also evaluate the model with dropout on
 with xp.no_grad():
@@ -59,22 +61,27 @@ with xp.no_grad():
 
 # Evaluate model
 with xp.no_grad():
-    helper.manually_set_dropout(model, 0)
+    manually_set_dropout(model, 0)
     mpars = model.unpack_params(model(data))
 
-    stream_lik = model.component_posterior("stream", mpars, data, where=where)
-    bkg_lik = model.component_posterior("background", mpars, data, where=where)
+    stream_lnlik = model.component_ln_posterior("stream", mpars, data, where=where)
+    bkg_lnlik = model.component_ln_posterior("background", mpars, data, where=where)
+    tot_lnlik = xp.logaddexp(stream_lnlik, bkg_lnlik)  # FIXME
 
 weight = mpars[(f"stream.{WEIGHT_NAME}",)]
 where = weight > -5
 
-stream_prob = stream_lik / (stream_lik + bkg_lik)
-stream_prob[(stream_prob > 0.4) & ~where] = 0
-psort = np.argsort(stream_prob)
-pmax = stream_prob.max()
-pmin = stream_prob.min()
+stream_prob = xp.exp(stream_lnlik - tot_lnlik)
+bkg_prob = xp.exp(bkg_lnlik - tot_lnlik)
+sel = (stream_prob > 0.4) & ~where  # a little post
+stream_prob[sel] = 0
+bkg_prob[sel] = 1
 
-bkg_prob = bkg_lik / (stream_lik + bkg_lik)
+
+psort = np.argsort(stream_prob)
+alpha = 0.1 + (1 - 0.1) / (stream_prob.max() - stream_prob.min()) * (
+    stream_prob[psort] - stream_prob.min()
+)
 
 
 # =============================================================================
@@ -214,7 +221,7 @@ line = ax03.scatter(
     data["phi1"][psort],
     data["phi2"][psort],
     c=stream_prob[psort],
-    alpha=0.1 + (1 - 0.1) / (pmax - pmin) * (stream_prob[psort] - pmin),
+    alpha=alpha,
     s=2,
     zorder=-10,
     cmap="seismic",
@@ -308,7 +315,7 @@ ax05.scatter(
     data["phi1"][psort],
     data["parallax"][psort],
     c=stream_prob[psort],
-    alpha=0.1 + (1 - 0.1) / (pmax - pmin) * (stream_prob[psort] - pmin),
+    alpha=alpha,
     s=2,
     zorder=-10,
     cmap="seismic",
