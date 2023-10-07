@@ -266,7 +266,7 @@ def diagnostic_plot(
         # ---------------------------------------------------------------------------
         # Distance
 
-        ax11i = fig.add_subplot(gs1[1, i])
+        ax11i = fig.add_subplot(gs1[1, i], xlabel=r"$\varpi$ [mas]")
 
         # Recovered
         cplxs = np.ones((sel.sum(), 2)) * table["parallax"][sel].value[:, None]
@@ -298,7 +298,6 @@ def diagnostic_plot(
             label=["", "Ground Truth"],
         )
 
-        ax11i.set_xlabel(r"$\varpi$ [mas]")
         if i == 0:
             ax11i.set_ylabel("frequency")
             ax11i.legend(loc="upper left")
