@@ -208,6 +208,12 @@ p1 = ax02.errorbar(
 d1 = ax02.scatter(
     data["phi1"][psort], data["phi2"][psort], c=colors, alpha=alphas, s=2, zorder=-10
 )
+
+# Literature
+_literature_kw = {"c": "k", "ls": "--", "alpha": 0.5}
+ax02.plot(pal5I21.phi1.degree, pal5I21.phi2.degree, **_literature_kw, label="Ibata+21")
+ax02.plot(pal5PW19.phi1.degree, pal5PW19.phi2.degree, **_literature_kw, label="PW+19")
+
 # Model
 f1 = ax02.fill_between(
     data["phi1"],
@@ -218,29 +224,11 @@ f1 = ax02.fill_between(
     where=stream_cutoff,
 )
 
-# Literature
-ax02.plot(
-    pal5I21.phi1.degree,
-    pal5I21.phi2.degree,
-    c="k",
-    ls="--",
-    alpha=0.5,
-    label="Ibata+21",
-)
-ax02.plot(
-    pal5PW19.phi1.degree,
-    pal5PW19.phi2.degree,
-    c="k",
-    ls="--",
-    alpha=0.5,
-    label="PW+19",
-)
-
+# Legend
 legend_elements_data = (
     Line2D([0], [0], marker="o", markerfacecolor=cmap1(0.01), markersize=10),
     Line2D([0], [0], marker="o", markerfacecolor=cmap1(0.99), markersize=10),
 )
-
 ax02.legend(
     [legend_elements_data, p1, f1],
     ["Data", "Control points", "Models"],
@@ -286,6 +274,11 @@ ax04 = fig.add_subplot(
 d1 = ax04.scatter(
     data["phi1"][psort], data["pmphi1"][psort], c=colors, alpha=alphas, s=2, zorder=-10
 )
+
+# Literature
+ax04.plot(pal5I21.phi1.degree, pal5I21.pmphi1.value, **_literature_kw, label="Ibata+21")
+ax04.plot(pal5PW19.phi1.degree, pal5PW19.pmphi1.value, **_literature_kw, label="PW+19")
+
 # Model
 ax04.fill_between(
     data["phi1"][stream_cutoff],
@@ -310,6 +303,11 @@ ax05 = fig.add_subplot(
 ax05.scatter(
     data["phi1"][psort], data["pmphi2"][psort], c=colors, alpha=alphas, s=2, zorder=-10
 )
+
+# Literature
+ax04.plot(pal5I21.phi1.degree, pal5I21.pmphi2.value, **_literature_kw, label="Ibata+21")
+ax04.plot(pal5PW19.phi1.degree, pal5PW19.pmphi2.value, **_literature_kw, label="PW+19")
+
 # Model
 ax05.fill_between(
     data["phi1"][stream_cutoff],
