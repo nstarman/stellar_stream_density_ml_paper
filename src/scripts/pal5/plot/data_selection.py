@@ -107,7 +107,14 @@ ax00.set_xlim(-10, None)
 # -----------------------------------------------------------------------------
 # PM selection
 
-ax01 = fig.add_subplot(gs0[0, 1])
+ax01 = fig.add_subplot(
+    gs0[0, 1],
+    xlabel=r"$\phi_1$ [deg]",
+    ylabel=r"$\phi_2$ [deg]",
+    xlim=(p1min, p1max),
+    ylim=(p2min, p2max),
+    rasterization_zorder=0,
+)
 ax01.plot(
     table["phi1"][masks_table["pm_tight_icrs"]],
     table["phi2"][masks_table["pm_tight_icrs"]],
@@ -117,13 +124,7 @@ ax01.plot(
     alpha=1,
     zorder=-10,
 )
-ax01.set_rasterization_zorder(0)
-ax01.set(
-    xlabel=r"$\phi_1$ [deg]",
-    ylabel=r"$\phi_2$ [deg]",
-    xlim=(p1min, p1max),
-    ylim=(p2min, p2max),
-)
+ax01.set_axisbelow(False)
 
 # -----------------------------------------------------------------------------
 # Phot space
