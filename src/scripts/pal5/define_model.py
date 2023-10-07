@@ -75,11 +75,11 @@ pm_flow_scaler = scaler[("phi1", *pm_coords)]
 
 background_pm_model = sml.builtin.compat.ZukoFlowModel(
     net=zuko.flows.MAF(2, 1, hidden_features=[8, 8, 8]),
-    jacobian_logdet=-xp.log(xp.prod(pm_flow_scaler.scale[1:])),
+    jacobian_logdet=float(-xp.log(xp.prod(pm_flow_scaler.scale[1:]))),
     data_scaler=pm_flow_scaler,
     coord_names=pm_coords,
     coord_bounds={k: coord_bounds[k] for k in pm_coords},
-    params=ModelParameters(),
+    params=ModelParameters[xp.Tensor](),
     with_grad=False,
     name="background_pm_model",
 )
@@ -179,11 +179,11 @@ stream_astrometric_model = sml.builtin.TruncatedNormal(
             },
             "pmphi2": {
                 "mu": ModelParameter(
-                    bounds=SigmoidBounds(-0.5, 2.2),  # *coord_bounds["pmphi2"]
+                    bounds=SigmoidBounds(0, 2.2),  # *coord_bounds["pmphi2"]
                     scaler=StandardLocation.from_data_scaler(scaler, "pmphi2", xp=xp),
                 ),
                 "ln-sigma": ModelParameter(
-                    bounds=SigmoidBounds(-3.0, 0.0),
+                    bounds=SigmoidBounds(-3.0, -0.75),
                     scaler=StandardLnWidth.from_data_scaler(scaler, "pmphi2", xp=xp),
                 ),
             },
@@ -296,10 +296,10 @@ model = sml.MixtureModel(
     params=ModelParameters(
         {
             f"stream.{WEIGHT_NAME}": ModelParameter(
-                bounds=SigmoidBounds(1e-4, 0.991), scaler=None
+                bounds=SigmoidBounds(-9.5, -0.01), scaler=None
             ),
             f"background.{WEIGHT_NAME}": ModelParameter(
-                bounds=SigmoidBounds(0.01, 1.0), scaler=None
+                bounds=SigmoidBounds(-5.0, 0.0), scaler=None
             ),
         }
     ),
