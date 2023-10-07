@@ -12,6 +12,7 @@ from showyourwork.paths import user as user_paths
 
 import stream_ml.pytorch as sml
 import stream_ml.visualization as smlvis
+from stream_ml.core import WEIGHT_NAME
 
 paths = user_paths()
 
@@ -47,8 +48,8 @@ with xp.no_grad():
     stream_lik = model.component_posterior("stream", mpars, data, where=where)
     bkg_lik = model.component_posterior("background", mpars, data, where=where)
 
-weight = mpars[("stream.weight",)]
-where = weight > 2e-2
+weight = mpars[(f"stream.{WEIGHT_NAME}",)]
+where = weight > -5
 
 stream_prob = stream_lik / (stream_lik + bkg_lik)
 stream_prob[(stream_prob > 0.4) & ~where] = 0

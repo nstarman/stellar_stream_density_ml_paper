@@ -18,6 +18,7 @@ from matplotlib.legend_handler import HandlerTuple
 from showyourwork.paths import user as user_paths
 
 import stream_ml.pytorch as sml
+from stream_ml.core import WEIGHT_NAME
 
 paths = user_paths()
 
@@ -86,12 +87,12 @@ with xp.no_grad():
     # Mpars
     mpars = sml.params.Params(recursive_iterate(dmpars, dmpars[0]))
     # weights
-    stream_weights = xp.stack([mp["stream.weight",] for mp in dmpars], 1)
+    stream_weights = xp.stack([mp[f"stream.{WEIGHT_NAME}",] for mp in dmpars], 1)
     stream_weight_percentiles = np.c_[
         np.percentile(stream_weights, 5, axis=1),
         np.percentile(stream_weights, 95, axis=1),
     ]
-    spur_weights = xp.stack([mp["spur.weight",] for mp in dmpars], 1)
+    spur_weights = xp.stack([mp[f"spur.{WEIGHT_NAME}",] for mp in dmpars], 1)
     spur_weight_percentiles = np.c_[
         np.percentile(spur_weights, 5, axis=1), np.percentile(spur_weights, 95, axis=1)
     ]
@@ -100,11 +101,11 @@ with xp.no_grad():
     manually_set_dropout(model, 0)
     model = model.eval()
 
-stream_weight = mpars[("stream.weight",)]
-stream_cutoff = stream_weight > 2e-2
+stream_weight = mpars[(f"stream.{WEIGHT_NAME}",)]
+stream_cutoff = stream_weight > -4
 
-spur_weight = mpars[("spur.weight",)]
-spur_cutoff = spur_weight > 1e-2
+spur_weight = mpars[(f"spur.{WEIGHT_NAME}",)]
+spur_cutoff = spur_weight > -5
 
 bkg_prob = xp.exp(bkg_lnlik - tot_lnlik)
 stream_prob = xp.exp(stream_lnlik - tot_lnlik)
@@ -112,9 +113,6 @@ spur_prob = xp.exp(spur_lnlik - tot_lnlik)
 allstream_prob = xp.exp(xp.logaddexp(stream_lnlik, spur_lnlik) - tot_lnlik)
 
 psort = np.argsort(allstream_prob)
-# data = data[psort]
-# stream_weight_percentiles = stream_weight_percentiles[psort]
-# spur_weight_percentiles = spur_weight_percentiles[psort]
 
 # =============================================================================
 # Make Figure

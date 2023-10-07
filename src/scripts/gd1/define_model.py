@@ -11,6 +11,7 @@ from astropy.table import QTable
 from showyourwork.paths import user as user_paths
 
 import stream_ml.pytorch as sml
+from stream_ml.core.setup_package import WEIGHT_NAME
 from stream_ml.pytorch.params import ModelParameter, ModelParameters, set_param
 from stream_ml.pytorch.params.bounds import ClippedBounds, SigmoidBounds
 from stream_ml.pytorch.params.scaler import StandardLnWidth, StandardLocation
@@ -480,13 +481,13 @@ def spur_shares_stream_distmod(params: dict) -> dict:
 
 
 _stream_wgt_prior = sml.prior.HardThreshold(
-    threshold=1,  # turn off no matter what
-    param_name="stream.weight",
+    threshold=0,  # turn off no matter what
+    param_name=f"stream.{WEIGHT_NAME}",
     coord_name="phi1",
     data_scaler=scaler,
 )
 _spur_wgt_prior = replace(
-    _stream_wgt_prior, param_name="spur.weight", data_scaler=scaler
+    _stream_wgt_prior, param_name=f"spur.{WEIGHT_NAME}", data_scaler=scaler
 )
 
 
@@ -499,11 +500,13 @@ model = sml.MixtureModel(
     data_scaler=scaler,
     params=ModelParameters(
         {
-            "stream.weight": ModelParameter(
+            f"stream.{WEIGHT_NAME}": ModelParameter(
                 bounds=SigmoidBounds(1e-3, 0.3), scaler=None
             ),
-            "spur.weight": ModelParameter(bounds=SigmoidBounds(1e-3, 0.1), scaler=None),
-            "background.weight": ModelParameter(
+            f"spur.{WEIGHT_NAME}": ModelParameter(
+                bounds=SigmoidBounds(1e-3, 0.1), scaler=None
+            ),
+            f"background.{WEIGHT_NAME}": ModelParameter(
                 bounds=ClippedBounds(0.7, 1.0), scaler=None
             ),
         }

@@ -9,6 +9,7 @@ from scipy.interpolate import CubicSpline
 from showyourwork.paths import user as user_paths
 
 import stream_ml.pytorch as sml
+from stream_ml.core import WEIGHT_NAME
 from stream_ml.core.utils.funcs import pairwise_distance
 from stream_ml.pytorch.builtin import Parallax2DistMod
 from stream_ml.pytorch.params import ModelParameter, ModelParameters
@@ -203,11 +204,11 @@ model = sml.MixtureModel(
     data_scaler=scaler,
     params=ModelParameters(
         {
-            "stream.weight": ModelParameter(
-                bounds=SigmoidBounds(1e-10, 0.95), scaler=None
+            f"stream.{WEIGHT_NAME}": ModelParameter(
+                bounds=SigmoidBounds(-10.0, -0.05), scaler=None
             ),
-            "background.weight": ModelParameter(
-                bounds=ClippedBounds(0.04, 1.0), scaler=None
+            f"background.{WEIGHT_NAME}": ModelParameter(
+                bounds=ClippedBounds(-3.2, 0.0), scaler=None
             ),
         }
     ),

@@ -18,6 +18,7 @@ from matplotlib.lines import Line2D
 from showyourwork.paths import user as user_paths
 
 import stream_ml.pytorch as sml
+from stream_ml.core import WEIGHT_NAME
 
 paths = user_paths()
 
@@ -85,7 +86,7 @@ with xp.no_grad():
     # Mpars
     mpars = sml.params.Params(recursive_iterate(dmpars, dmpars[0]))
     # weights
-    stream_weights = xp.stack([mp["stream.weight",] for mp in dmpars], 1)
+    stream_weights = xp.stack([mp[f"stream.{WEIGHT_NAME}",] for mp in dmpars], 1)
     stream_weight_percentiles = np.c_[
         np.percentile(stream_weights, 5, axis=1),
         np.percentile(stream_weights, 95, axis=1),
@@ -115,8 +116,8 @@ with xp.no_grad():
     tot_lnlik = xp.logaddexp(stream_lnlik, bkg_lnlik)
 
 
-stream_weight = mpars[("stream.weight",)]
-stream_cutoff = stream_weight > 1e-4  # everything has weight > 0
+stream_weight = mpars[(f"stream.{WEIGHT_NAME}",)]
+stream_cutoff = stream_weight > -10  # everything has weight > 0
 
 bkg_prob = xp.exp(bkg_lnlik - tot_lnlik)
 stream_prob = xp.exp(stream_lnlik - tot_lnlik)
@@ -165,8 +166,8 @@ ax01 = fig.add_subplot(
 
 # Upper and lower bounds
 _bounds_kw = {"c": "gray", "ls": "-", "lw": 2, "alpha": 0.8}
-ax01.axhline(model.params[("stream.weight",)].bounds.lower[0], **_bounds_kw)
-ax01.axhline(model.params[("stream.weight",)].bounds.upper[0], **_bounds_kw)
+ax01.axhline(model.params[(f"stream.{WEIGHT_NAME}",)].bounds.lower[0], **_bounds_kw)
+ax01.axhline(model.params[(f"stream.{WEIGHT_NAME}",)].bounds.upper[0], **_bounds_kw)
 
 # 15% dropout
 f1 = ax01.fill_between(

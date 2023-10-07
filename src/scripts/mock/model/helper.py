@@ -11,7 +11,7 @@ from matplotlib.gridspec import GridSpec
 from showyourwork.paths import user as user_paths
 
 import stream_ml.visualization as smlvis
-from stream_ml.core import ModelAPI
+from stream_ml.core import WEIGHT_NAME, ModelAPI
 from stream_ml.pytorch import Data
 
 paths = user_paths()
@@ -41,8 +41,8 @@ def diagnostic_plot(
         stream_lik = model.component_posterior("stream", mpars, data, where=where)
         bkg_lik = model.component_posterior("background", mpars, data, where=where)
 
-    weight = mpars[("stream.weight",)]
-    where = weight > 2e-2
+    weight = mpars[(f"stream.{WEIGHT_NAME}",)]
+    where = weight > -4
 
     stream_prob = stream_lik / (stream_lik + bkg_lik)
     psort = np.argsort(stream_prob)
@@ -95,7 +95,11 @@ def diagnostic_plot(
     with xp.no_grad():
         manually_set_dropout(model, 0.15)
         weights = xp.stack(
-            [model.unpack_params(model(data))["stream.weight",] for i in range(100)], 1
+            [
+                model.unpack_params(model(data))[f"stream.{WEIGHT_NAME}",]
+                for i in range(100)
+            ],
+            1,
         )
         weight_percentiles = np.c_[
             np.percentile(weights, 5, axis=1), np.percentile(weights, 95, axis=1)
@@ -103,12 +107,12 @@ def diagnostic_plot(
         manually_set_dropout(model, 0)
     ax01.fill_between(
         data["phi1"],
-        weight_percentiles[:, 0],
-        weight_percentiles[:, 1],
+        np.exp(weight_percentiles[:, 0]),
+        np.exp(weight_percentiles[:, 1]),
         color="k",
         alpha=0.25,
     )
-    ax01.plot(data["phi1"], weight, c="k", ls="--", lw=2, label="Model (MLE)")
+    ax01.plot(data["phi1"], np.exp(weight), c="k", ls="--", lw=2, label="Model (MLE)")
 
     ax01.legend(loc="upper left")
 

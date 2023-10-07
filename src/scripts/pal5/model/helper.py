@@ -3,6 +3,7 @@
 
 
 import sys
+from math import inf
 
 import asdf
 import galstreams
@@ -15,7 +16,7 @@ from matplotlib.gridspec import GridSpec
 from showyourwork.paths import user as user_paths
 
 import stream_ml.visualization as smlvis
-from stream_ml.core import ModelAPI
+from stream_ml.core import WEIGHT_NAME, ModelAPI
 from stream_ml.pytorch import Data
 from stream_ml.visualization.background import (
     exponential_like_distribution as exp_distr,
@@ -76,8 +77,8 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
         # tot_lnlik = model.ln_posterior(mpars, data, where=where)  # FIXME!
         tot_lnlik = xp.logaddexp(stream_lnlik, bkg_lnlik)
 
-    stream_weight = mpars[("stream.weight",)]
-    stream_cutoff = stream_weight > 0  # everything has weight > 0
+    stream_weight = mpars[(f"stream.{WEIGHT_NAME}",)]
+    stream_cutoff = stream_weight > -inf  # everything has weight > 0
 
     bkg_prob = xp.exp(bkg_lnlik - tot_lnlik)
     stream_prob = xp.exp(stream_lnlik - tot_lnlik)
@@ -117,8 +118,8 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
         yscale="log",
     )
     _bounds_kw = {"c": "gray", "ls": "-", "lw": 2, "alpha": 0.8}
-    ax01.axhline(model.params[("stream.weight",)].bounds.lower[0], **_bounds_kw)
-    ax01.axhline(model.params[("stream.weight",)].bounds.upper[0], **_bounds_kw)
+    ax01.axhline(model.params[(f"stream.{WEIGHT_NAME}",)].bounds.lower[0], **_bounds_kw)
+    ax01.axhline(model.params[(f"stream.{WEIGHT_NAME}",)].bounds.upper[0], **_bounds_kw)
     ax01.plot(data["phi1"], stream_weight, c="k", ls=":", lw=2, label="Model (MLE)")
     ax01.legend(loc="upper left")
 
@@ -313,7 +314,7 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
 
         xmin, xmax = data["phi2"].min().numpy(), data["phi2"].max().numpy()
         x = np.linspace(xmin, xmax)
-        bkg_wgt = mpars["background.weight",][sel].mean()
+        bkg_wgt = mpars[f"background.{WEIGHT_NAME}",][sel].mean()
         m = mpars["background.astrometric.phi2.phi2", "slope"][sel].mean()
         ax10i.plot(x, bkg_wgt * exp_distr(m, xmin, xmax).pdf(x), c="k")
 

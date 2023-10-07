@@ -7,6 +7,7 @@ import torch as xp
 from showyourwork.paths import user as user_paths
 
 import stream_ml.pytorch as sml
+from stream_ml.core import WEIGHT_NAME
 
 paths = user_paths()
 
@@ -41,7 +42,7 @@ with xp.no_grad():
     tot_lik = model.posterior(mpars, data, where=where)
 
 stream_prob = stream_lik / tot_lik
-stream_prob[(stream_prob > 0.4) & (mpars[("stream.weight",)] < 2e-2)] = 0
+stream_prob[(stream_prob > 0.4) & (mpars[(f"stream.{WEIGHT_NAME}",)] < -4)] = 0
 # nstream = int(sum(stream_prob > 0.8))
 
 numstream = sum(table["label"] == "stream")

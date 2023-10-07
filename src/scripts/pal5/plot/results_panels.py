@@ -10,6 +10,7 @@ from matplotlib.gridspec import GridSpec
 from showyourwork.paths import user as user_paths
 
 import stream_ml.visualization as smlvis
+from stream_ml.core import WEIGHT_NAME
 from stream_ml.visualization.background import (
     exponential_like_distribution as exp_distr,
 )
@@ -50,8 +51,8 @@ with xp.no_grad():
     tot_lnlik = xp.logaddexp(stream_lnlik, bkg_lnlik)
 
 
-stream_weight = mpars[("stream.weight",)]
-stream_cutoff = stream_weight > 2e-2
+stream_weight = mpars[(f"stream.{WEIGHT_NAME}",)]
+stream_cutoff = stream_weight > -4
 
 bkg_prob = xp.exp(bkg_lnlik - tot_lnlik)
 stream_prob = xp.exp(stream_lnlik - tot_lnlik)
@@ -97,7 +98,7 @@ with xp.no_grad():
     _stream_weights = []
     for _ in range(25):
         _mpars = model.unpack_params(model(data))
-        _stream_weights.append(_mpars["stream.weight",])
+        _stream_weights.append(_mpars[f"stream.{WEIGHT_NAME}",])
 
     stream_weights = xp.stack(_stream_weights, 1)
     stream_weight_percentiles = np.c_[
@@ -216,7 +217,7 @@ for i, b in enumerate(np.unique(which_bin)):
 
     xmin, xmax = data["phi2"].min().numpy(), data["phi2"].max().numpy()
     x = np.linspace(xmin, xmax)
-    bkg_wgt = mpars["background.weight",][sel].mean()
+    bkg_wgt = mpars[f"background.{WEIGHT_NAME}",][sel].mean()
     m = mpars["background.astrometric.phi2.phi2", "slope"][sel].mean()
     ax10i.plot(x, bkg_wgt * exp_distr(m, xmin, xmax).pdf(x), c="k")
 

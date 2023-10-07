@@ -11,6 +11,7 @@ from astropy.table import QTable
 from showyourwork.paths import user as user_paths
 
 import stream_ml.pytorch as sml
+from stream_ml.core import WEIGHT_NAME
 from stream_ml.pytorch.params import ModelParameter, ModelParameters
 from stream_ml.pytorch.params.bounds import SigmoidBounds
 from stream_ml.pytorch.params.scaler import StandardLnWidth, StandardLocation
@@ -279,7 +280,7 @@ stream_model = sml.IndependentModels(
 
 _stream_wgt_prior = sml.prior.HardThreshold(
     threshold=1,  # turn off no matter what
-    param_name="stream.weight",
+    param_name=f"stream.{WEIGHT_NAME}",
     coord_name="phi1",
     data_scaler=scaler,
 )
@@ -294,10 +295,10 @@ model = sml.MixtureModel(
     data_scaler=scaler,
     params=ModelParameters(
         {
-            "stream.weight": ModelParameter(
+            f"stream.{WEIGHT_NAME}": ModelParameter(
                 bounds=SigmoidBounds(1e-4, 0.991), scaler=None
             ),
-            "background.weight": ModelParameter(
+            f"background.{WEIGHT_NAME}": ModelParameter(
                 bounds=SigmoidBounds(0.01, 1.0), scaler=None
             ),
         }
