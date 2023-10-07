@@ -77,6 +77,9 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
         # tot_lnlik = model.ln_posterior(mpars, data, where=where)  # FIXME!
         tot_lnlik = xp.logaddexp(stream_lnlik, bkg_lnlik)
 
+        # back to training
+        model.train()
+
     stream_weight = mpars[(f"stream.{WEIGHT_NAME}",)]
     stream_cutoff = stream_weight > -inf  # everything has weight > 0
 
