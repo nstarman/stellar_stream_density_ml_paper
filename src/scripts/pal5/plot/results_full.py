@@ -3,8 +3,6 @@
 from __future__ import annotations
 
 import sys
-from collections.abc import Mapping
-from typing import Any
 
 import galstreams
 import matplotlib as mpl
@@ -26,7 +24,7 @@ paths = user_paths()
 sys.path.append(paths.scripts.parent.as_posix())
 # isort: split
 
-from scripts.helper import manually_set_dropout, p2alpha
+from scripts.helper import manually_set_dropout, p2alpha, recursive_iterate
 from scripts.mpl_colormaps import stream_cmap1 as cmap1
 from scripts.pal5.datasets import data, masks, where
 from scripts.pal5.define_model import model
@@ -55,26 +53,6 @@ model.load_state_dict(xp.load(paths.data / "pal5" / "model" / "model_12499.pt"))
 model = model.eval()
 
 # =============================================================================
-
-
-def recursive_iterate(
-    dmpars: list[sml.params.Params[str, Any]],
-    structure: dict[str, Any],
-    _prefix: str = "",
-) -> dict[str, Any]:
-    """Recursively iterate and compute the mean of each parameter."""
-    out = dict[str, Any]()
-    _prefix = _prefix.lstrip(".")
-    for k, v in structure.items():
-        if isinstance(v, Mapping):
-            out[k] = recursive_iterate(dmpars, v, _prefix=f"{_prefix}.{k}")
-            continue
-
-        key: tuple[str] | tuple[str, str] = (f"{_prefix}", k) if _prefix else (k,)
-        out[k] = xp.stack([mp[key] for mp in dmpars], 1).mean(1)
-
-    return out
-
 
 # Also evaluate the model with dropout on
 with xp.no_grad():

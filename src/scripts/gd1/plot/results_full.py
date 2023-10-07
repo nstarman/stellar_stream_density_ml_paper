@@ -3,8 +3,6 @@
 from __future__ import annotations
 
 import sys
-from collections.abc import Mapping
-from typing import Any
 
 import astropy.units as u
 import matplotlib as mpl
@@ -28,7 +26,12 @@ sys.path.append(paths.scripts.parent.as_posix())
 
 from scripts.gd1.datasets import data, where
 from scripts.gd1.define_model import model
-from scripts.helper import color_by_probable_member, manually_set_dropout, p2alpha
+from scripts.helper import (
+    color_by_probable_member,
+    manually_set_dropout,
+    p2alpha,
+    recursive_iterate,
+)
 from scripts.mpl_colormaps import stream_cmap1 as cmap1
 from scripts.mpl_colormaps import stream_cmap2 as cmap2
 
@@ -56,25 +59,6 @@ with xp.no_grad():
     bkg_lnlik = model.component_ln_posterior("background", mpars, data, where=where)
     # tot_lnlik = model.ln_posterior(mpars, data, where=where)  # FIXME
     tot_lnlik = xp.logsumexp(xp.stack((stream_lnlik, spur_lnlik, bkg_lnlik), 1), 1)
-
-
-def recursive_iterate(
-    dmpars: list[sml.params.Params[str, Any]],
-    structure: dict[str, Any],
-    _prefix: str = "",
-) -> dict[str, Any]:
-    """Recursively iterate and compute the mean of each parameter."""
-    out = dict[str, Any]()
-    _prefix = _prefix.lstrip(".")
-    for k, v in structure.items():
-        if isinstance(v, Mapping):
-            out[k] = recursive_iterate(dmpars, v, _prefix=f"{_prefix}.{k}")
-            continue
-
-        key: tuple[str] | tuple[str, str] = (f"{_prefix}", k) if _prefix else (k,)
-        out[k] = xp.stack([mp[key] for mp in dmpars], 1).mean(1)
-
-    return out
 
 
 # Also evaluate the model with dropout on

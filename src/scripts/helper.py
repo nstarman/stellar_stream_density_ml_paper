@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from collections.abc import Mapping
+from functools import partial
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
+import torch as xp
 from scipy.interpolate import CubicSpline
 from torch import nn
 
@@ -12,9 +15,12 @@ from stream_ml.core.utils.funcs import pairwise_distance
 from stream_ml.pytorch.builtin.compat._flow import _FlowModel
 
 if TYPE_CHECKING:
+    from types import FunctionType
+
     from matplotlib.colors import LinearSegmentedColormap
 
     from stream_ml.core import ModelAPI
+    from stream_ml.core.params import Params
     from stream_ml.core.typing import Array, ArrayNamespace
 
 
@@ -66,3 +72,26 @@ def a_as_b(cols: dict[str, str | None], /, prefix: str) -> str:
     return ", ".join(
         tuple(prefix + (k if v is None else f"{k} as {v}") for k, v in cols.items())
     )
+
+
+def recursive_iterate(
+    dmpars: list[Params[str, Any]],
+    structure: dict[str, Any],
+    _prefix: str = "",
+    *,
+    reduction: FunctionType = partial(xp.mean, axis=1),
+) -> dict[str, Any]:
+    """Recursively iterate and compute the mean of each parameter."""
+    out = dict[str, Any]()
+    _prefix = _prefix.lstrip(".")
+    for k, v in structure.items():
+        if isinstance(v, Mapping):
+            out[k] = recursive_iterate(
+                dmpars, v, _prefix=f"{_prefix}.{k}", reduction=reduction
+            )
+            continue
+
+        key: tuple[str] | tuple[str, str] = (f"{_prefix}", k) if _prefix else (k,)
+        out[k] = reduction(xp.stack([mp[key] for mp in dmpars], 1))
+
+    return out

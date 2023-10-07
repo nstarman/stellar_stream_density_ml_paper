@@ -20,6 +20,7 @@ paths = user_paths()
 sys.path.append(paths.scripts.parent.as_posix())
 # isort: split
 
+from scripts.helper import manually_set_dropout, recursive_iterate
 from scripts.mock.define_model import model
 from scripts.mock.model import helper
 
@@ -39,6 +40,22 @@ with asdf.open(paths.data / "mock" / "data.asdf") as af:
     table = af["table"]
     n_stream = af["n_stream"]
     n_background = af["n_background"]
+
+# Also evaluate the model with dropout on
+with xp.no_grad():
+    # turn dropout on
+    model = model.train()
+    manually_set_dropout(model, 0.15)
+    # evaluate the model
+    ldmpars = [model.unpack_params(model(data)) for i in range(100)]
+    # Mpars
+    dmpars = sml.params.Params(
+        recursive_iterate(ldmpars, ldmpars[0], reduction=lambda x: x)
+    )
+
+    # turn dropout back off
+    manually_set_dropout(model, 0)
+    model = model.eval()
 
 # Evaluate model
 with xp.no_grad():
