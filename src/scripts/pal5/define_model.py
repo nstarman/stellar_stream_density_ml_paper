@@ -163,7 +163,7 @@ stream_astrometric_model = sml.builtin.TruncatedNormal(
                     scaler=StandardLocation.from_data_scaler(scaler, "phi2", xp=xp),
                 ),
                 "ln-sigma": ModelParameter(
-                    bounds=SigmoidBounds(-2.0, 0.0),
+                    bounds=SigmoidBounds(-2.0, -0.4),
                     scaler=StandardLnWidth.from_data_scaler(scaler, "phi2", xp=xp),
                 ),
             },
@@ -183,7 +183,7 @@ stream_astrometric_model = sml.builtin.TruncatedNormal(
                     scaler=StandardLocation.from_data_scaler(scaler, "pmphi2", xp=xp),
                 ),
                 "ln-sigma": ModelParameter(
-                    bounds=SigmoidBounds(-3.0, -0.75),
+                    bounds=SigmoidBounds(-3.0, -0.9),
                     scaler=StandardLnWidth.from_data_scaler(scaler, "pmphi2", xp=xp),
                 ),
             },
@@ -279,10 +279,11 @@ stream_model = sml.IndependentModels(
 
 
 _stream_wgt_prior = sml.prior.HardThreshold(
-    threshold=1,  # turn off no matter what
+    threshold=0,  # turn off no matter what
     param_name=f"stream.{WEIGHT_NAME}",
     coord_name="phi1",
     data_scaler=scaler,
+    set_to=-100,
 )
 
 
