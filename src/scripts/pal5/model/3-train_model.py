@@ -18,7 +18,7 @@ paths = user_paths()
 sys.path.append(paths.scripts.parent.as_posix())
 # isort: split
 
-from scripts import helper
+from scripts.helper import manually_set_dropout
 from scripts.pal5.datasets import data, where
 from scripts.pal5.define_model import model
 from scripts.pal5.model.helper import diagnostic_plot
@@ -123,13 +123,13 @@ for epoch in epoch_iterator:
     if snkmk["diagnostic_plots"] and (
         (epoch % 100 == 0) or (epoch == snkmk["epochs"] - 1)
     ):
-        helper.manually_set_dropout(model, 0)
+        manually_set_dropout(model, 0)
 
         fig = diagnostic_plot(model, data, where=where)
         fig.savefig(diagnostic_path / f"epoch_{epoch:05}.png")
         plt.close(fig)
 
-        helper.manually_set_dropout(model, 0.0)  # TODO!
+        manually_set_dropout(model, 0.15)
 
         xp.save(
             model.state_dict(), paths.data / "pal5" / "model" / f"model_{epoch:04d}.pt"
