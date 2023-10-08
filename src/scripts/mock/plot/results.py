@@ -20,7 +20,7 @@ paths = user_paths()
 sys.path.append(paths.scripts.parent.as_posix())
 # isort: split
 
-from scripts.helper import manually_set_dropout, recursive_iterate
+from scripts.helper import manually_set_dropout, p2alpha, recursive_iterate
 from scripts.mock.define_model import model
 
 # =============================================================================
@@ -68,32 +68,29 @@ with xp.no_grad():
     bkg_lnlik = model.component_ln_posterior("background", mpars, data, where=where)
     tot_lnlik = xp.logaddexp(stream_lnlik, bkg_lnlik)  # FIXME
 
+# Weight
 weight = mpars[(f"stream.{WEIGHT_NAME}",)]
 where = weight > -5
 
+# Probabilities
 stream_prob = xp.exp(stream_lnlik - tot_lnlik)
 bkg_prob = xp.exp(bkg_lnlik - tot_lnlik)
 sel = (stream_prob > 0.4) & ~where  # a little post
 stream_prob[sel] = 0
 bkg_prob[sel] = 1
 
-
+# Sorter for plotting
 psort = np.argsort(stream_prob)
-alpha = 0.1 + (1 - 0.1) / (stream_prob.max() - stream_prob.min()) * (
-    stream_prob[psort] - stream_prob.min()
-)
 
-
-# =============================================================================
+##############################################################################
 # Make Figure
 
-figsize = (11, 15)
-fig = plt.figure(figsize=figsize)
+fig = plt.figure(figsize=(11, 15))
 gs = GridSpec(
     2,
     1,
-    height_ratios=(6, 6),
     figure=fig,
+    height_ratios=(6, 6),
     hspace=0.15,
     left=0.07,
     right=0.98,
@@ -101,10 +98,15 @@ gs = GridSpec(
     bottom=0.03,
 )
 
-gs0 = gs[0].subgridspec(4, 1, height_ratios=(1, 3, 6.5, 6.5), hspace=0.1)
-
+alpha = p2alpha(stream_prob, minval=0.1)
 cmap = plt.get_cmap("Stream1")
 xlim = (data["phi1"].min(), data["phi1"].max())
+
+# =============================================================================
+# Full plots
+
+gs0 = gs[0].subgridspec(4, 1, height_ratios=(1, 3, 6.5, 6.5), hspace=0.1)
+
 
 # ---------------------------------------------------------------------------
 # Colormap
