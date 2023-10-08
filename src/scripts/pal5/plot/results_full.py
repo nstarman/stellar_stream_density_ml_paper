@@ -28,8 +28,7 @@ sys.path.append(paths.scripts.parent.as_posix())
 
 from scripts.helper import manually_set_dropout, p2alpha, recursive_iterate
 from scripts.mpl_colormaps import stream_cmap1 as cmap1
-from scripts.pal5.datasets import data, masks
-from scripts.pal5.datasets import where as model_where
+from scripts.pal5.datasets import data, masks, where
 from scripts.pal5.define_model import model
 from scripts.pal5.frames import pal5_frame as frame
 
@@ -79,13 +78,9 @@ with xp.no_grad():
     mpars = sml.params.Params(recursive_iterate(ldmpars, ldmpars[0]))
 
     # Likelihoods
-    stream_lnlik = model.component_ln_posterior(
-        "stream", mpars, data, where=model_where
-    )
-    bkg_lnlik = model.component_ln_posterior(
-        "background", mpars, data, where=model_where
-    )
-    # tot_lnlik = model.ln_posterior(mpars, data, where=model_where)  # FIXME
+    stream_lnlik = model.component_ln_posterior("stream", mpars, data, where=where)
+    bkg_lnlik = model.component_ln_posterior("background", mpars, data, where=where)
+    # tot_lnlik = model.ln_posterior(mpars, data, where=where)  # TODO
     tot_lnlik = xp.logaddexp(stream_lnlik, bkg_lnlik)
 
     # turn dropout back off
@@ -94,13 +89,13 @@ with xp.no_grad():
 
 # Weight
 stream_weight = mpars[(f"stream.{WEIGHT_NAME}",)]
-where = stream_weight > -10  # everything has weight > 0
+clean = stream_weight > -10  # everything has weight > 0
 
 # Probabilities
 bkg_prob = xp.exp(bkg_lnlik - tot_lnlik)
 stream_prob = xp.exp(stream_lnlik - tot_lnlik)
-stream_prob[~where] = 0
-bkg_prob[~where] = 1
+stream_prob[~clean] = 0
+bkg_prob[~clean] = 1
 
 # Sorter for plotting
 psort = np.argsort(stream_prob)
@@ -202,11 +197,11 @@ ax02.fill_between(
     np.exp(np.percentile(dmpars["stream.astrometric.phi2", "ln-sigma"], 95, axis=1)),
     color=cmap1(0.99),
     alpha=0.25,
-    where=where,
+    where=clean,
 )
 ax02.scatter(
-    data["phi1"][where],
-    np.exp(mpa["phi2", "ln-sigma"][where]),
+    data["phi1"][clean],
+    np.exp(mpa["phi2", "ln-sigma"][clean]),
     s=1,
     c=cmap1(0.99),
 )
@@ -288,11 +283,11 @@ f1 = ax03.fill_between(
     (mpa["phi2", "mu"] + xp.exp(mpa["phi2", "ln-sigma"])),
     color=cmap1(0.99),
     alpha=0.25,
-    where=where,
+    where=clean,
 )
 # f2 = ax03.plot(
-#     data["phi1"][where],
-#     mpa["phi2", "mu"][where],
+#     data["phi1"][clean],
+#     mpa["phi2", "mu"][clean],
 #     c="salmon",
 #     ls="--",
 #     lw=1,
@@ -394,11 +389,11 @@ ax06.fill_between(
     np.exp(np.percentile(dmpars["stream.astrometric.pmphi1", "ln-sigma"], 95, axis=1)),
     color=cmap1(0.99),
     alpha=0.25,
-    where=where,
+    where=clean,
 )
 ax06.scatter(
-    data["phi1"][where],
-    np.exp(mpa["pmphi1", "ln-sigma"][where]),
+    data["phi1"][clean],
+    np.exp(mpa["pmphi1", "ln-sigma"][clean]),
     s=1,
     c=cmap1(0.99),
 )
@@ -463,9 +458,9 @@ ax07.plot(
 
 # Model
 ax07.fill_between(
-    data["phi1"][where],
-    (mpa["pmphi1", "mu"] - xp.exp(mpa["pmphi1", "ln-sigma"]))[where],
-    (mpa["pmphi1", "mu"] + xp.exp(mpa["pmphi1", "ln-sigma"]))[where],
+    data["phi1"][clean],
+    (mpa["pmphi1", "mu"] - xp.exp(mpa["pmphi1", "ln-sigma"]))[clean],
+    (mpa["pmphi1", "mu"] + xp.exp(mpa["pmphi1", "ln-sigma"]))[clean],
     color=cmap1(0.99),
     alpha=0.25,
 )
@@ -489,11 +484,11 @@ ax08.fill_between(
     np.exp(np.percentile(dmpars["stream.astrometric.pmphi2", "ln-sigma"], 95, axis=1)),
     color=cmap1(0.99),
     alpha=0.25,
-    where=where,
+    where=clean,
 )
 ax08.scatter(
-    data["phi1"][where],
-    np.exp(mpa["pmphi2", "ln-sigma"][where]),
+    data["phi1"][clean],
+    np.exp(mpa["pmphi2", "ln-sigma"][clean]),
     s=1,
     c=cmap1(0.99),
 )
@@ -547,9 +542,9 @@ ax09.plot(pal5PW19.phi1.degree, pal5PW19.pm_phi2.value, **_lit_kw, label="PW+19"
 
 # Model
 ax09.fill_between(
-    data["phi1"][where],
-    (mpa["pmphi2", "mu"] - xp.exp(mpa["pmphi2", "ln-sigma"]))[where],
-    (mpa["pmphi2", "mu"] + xp.exp(mpa["pmphi2", "ln-sigma"]))[where],
+    data["phi1"][clean],
+    (mpa["pmphi2", "mu"] - xp.exp(mpa["pmphi2", "ln-sigma"]))[clean],
+    (mpa["pmphi2", "mu"] + xp.exp(mpa["pmphi2", "ln-sigma"]))[clean],
     color=cmap1(0.99),
     alpha=0.25,
 )
