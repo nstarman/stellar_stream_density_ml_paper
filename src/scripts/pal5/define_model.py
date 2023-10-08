@@ -68,6 +68,7 @@ background_phi2_model = sml.builtin.Exponential(
             },
         }
     ),
+    name="background_phi2_model",
 )
 
 pm_coords = ("pmphi1", "pmphi2")
@@ -89,7 +90,8 @@ background_astrometric_model = sml.IndependentModels(
     {
         "phi2": background_phi2_model,
         "pm": background_pm_model,
-    }
+    },
+    name="background_astrometric_model",
 )
 
 
@@ -116,7 +118,8 @@ background_model = sml.IndependentModels(
     {
         "astrometric": background_astrometric_model,
         # "photometric": background_photometric_model,
-    }
+    },
+    name="background_model",
 )
 
 
@@ -173,7 +176,7 @@ stream_astrometric_model = sml.builtin.TruncatedNormal(
                     scaler=StandardLocation.from_data_scaler(scaler, "pmphi1", xp=xp),
                 ),
                 "ln-sigma": ModelParameter(
-                    bounds=SigmoidBounds(-3.0, 0.0),
+                    bounds=SigmoidBounds(-3.0, -0.3),
                     scaler=StandardLnWidth.from_data_scaler(scaler, "pmphi1", xp=xp),
                 ),
             },
@@ -190,6 +193,7 @@ stream_astrometric_model = sml.builtin.TruncatedNormal(
         }
     ),
     priors=(stream_astrometric_prior,),
+    name="stream_astrometric_model",
 )
 
 # -----------------------------------------------------------------------------
@@ -270,7 +274,8 @@ stream_model = sml.IndependentModels(
     {
         "astrometric": stream_astrometric_model,
         # "photometric": stream_isochrone_model,
-    }
+    },
+    name="stream_model",
 )
 
 
@@ -312,4 +317,5 @@ model = sml.MixtureModel(
         # # turn off around progenitor
         # replace(_stream_wgt_prior, lower=-0.25, upper=0.25, data_scaler=scaler),
     ),
+    name="model",
 )
