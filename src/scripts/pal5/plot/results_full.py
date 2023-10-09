@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import copy as pycopy
 import sys
-from dataclasses import replace
 
 import galstreams
 import matplotlib as mpl
@@ -26,7 +25,12 @@ paths = user_paths()
 sys.path.append(paths.scripts.parent.as_posix())
 # isort: split
 
-from scripts.helper import manually_set_dropout, p2alpha, recursive_iterate
+from scripts.helper import (
+    detect_significant_changes_in_width,
+    manually_set_dropout,
+    p2alpha,
+    recursive_iterate,
+)
 from scripts.mpl_colormaps import stream_cmap1 as cmap1
 from scripts.pal5.datasets import data, masks, where
 from scripts.pal5.define_model import model
@@ -40,12 +44,6 @@ plt.style.use(paths.scripts / "paper.mplstyle")
 
 # Load model
 model = pycopy.deepcopy(model)
-model = replace(  # TODO: remove this
-    model,
-    net=sml.nn.sequential(
-        data=1, hidden_features=16, layers=4, features=1, dropout=0.15
-    ),
-)
 model.load_state_dict(xp.load(paths.data / "pal5" / "model" / "model_10600.pt"))
 model = model.eval()
 
@@ -89,7 +87,21 @@ with xp.no_grad():
 
 # Weight
 stream_weight = mpars[(f"stream.{WEIGHT_NAME}",)]
+
+# Post-processing cleanup
 clean = stream_weight > -10  # everything has weight > 0
+
+indices = detect_significant_changes_in_width(
+    data["phi1"],
+    mpars,
+    coords=[
+        ("stream.astrometric.phi2", "ln-sigma"),
+        ("stream.astrometric.pmphi1", "ln-sigma"),
+        ("stream.astrometric.pmphi2", "ln-sigma"),
+    ],
+    threshold=3_000,
+)
+clean &= data["phi1"] > data["phi1"][indices[0]]
 
 # Probabilities
 bkg_prob = xp.exp(bkg_lnlik - tot_lnlik)
@@ -126,7 +138,8 @@ xlim = (data["phi1"].min(), data["phi1"].max())
 
 _stream_kw = {"ls": "none", "marker": ",", "color": cmap1(0.75), "alpha": 0.25}
 _bounds_kw = {"c": "gray", "ls": "-", "lw": 2, "alpha": 0.8}
-_lit_kw = {"c": "k", "ls": "--", "alpha": 0.6}
+_lit1_kw = {"c": "k", "ls": "--", "alpha": 0.6}
+_lit2_kw = {"c": "k", "ls": ":", "alpha": 0.6}
 
 # ---------------------------------------------------------------------------
 # Colormap
@@ -203,7 +216,7 @@ ax02.scatter(
     data["phi1"][clean],
     np.exp(mpa["phi2", "ln-sigma"][clean]),
     s=1,
-    c=cmap1(0.99),
+    color=cmap1(0.99),
 )
 
 for tick in ax02.get_yticklabels():
@@ -216,10 +229,10 @@ ax03 = fig.add_subplot(
     gs02[1, :],
     xlabel="",
     xlim=xlim,
-    ylabel=r"$\phi_2$ [deg]",
-    ylim=(data["phi2"].min(), data["phi2"].max()),
-    rasterization_zorder=0,
     xticklabels=[],
+    ylabel=r"$\phi_2$ [deg]",
+    ylim=(data["phi2"].min(), 6),
+    rasterization_zorder=0,
     aspect="auto",
 )
 
@@ -273,8 +286,10 @@ ax03.scatter(
 )
 
 # Literature
-l1 = ax03.plot(pal5I21.phi1.degree, pal5I21.phi2.degree, **_lit_kw, label="Ibata+21")
-ax03.plot(pal5PW19.phi1.degree, pal5PW19.phi2.degree, **_lit_kw, label="PW+19")
+(l1,) = ax03.plot(
+    pal5I21.phi1.degree, pal5I21.phi2.degree, **_lit1_kw, label="Ibata+21"
+)
+(l2,) = ax03.plot(pal5PW19.phi1.degree, pal5PW19.phi2.degree, **_lit2_kw, label="PW+19")
 
 # Model
 f1 = ax03.fill_between(
@@ -318,14 +333,21 @@ legend_elements_data = [
         ),
     ),
 ]
-ax03.legend(
-    [legend_elements_data, l1, (p1, p2), f1],
-    ["Data", r"Past", "Guides", "Model"],
+legend = plt.legend(
+    [legend_elements_data, (p1, p2), f1],
+    ["Data", "Guides", "Model"],
     numpoints=1,
-    ncol=(2, 2),
+    ncols=3,
     loc="upper left",
     handler_map={list: HandlerTuple(ndivide=None)},
 )
+ax03.add_artist(legend)
+
+legend = plt.legend(
+    [l1, l2], [l1.get_label(), l2.get_label()], numpoints=1, ncols=2, loc="lower left"
+)
+ax03.add_artist(legend)
+
 
 # ---------------------------------------------------------------------------
 # Parallax - variance
@@ -369,6 +391,10 @@ ax05.scatter(
     zorder=-8,
 )
 
+# Literature
+ax05.plot(pal5I21.phi1.degree, pal5I21.distance.parallax, **_lit1_kw, label="Ibata+21")
+ax05.plot(pal5PW19.phi1.degree, pal5PW19.distance.parallax, **_lit2_kw, label="PW+19")
+
 
 # ---------------------------------------------------------------------------
 # PM-Phi1 - variance
@@ -395,7 +421,7 @@ ax06.scatter(
     data["phi1"][clean],
     np.exp(mpa["pmphi1", "ln-sigma"][clean]),
     s=1,
-    c=cmap1(0.99),
+    color=cmap1(0.99),
 )
 
 for tick in ax06.get_yticklabels():
@@ -446,13 +472,13 @@ ax07.scatter(
 ax07.plot(
     pal5I21.phi1.degree,
     pal5I21.pm_phi1_cosphi2.value,
-    **_lit_kw,
+    **_lit1_kw,
     label="Ibata+21",
 )
 ax07.plot(
     pal5PW19.phi1.degree,
     pal5PW19.pm_phi1_cosphi2.value,
-    **_lit_kw,
+    **_lit2_kw,
     label="PW+19",
 )
 
@@ -490,7 +516,7 @@ ax08.scatter(
     data["phi1"][clean],
     np.exp(mpa["pmphi2", "ln-sigma"][clean]),
     s=1,
-    c=cmap1(0.99),
+    color=cmap1(0.99),
 )
 
 for tick in ax08.get_yticklabels():
@@ -537,8 +563,8 @@ ax09.scatter(
 )
 
 # Literature
-ax09.plot(pal5I21.phi1.degree, pal5I21.pm_phi2.value, **_lit_kw, label="Ibata+21")
-ax09.plot(pal5PW19.phi1.degree, pal5PW19.pm_phi2.value, **_lit_kw, label="PW+19")
+ax09.plot(pal5I21.phi1.degree, pal5I21.pm_phi2.value, **_lit1_kw, label="Ibata+21")
+ax09.plot(pal5PW19.phi1.degree, pal5PW19.pm_phi2.value, **_lit2_kw, label="PW+19")
 
 # Model
 ax09.fill_between(

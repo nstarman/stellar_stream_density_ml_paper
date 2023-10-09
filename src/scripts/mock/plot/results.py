@@ -85,12 +85,12 @@ psort = np.argsort(stream_prob)
 ##############################################################################
 # Make Figure
 
-fig = plt.figure(figsize=(11, 15))
+fig = plt.figure(figsize=(11, 12.5))
 gs = GridSpec(
     2,
     1,
     figure=fig,
-    height_ratios=(6, 6),
+    height_ratios=(6, 5),
     hspace=0.15,
     left=0.07,
     right=0.98,
@@ -147,9 +147,7 @@ ax01.bar(
 )
 
 # Model
-ax01.plot(
-    data["phi1"], np.exp(weight), c=cmap(0.99), ls="--", lw=2, label="Model (MLE)"
-)
+ax01.plot(data["phi1"], np.exp(weight), c=cmap(0.99), ls="--", lw=2, label="Model")
 
 for tick in ax01.get_yticklabels():
     tick.set_verticalalignment("bottom")
@@ -223,7 +221,7 @@ line = ax03.scatter(
     data["phi1"][psort],
     data["phi2"][psort],
     c=stream_prob[psort],
-    alpha=alpha,
+    alpha=alpha[psort],
     s=2,
     zorder=-10,
     cmap="seismic",
@@ -236,7 +234,7 @@ ax03.plot(
     c="salmon",
     ls="--",
     lw=1,
-    label="Model (MLE)",
+    label="Model",
 )
 
 # legend
@@ -317,7 +315,7 @@ ax05.scatter(
     data["phi1"][psort],
     data["parallax"][psort],
     c=stream_prob[psort],
-    alpha=alpha,
+    alpha=alpha[psort],
     s=2,
     zorder=-10,
     cmap="seismic",
@@ -329,7 +327,7 @@ ax05.plot(
     c="salmon",
     ls="--",
     lw=1,
-    label="Model (MLE)",
+    label="Model",
 )
 
 xlabel = ax05.xaxis.get_label()
@@ -338,20 +336,18 @@ xlabel.set_bbox({"facecolor": "white", "edgecolor": "white"})
 # =============================================================================
 # Slice plots
 
-gs1 = gs[1].subgridspec(2, 4, hspace=0.2)
-gs10 = gs1[0, :].subgridspec(2, 4, hspace=0.4)
-gs11 = gs1[1, :].subgridspec(2, 4, hspace=0)
+gs1 = gs[1].subgridspec(3, 4, hspace=0.34)
 
 # Legend
 legend1 = plt.legend(
     handles=[
-        mpl.patches.Patch(facecolor="white", edgecolor="black", label="Ground Truth"),
-        mpl.patches.Patch(color=cmap(0.01), label="Background (MLE)"),
-        mpl.patches.Patch(color=cmap(0.99), label="Stream (MLE)"),
+        mpl.patches.Patch(facecolor="white", edgecolor="black", label="Truth"),
+        mpl.patches.Patch(color=cmap(0.01), label="Background"),
+        mpl.patches.Patch(color=cmap(0.99), label="Stream"),
     ],
     ncols=3,
     loc="upper right",
-    bbox_to_anchor=(1, -0.3),
+    bbox_to_anchor=(1, -0.25),
 )
 ax05.add_artist(legend1)
 
@@ -366,7 +362,7 @@ for i, b in enumerate(np.unique(which_bin)):
     # ---------------------------------------------------------------------------
     # Phi2
 
-    ax10i = fig.add_subplot(gs10[0, i], xlabel=r"$\phi_2$ [deg]")
+    ax10i = fig.add_subplot(gs1[0, i], xlabel=r"$\phi_2$ [deg]")
 
     # Connect to top plot(s)
     for ax in (ax01, ax02, ax03, ax04, ax05):
@@ -414,7 +410,7 @@ for i, b in enumerate(np.unique(which_bin)):
     # ---------------------------------------------------------------------------
     # Distance
 
-    ax11i = fig.add_subplot(gs10[1, i], xlabel=r"$\varpi$ [mas]")
+    ax11i = fig.add_subplot(gs1[1, i], xlabel=r"$\varpi$ [mas]")
 
     # Recovered
     cplxs = np.ones((sel.sum(), 2)) * table["parallax"][sel].value[:, None]
@@ -454,7 +450,9 @@ for i, b in enumerate(np.unique(which_bin)):
     # ------------------------------------------
     # Stream
 
-    ax12i = fig.add_subplot(gs11[0, i], xticklabels=[])
+    ax12i = fig.add_subplot(
+        gs1[2, i], xlabel="g [mag]", xticklabels=[], rasterization_zorder=0
+    )
 
     prob = stream_prob[sel]
     sorter = np.argsort(prob)
@@ -464,33 +462,24 @@ for i, b in enumerate(np.unique(which_bin)):
         c=prob[sorter],
         cmap="seismic",
         s=1,
-        rasterized=True,
+        zorder=-10,
+    )
+
+    prob = bkg_prob[sel]
+    sorter = np.argsort(prob)
+    ax12i.scatter(
+        data["g"][sel][sorter],
+        data["r"][sel][sorter],
+        c=1 - prob[sorter],
+        cmap="seismic",
+        alpha=0.25,
+        s=1,
+        zorder=-10,
     )
 
     if i == 0:
         ax12i.set_ylabel("r [mag]")
     else:
         ax12i.set_yticklabels([])
-
-    # ------------------------------------------
-    # Background
-
-    ax13i = fig.add_subplot(gs11[1, i], xlabel="g [mag]")
-
-    prob = bkg_prob[sel]
-    sorter = np.argsort(prob)
-    ax13i.scatter(
-        data["g"][sel][sorter],
-        data["r"][sel][sorter],
-        c=1 - prob[sorter],
-        cmap="seismic",
-        s=1,
-        rasterized=True,
-    )
-
-    if i == 0:
-        ax13i.set_ylabel("r [mag]")
-    else:
-        ax13i.set_yticklabels([])
 
 fig.savefig(paths.figures / "mock" / "results.pdf")
