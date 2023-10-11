@@ -356,13 +356,20 @@ ax05.add_artist(legend1)
 bins = np.linspace(data["phi1"].min(), data["phi1"].max(), num=5, endpoint=True)
 which_bin = np.digitize(data["phi1"], bins[:-1])
 
+ax100 = ax110 = ax120 = None
+
 for i, b in enumerate(np.unique(which_bin)):
     sel = which_bin == b
 
     # ---------------------------------------------------------------------------
     # Phi2
 
-    ax10i = fig.add_subplot(gs1[0, i], xlabel=r"$\phi_2$ [deg]")
+    ax10i = fig.add_subplot(
+        gs1[0, i],
+        xlabel=r"$\phi_2$ [deg]",
+        rasterization_zorder=0,
+        sharey=ax100 if ax100 is not None else None,
+    )
 
     # Connect to top plot(s)
     for ax in (ax01, ax02, ax03, ax04, ax05):
@@ -404,13 +411,19 @@ for i, b in enumerate(np.unique(which_bin)):
 
     if i == 0:
         ax10i.set_ylabel("frequency")
+        ax100 = ax10i
     else:
-        ax10i.set_yticklabels([])
+        ax10i.tick_params(labelleft=False)
 
     # ---------------------------------------------------------------------------
     # Distance
 
-    ax11i = fig.add_subplot(gs1[1, i], xlabel=r"$\varpi$ [mas]")
+    ax11i = fig.add_subplot(
+        gs1[1, i],
+        xlabel=r"$\varpi$ [mas]",
+        rasterization_zorder=0,
+        sharey=ax110 if ax110 is not None else None,
+    )
 
     # Recovered
     cplxs = np.ones((sel.sum(), 2)) * table["parallax"][sel].value[:, None]
@@ -444,14 +457,19 @@ for i, b in enumerate(np.unique(which_bin)):
 
     if i == 0:
         ax11i.set_ylabel("frequency")
+        ax110 = ax11i
     else:
-        ax11i.set_yticklabels([])
+        ax11i.tick_params(labelleft=False)
 
     # ------------------------------------------
     # Stream
 
     ax12i = fig.add_subplot(
-        gs1[2, i], xlabel="g [mag]", xticklabels=[], rasterization_zorder=0
+        gs1[2, i],
+        xlabel="g [mag]",
+        xticklabels=[],
+        rasterization_zorder=0,
+        sharey=ax120 if ax120 is not None else None,
     )
 
     prob = stream_prob[sel]
@@ -479,7 +497,8 @@ for i, b in enumerate(np.unique(which_bin)):
 
     if i == 0:
         ax12i.set_ylabel("r [mag]")
+        ax120 = ax12i
     else:
-        ax12i.set_yticklabels([])
+        ax12i.tick_params(labelleft=False)
 
 fig.savefig(paths.figures / "mock" / "results.pdf")
