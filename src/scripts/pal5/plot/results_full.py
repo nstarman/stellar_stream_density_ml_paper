@@ -156,7 +156,7 @@ f1 = ax01.fill_between(
 (l1,) = ax01.plot(
     data["phi1"],
     np.percentile(stream_wgt, 50, axis=1),
-    c="salmon",
+    c=cmap1(0.99),
     ls="--",
     lw=2,
     label="Mean",
