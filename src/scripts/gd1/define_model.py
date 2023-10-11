@@ -13,7 +13,7 @@ from showyourwork.paths import user as user_paths
 import stream_ml.pytorch as sml
 from stream_ml.core.setup_package import WEIGHT_NAME
 from stream_ml.pytorch.params import ModelParameter, ModelParameters, set_param
-from stream_ml.pytorch.params.bounds import ClippedBounds, SigmoidBounds
+from stream_ml.pytorch.params.bounds import SigmoidBounds
 from stream_ml.pytorch.params.scaler import StandardLnWidth, StandardLocation
 
 paths = user_paths()
@@ -106,11 +106,12 @@ background_astrometric_pmphi2_model = sml.builtin.TruncatedNormal(
 flow_plx_scaler = scaler["phi1", "plx"]
 background_astrometric_plx_model = sml.builtin.compat.ZukoFlowModel(
     net=zuko.flows.NSF(1, 1, hidden_features=[10, 10, 10], bins=8),
-    jacobian_logdet=-xp.log(xp.prod(flow_plx_scaler.scale[1:])),
+    jacobian_logdet=float(-xp.log(xp.prod(flow_plx_scaler.scale[1:]))),
     data_scaler=flow_plx_scaler,
+    indep_coord_names=("phi1",),
     coord_names=("plx",),
     coord_bounds={"plx": coord_bounds["plx"]},
-    params=ModelParameters(),
+    params=ModelParameters[xp.Tensor](),
     with_grad=False,
     name="background_astrometric_plx_model",
 )
@@ -128,15 +129,15 @@ background_astrometric_model = sml.IndependentModels(
 # -----------------------------------------------------------------------------
 # Photometry
 
-flow_scaler = scaler[("phi1", *phot_coords)]
+phot_flow_scaler = scaler[("phi1", *phot_coords)]
 
 background_photometric_model = sml.builtin.compat.ZukoFlowModel(
     net=zuko.flows.MAF(2, 1, hidden_features=[8, 8, 8]),
-    jacobian_logdet=-xp.log(xp.prod(flow_scaler.scale[1:])),
-    data_scaler=flow_scaler,
+    jacobian_logdet=float(-xp.log(xp.prod(phot_flow_scaler.scale[1:]))),
+    data_scaler=phot_flow_scaler,
     coord_names=phot_coords,
     coord_bounds=phot_coord_bounds,
-    params=ModelParameters(),
+    params=ModelParameters[xp.Tensor](),
     with_grad=False,
     name="background_photometric_model",
 )
@@ -294,7 +295,7 @@ stream_isochrone_model = sml.builtin.IsochroneMVNorm(
     # net=sml.nn.sequential(
     #     data=1, hidden_features=32, layers=4, features=2, dropout=0.15
     # ),
-    data_scaler=flow_scaler,
+    data_scaler=phot_flow_scaler,
     # # coordinates
     # coord_names=("distmod",),
     # coord_bounds={"distmod": (13.0, 18.0)},
@@ -311,7 +312,7 @@ stream_isochrone_model = sml.builtin.IsochroneMVNorm(
     isochrone_err_spl=None,
     stream_mass_function=stream_mass_function,
     # params
-    params=ModelParameters(
+    params=ModelParameters[xp.Tensor](
         # {
         #     "distmod": {
         #         "mu": ModelParameter(bounds=SigmoidBounds(13.0, 18.0), scaler=None),
@@ -498,16 +499,16 @@ model = sml.MixtureModel(
         data=1, hidden_features=32, layers=4, features=len(mm) - 1, dropout=0.15
     ),
     data_scaler=scaler,
-    params=ModelParameters(
+    params=ModelParameters[xp.Tensor](
         {
-            f"stream.{WEIGHT_NAME}": ModelParameter(
-                bounds=SigmoidBounds(1e-3, 0.3), scaler=None
+            f"stream.{WEIGHT_NAME}": ModelParameter[xp.Tensor](
+                bounds=SigmoidBounds(-10.0, -0.01), scaler=None
             ),
-            f"spur.{WEIGHT_NAME}": ModelParameter(
-                bounds=SigmoidBounds(1e-3, 0.1), scaler=None
+            f"spur.{WEIGHT_NAME}": ModelParameter[xp.Tensor](
+                bounds=SigmoidBounds(-10.0, -0.01), scaler=None
             ),
-            f"background.{WEIGHT_NAME}": ModelParameter(
-                bounds=ClippedBounds(0.7, 1.0), scaler=None
+            f"background.{WEIGHT_NAME}": ModelParameter[xp.Tensor](
+                bounds=SigmoidBounds(-5.0, 0.0), scaler=None
             ),
         }
     ),
