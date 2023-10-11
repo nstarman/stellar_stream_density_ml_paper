@@ -1,5 +1,6 @@
 """Compute and save a table of the per-star likelihoods."""
 
+import copy as pycopy
 import sys
 
 import numpy as np
@@ -19,9 +20,10 @@ from scripts.gd1.define_model import model
 from scripts.helper import manually_set_dropout
 
 # =============================================================================
-
 # Load model
-model.load_state_dict(xp.load(paths.data / "gd1" / "model.pt"))
+
+model = pycopy.deepcopy(model)
+model.load_state_dict(xp.load(paths.data / "gd1" / "model" / "model_0100.pt"))
 model = model.eval()
 
 
