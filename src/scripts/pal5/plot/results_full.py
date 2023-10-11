@@ -6,11 +6,11 @@ import copy as pycopy
 import sys
 
 import galstreams
-import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import torch as xp
 from astropy.table import QTable
+from matplotlib.cm import ScalarMappable
 from matplotlib.gridspec import GridSpec
 from matplotlib.legend_handler import HandlerTuple
 from matplotlib.lines import Line2D
@@ -94,7 +94,7 @@ with xp.no_grad():
 
 fig = plt.figure(figsize=(11, 15))
 
-gs0 = GridSpec(
+gs = GridSpec(
     6,
     1,
     figure=fig,
@@ -106,10 +106,11 @@ gs0 = GridSpec(
     bottom=0.03,
 )
 
+# Settings
 colors = cmap1(stream_prob[psort])
 alphas = p2alpha(stream_prob[psort])
 sizes = 1 + stream_prob[psort]  # range [1, 2]
-xlim = (data["phi1"].min(), data["phi1"].max())
+xlims = (data["phi1"].min(), data["phi1"].max())
 
 _stream_kw = {"ls": "none", "marker": ",", "color": cmap1(0.75), "alpha": 0.25}
 _bounds_kw = {"c": "gray", "ls": "-", "lw": 2, "alpha": 0.8}
@@ -119,11 +120,9 @@ _lit2_kw = {"c": "k", "ls": ":", "alpha": 0.6}
 # ---------------------------------------------------------------------------
 # Colormap
 
-# Stream probability
-ax00 = fig.add_subplot(gs0[0, :])
-cbar = fig.colorbar(
-    mpl.cm.ScalarMappable(cmap=cmap1), cax=ax00, orientation="horizontal"
-)
+# Stream
+ax00 = fig.add_subplot(gs[0, :])
+cbar = fig.colorbar(ScalarMappable(cmap=cmap1), cax=ax00, orientation="horizontal")
 cbar.ax.xaxis.set_ticks_position("top")
 cbar.ax.xaxis.set_label_position("top")
 cbar.ax.text(0.5, 0.5, "Stream Probability", ha="center", va="center", fontsize=14)
@@ -133,11 +132,11 @@ cbar.ax.text(0.5, 0.5, "Stream Probability", ha="center", va="center", fontsize=
 # Weight plot
 
 ax01 = fig.add_subplot(
-    gs0[1, :],
-    ylabel=r"$\ln f_{\rm stream}$",
-    xlim=xlim,
-    ylim=(-6, 0),
+    gs[1, :],
+    xlim=xlims,
     xticklabels=[],
+    ylabel=r"$\ln f_{\rm stream}$",
+    ylim=(-6, 0),
     rasterization_zorder=0,
 )
 
@@ -146,7 +145,7 @@ _bounds = model.params[(f"stream.{WEIGHT_NAME}",)].bounds
 ax01.axhline(_bounds.lower[0], **_bounds_kw)
 ax01.axhline(_bounds.upper[0], **_bounds_kw)
 
-# # 15% dropout
+# Stream
 f1 = ax01.fill_between(
     data["phi1"],
     np.percentile(stream_wgt, 5, axis=1),
@@ -154,7 +153,6 @@ f1 = ax01.fill_between(
     color=cmap1(0.99),
     alpha=0.25,
 )
-# Mean
 (l1,) = ax01.plot(
     data["phi1"],
     np.percentile(stream_wgt, 50, axis=1),
@@ -164,15 +162,15 @@ f1 = ax01.fill_between(
     label="Mean",
 )
 
-ax01.legend([(f1, l1)], [r"Model "], numpoints=1, loc="upper left")
+ax01.legend([(f1, l1)], [r"Model"], numpoints=1, loc="upper left")
 
 
 # ---------------------------------------------------------------------------
 # Phi2 - variance
 
-gs02 = gs0[2].subgridspec(2, 1, height_ratios=(1, 3), wspace=0.0, hspace=0.0)
+gs2 = gs[2].subgridspec(2, 1, height_ratios=(1, 3), wspace=0.0, hspace=0.0)
 ax02 = fig.add_subplot(
-    gs02[0, :], xlim=xlim, xticklabels=[], ylabel=r"$\ln\sigma_{\phi_2}$", aspect="auto"
+    gs2[0, :], xlim=xlims, xticklabels=[], ylabel=r"$\ln\sigma_{\phi_2}$", aspect="auto"
 )
 
 ln_sigma = dmpars["stream.astrometric.phi2", "ln-sigma"]
@@ -203,9 +201,9 @@ ax02.set_ylim(-3, 0)
 mpa = mpars.get_prefixed("stream.astrometric")
 
 ax03 = fig.add_subplot(
-    gs02[1, :],
+    gs2[1, :],
     xlabel="",
-    xlim=xlim,
+    xlim=xlims,
     xticklabels=[],
     ylabel=r"$\phi_2$ [deg]",
     ylim=(data["phi2"].min(), 6),
@@ -236,7 +234,7 @@ p2 = ax03.errorbar(
     label="Stream Control Points",
 )
 
-# Data
+# Data (background, then stream errors, then stream data)
 ax03.scatter(
     data["phi1"][psort][~is_strm],
     data["phi2"][psort][~is_strm],
@@ -325,10 +323,10 @@ ax03.add_artist(legend)
 # Parallax
 
 ax05 = fig.add_subplot(
-    gs0[3, :],
+    gs[3, :],
     xlabel="",
     ylabel=r"$\varpi$ [mas]",
-    xlim=xlim,
+    xlim=xlims,
     ylim=(max(data["plx"].min(), -1), data["plx"].max()),
     xticklabels=[],
     rasterization_zorder=0,
@@ -368,10 +366,10 @@ ax05.plot(pal5PW19.phi1.degree, pal5PW19.distance.parallax, **_lit2_kw, label="P
 # ---------------------------------------------------------------------------
 # PM-Phi1 - variance
 
-gs06 = gs0[4].subgridspec(2, 1, height_ratios=(1, 3), wspace=0.0, hspace=0.0)
+gs6 = gs[4].subgridspec(2, 1, height_ratios=(1, 3), wspace=0.0, hspace=0.0)
 ax06 = fig.add_subplot(
-    gs06[0, :],
-    xlim=xlim,
+    gs6[0, :],
+    xlim=xlims,
     xticklabels=[],
     ylabel=r"$\ln\sigma_{\mu_{\phi_1}^*}$",
     aspect="auto",
@@ -403,9 +401,9 @@ for tick in ax06.get_yticklabels():
 # PM-Phi1
 
 ax07 = fig.add_subplot(
-    gs06[1, :],
+    gs6[1, :],
     xlabel="",
-    xlim=xlim,
+    xlim=xlims,
     ylabel=r"$\mu_{\phi_1}^*$ [mas yr$^{-1}$]",
     ylim=(data["pmphi1"].min(), data["pmphi1"].max()),
     rasterization_zorder=0,
@@ -466,10 +464,10 @@ ax07.fill_between(
 # ---------------------------------------------------------------------------
 # PM-Phi2 - variance
 
-gs08 = gs0[5].subgridspec(2, 1, height_ratios=(1, 3), wspace=0.0, hspace=0.0)
+gs8 = gs[5].subgridspec(2, 1, height_ratios=(1, 3), wspace=0.0, hspace=0.0)
 ax08 = fig.add_subplot(
-    gs08[0, :],
-    xlim=xlim,
+    gs8[0, :],
+    xlim=xlims,
     xticklabels=[],
     ylabel=r"$ln\sigma_{\mu_{\phi_2}}$",
     aspect="auto",
@@ -501,9 +499,9 @@ for tick in ax08.get_yticklabels():
 # PM-Phi2
 
 ax09 = fig.add_subplot(
-    gs08[1, :],
+    gs8[1, :],
     xlabel=r"$\phi_1$ [deg]",
-    xlim=xlim,
+    xlim=xlims,
     ylabel=r"$\mu_{\phi_2}$ [mas yr$^{-1}$]",
     ylim=(data["pmphi2"].min(), data["pmphi2"].max()),
     rasterization_zorder=0,
