@@ -141,6 +141,16 @@ for epoch in epoch_iterator:
 
         xp.save(model.state_dict(), paths.data / "gd1" / "model.pt")
 
+        xp.save(
+            model.state_dict(), paths.data / "gd1" / "model" / f"model_{epoch:04d}.pt"
+        )
+
+
+# Save final state of the model
+xp.save(model.state_dict(), paths.data / "gd1" / "model" / f"model_{epoch:04d}.pt")
+
+
+# =============================================================================
 
 xp.save(model.state_dict(), paths.data / "gd1" / "model.pt")
 
