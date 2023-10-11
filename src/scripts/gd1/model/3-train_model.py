@@ -151,6 +151,12 @@ xp.save(model.state_dict(), paths.data / "gd1" / "model" / f"model_{epoch:04d}.p
 
 
 # =============================================================================
+# Save
+# We institute early stopping to determine the "best" state of the model.
+
+# model.load_state_dict(
+#     xp.load(paths.data / "gd1" / "model" / f"model_{snkmk['early_stopping']:04d}.pt")
+# )
 
 xp.save(model.state_dict(), paths.data / "gd1" / "model.pt")
 

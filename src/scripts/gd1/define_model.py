@@ -15,6 +15,7 @@ from stream_ml.core.setup_package import WEIGHT_NAME
 from stream_ml.pytorch.params import ModelParameter, ModelParameters, set_param
 from stream_ml.pytorch.params.bounds import SigmoidBounds
 from stream_ml.pytorch.params.scaler import StandardLnWidth, StandardLocation
+from stream_ml.pytorch.utils import StandardScaler
 
 paths = user_paths()
 
@@ -26,11 +27,10 @@ from scripts.helper import isochrone_spline
 
 ##############################################################################
 
+scaler: StandardScaler
 with asdf.open(paths.data / "gd1" / "info.asdf", mode="r") as af:
     renamer = af["renamer"]
-    scaler = sml.utils.StandardScaler(**af["scaler"]).astype(
-        xp.Tensor, dtype=xp.float32
-    )
+    scaler = StandardScaler(**af["scaler"]).astype(xp.Tensor, dtype=xp.float32)
     all_coord_bounds = {
         k: (v[0] - 1e-10, v[1] + 1e-10) for k, v in af["coord_bounds"].items()
     }
@@ -272,7 +272,6 @@ gamma_edges = xp.concatenate(
 
 stream_mass_function = sml.builtin.StepwiseMassFunction(
     boundaries=(0, 0.35, 0.56, 1.01),
-    # log_probs=(0.0, 0.0, 0.0),  # TODO: set a value
     log_probs=(-1, 0, -1),
 )
 
@@ -449,8 +448,12 @@ spur_model = sml.IndependentModels(
 )
 
 
-# =============================================================================
-# Mixture
+##############################################################################
+# EXTRA FEATURE
+
+
+##############################################################################
+# MIXTURE
 
 
 def spur_shares_stream_distmod(params: dict) -> dict:

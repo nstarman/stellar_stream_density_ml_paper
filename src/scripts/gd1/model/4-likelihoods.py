@@ -28,7 +28,7 @@ from scripts.helper import (
 # Load model
 
 model = pycopy.deepcopy(model)
-model.load_state_dict(xp.load(paths.data / "gd1" / "model" / "model_0100.pt"))
+model.load_state_dict(xp.load(paths.data / "gd1" / "model" / "model_3500.pt"))
 model = model.eval()
 
 
