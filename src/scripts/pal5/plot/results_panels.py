@@ -223,6 +223,9 @@ legend = plt.legend(
 )
 ax02.add_artist(legend)
 
+xlabel = ax02.xaxis.get_label()
+xlabel.set_bbox({"facecolor": "white", "edgecolor": "white"})
+
 # =============================================================================
 # Slice plots
 
