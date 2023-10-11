@@ -130,9 +130,7 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
     # ---------------------------------------------------------------------------
     # Weight plot
 
-    ax02 = fig.add_subplot(
-        gs0[2, :], ylabel="Stream fraction", ylim=(0, 0.4), xticklabels=[]
-    )
+    ax02 = fig.add_subplot(gs0[2, :], ylabel=r"$\ln f_{\rm stream}$", xticklabels=[])
 
     with xp.no_grad():
         helper.manually_set_dropout(model, 0.15)
