@@ -1,6 +1,5 @@
 """Import data."""
 
-import sys
 
 import asdf
 import astropy.units as u
@@ -13,12 +12,6 @@ import stream_ml.pytorch as sml
 
 paths = user_paths()
 
-# Add the parent directory to the path
-sys.path.append(paths.scripts.parent.as_posix())
-# isort: split
-
-from scripts import paths
-
 # =============================================================================
 # Load data table
 
@@ -30,6 +23,7 @@ with asdf.open(
     renamer = af["renamer"]
 
 table = QTable.read(paths.data / "gd1" / "gaia_ps1_xm.asdf")[sel]
+masks = QTable.read(paths.data / "gd1" / "masks.asdf")[sel]
 
 # TODO: where should this go?
 # We set photoometrics with G_gaia > 20 to NaN
@@ -59,5 +53,6 @@ data.array[~where.array] = xp.asarray(
 
 # =============================================================================
 # Off-stream selection
+# This will select the off-stream region (it's the opposite of the mask).
 
 off_stream = (data["phi2"] < -1.7) | (data["phi2"] > 2)
