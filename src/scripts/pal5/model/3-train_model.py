@@ -94,7 +94,7 @@ epoch_iterator = tqdm(
     postfix={"lr": f"{scheduler.get_last_lr()[0]:.2e}", "loss": f"{0:.2e}"},
 )
 for epoch in epoch_iterator:
-    for _step, (step_arr, step_where_) in enumerate(loader):
+    for step_arr, step_where_ in loader:
         # Prepare
         step_data = sml.Data(step_arr, names=data.names)
         step_where = sml.Data(step_where_, names=data.names)
@@ -123,6 +123,7 @@ for epoch in epoch_iterator:
     if snkmk["diagnostic_plots"] and (
         (epoch % 100 == 0) or (epoch == snkmk["epochs"] - 1)
     ):
+        model.eval()
         manually_set_dropout(model, 0)
 
         fig = diagnostic_plot(model, data, where=where)
@@ -130,6 +131,7 @@ for epoch in epoch_iterator:
         plt.close(fig)
 
         manually_set_dropout(model, 0.15)
+        model.train()
 
         xp.save(
             model.state_dict(), paths.data / "pal5" / "model" / f"model_{epoch:04d}.pt"
