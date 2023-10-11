@@ -10,6 +10,7 @@ from astropy.table import QTable
 from showyourwork.paths import user as user_paths
 
 import stream_ml.pytorch as sml
+from stream_ml.pytorch.utils import StandardScaler
 
 paths = user_paths()
 
@@ -128,7 +129,7 @@ af["coord_bounds"] = {k: (np.nanmin(data[k]), np.nanmax(data[k])) for k in data.
 # -----------------------------------------------------------------------------
 # Scaling for ML
 
-scaler = sml.utils.StandardScaler.fit(data, names=data.names)
+scaler = StandardScaler.fit(data, names=data.names)
 
 af["scaler"] = asdict(scaler)
 
