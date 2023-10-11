@@ -49,10 +49,8 @@ where = sml.Data(~xp.isnan(data.array), names=data.names)
 # Need to set missing data to some value, even though it's ignored, for the
 # gradient. Maybe can use zuko's MaskedMLP?
 data.array[~where.array] = xp.asarray(
-    np.repeat(np.nanmedian(data.array, axis=0, keepdims=True), len(data), axis=0)[
-        ~where.array
-    ]
-)
+    np.repeat(np.nanmedian(data.array, axis=0, keepdims=True), len(data), axis=0)
+)[~where.array]
 
 # =============================================================================
 # Off-stream selection
