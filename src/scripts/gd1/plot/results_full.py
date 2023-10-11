@@ -706,10 +706,10 @@ ax41.scatter(
 )
 
 # Literature
-(l1,) = ax31.plot(
+(l1,) = ax41.plot(
     gd1I21.phi1.degree, gd1I21.pm_phi1_cosphi2.value, **_lit1_kw, label="Ibata+21"
 )
-(l2,) = ax31.plot(
+(l2,) = ax41.plot(
     gd1PB18.phi1.degree, gd1PB18.pm_phi1_cosphi2.value, **_lit2_kw, label="PW+19"
 )
 
@@ -817,8 +817,10 @@ ax51.scatter(
 )
 
 # Literature
-(l1,) = ax31.plot(gd1I21.phi1.degree, gd1I21.pmphi2.value, **_lit1_kw, label="Ibata+21")
-(l2,) = ax31.plot(gd1PB18.phi1.degree, gd1PB18.pmphi2.value, **_lit2_kw, label="PW+19")
+(l1,) = ax51.plot(
+    gd1I21.phi1.degree, gd1I21.pm_phi2.value, **_lit1_kw, label="Ibata+21"
+)
+(l2,) = ax51.plot(gd1PB18.phi1.degree, gd1PB18.pm_phi2.value, **_lit2_kw, label="PW+19")
 
 # Model (stream)
 f1 = ax51.fill_between(
@@ -851,12 +853,10 @@ ax6 = fig.add_subplot(
 )
 
 # Literature
-(l1,) = ax31.plot(
+(l1,) = ax6.plot(
     gd1I21.phi1.degree, gd1I21.distance.value, **_lit1_kw, label="Ibata+21"
 )
-(l2,) = ax31.plot(
-    gd1PB18.phi1.degree, gd1PB18.distance.value, **_lit2_kw, label="PW+19"
-)
+(l2,) = ax6.plot(gd1PB18.phi1.degree, gd1PB18.distance.value, **_lit2_kw, label="PW+19")
 
 # Model (stream)
 mpstrm = mpars["stream.photometric.distmod"]
