@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+import warnings
 from collections.abc import Mapping
 from functools import partial
 from typing import TYPE_CHECKING, Any
 
+import more_itertools
 import numpy as np
 import torch as xp
 from scipy.interpolate import CubicSpline
@@ -95,3 +97,37 @@ def recursive_iterate(
         out[k] = reduction(xp.stack([mp[key] for mp in dmpars], 1))
 
     return out
+
+
+def detect_significant_changes_in_width(
+    x: np.ndarray,
+    mpars: Params[Array],
+    /,
+    coords: list[tuple[str, str]],
+    threshold: float,
+) -> np.ndarray:
+    """Detect significant changes in width."""
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", category=RuntimeWarning)
+
+        grad = np.gradient(
+            np.stack(tuple(mpars[coord] for coord in coords), 1)[1:],
+            np.diff(x),
+            axis=0,
+        )
+
+    # Total gradient, assuming (incorrectly) cartesian metric
+    absgrad = np.sqrt(np.sum(np.square(grad), 1))
+
+    # Threshold
+    thresholded = absgrad > threshold
+
+    # Find indices of true values that are grouped together with a separation in
+    # their index less than 20
+    groups = []
+    for group_ in more_itertools.consecutive_groups(np.where(thresholded)[0]):
+        group = tuple(group_)
+        if len(group) > 1 and group[-1] - group[0] < 20:
+            groups.append(group[-1:])
+
+    return np.concatenate(groups)

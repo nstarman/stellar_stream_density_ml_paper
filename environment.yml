@@ -17,6 +17,7 @@ dependencies:
   - scipy=1.11
   - shapely
   - tqdm=4.65
+  - more-itertools=1.1.8
 
   - pip:
       - daft
