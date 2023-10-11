@@ -17,6 +17,8 @@ sys.path.append(paths.scripts.parent.as_posix())
 
 from scripts.gd1.datasets import data, off_stream
 
+data = data.astype(np.ndarray)
+
 # =============================================================================
 
 bw_method = 0.05
@@ -36,55 +38,56 @@ fig, axs = plt.subplots(2, 1, figsize=(6, 6))
 # -------------------------------------------------
 # Phi1-phi2
 
-axs[0].plot(
-    data["phi1"][off_stream],
-    data["phi2"][off_stream],
-    ls="none",
-    marker=",",
-    ms=1e-2,
-    color="k",
-    rasterized=True,
+axs[0].set(
+    xlabel=(r"$\phi_1 \ $ [deg]"),
+    ylabel=(r"$\phi_2 \ $ [deg]"),
+    aspect=2,
+    rasterization_zorder=100,
 )
+_kw = {"ls": "none", "marker": ",", "ms": 1e-2}
+axs[0].plot(data["phi1"][off_stream], data["phi2"][off_stream], color="k", **_kw)
 axs[0].plot(
     data["phi1"][~off_stream],
     data["phi2"][~off_stream],
-    ls="none",
-    marker=",",
-    ms=1e-2,
     color="tab:blue",
     alpha=0.5,
-    rasterized=True,
-)
-axs[0].set(
-    xlabel=(r"$\phi_1 \ $ [$\degree$]"), ylabel=(r"$\phi_2 \ $ [$\degree$]"), aspect=2
+    **_kw
 )
 axs[0].grid(visible=True, which="both", axis="y")
 axs[0].grid(visible=True, which="major", axis="x")
+
+# -------------------------------------------------
+# Photometric
+
+axs[1].set(
+    xlabel=(r"$g-r \ $ [mag]"),
+    ylabel=(r"$g \ $ [mag]"),
+    aspect="auto",
+    xlim=(0, 0.8),
+)
 
 axs[1].scatter(
     data["g"][off_stream] - data["r"][off_stream],
     data["g"][off_stream],
     s=1,
     color="k",
-    rasterized=True,
     label="off-stream",
 )
 alpha = stream_kde(positions.T) - background_kde(positions.T)
 alpha[alpha < 0] = 0
+alpha[alpha > 1] = 1
 axs[1].scatter(
     data["g"][~off_stream] - data["r"][~off_stream],
     data["g"][~off_stream],
     s=1,
-    alpha=alpha / alpha.max(),
+    alpha=0.05 + 0.95 * alpha,
     rasterized=True,
-    label="on-stream - off-stream KDE",
-)
-axs[1].set(
-    xlabel=(r"$g-r \ $ [mag]"), ylabel=(r"$g \ $ [mag]"), aspect="auto", xlim=(0, 0.8)
+    label="on-off",
 )
 axs[1].invert_yaxis()
-axs[1].grid(visible=True, which="major")
-axs[1].legend(loc="upper left")
+leg = axs[1].legend(loc="upper left", fontsize=11, markerscale=5)
+for lh in leg.legendHandles:
+    lh.set_alpha(1)
 
 fig.tight_layout()
 fig.savefig(paths.figures / "gd1" / "photometric_background_selection.pdf")
