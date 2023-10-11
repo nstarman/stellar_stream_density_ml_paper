@@ -18,8 +18,8 @@ from matplotlib.legend_handler import HandlerTuple
 from matplotlib.lines import Line2D
 from showyourwork.paths import user as user_paths
 
-import stream_ml.pytorch as sml
 from stream_ml.core import WEIGHT_NAME
+from stream_ml.pytorch.params import Params
 
 paths = user_paths()
 
@@ -52,7 +52,7 @@ distance_cp = QTable.read(paths.data / "gd1" / "control_points_distance.ecsv")
 
 # Load model
 model = pycopy.deepcopy(model)
-model.load_state_dict(xp.load(paths.data / "gd1" / "model" / "model_0100.pt"))
+model.load_state_dict(xp.load(paths.data / "gd1" / "model" / "model_2700.pt"))
 model = model.eval()
 
 # Load results from 4-likelihoods.py
@@ -80,19 +80,18 @@ psort = np.argsort(allstream_prob)
 # Foreground
 is_strm = (allstream_prob > 0.6)[psort]
 
-
 # Also evaluate the model with dropout on
 with xp.no_grad():
     # turn dropout on
     model = model.train()
     manually_set_dropout(model, 0.15)
+
     # evaluate the model
     ldmpars = [model.unpack_params(model(data)) for i in range(100)]
+
     # mpars
-    dmpars = sml.params.Params(
-        recursive_iterate(ldmpars, ldmpars[0], reduction=lambda x: x)
-    )
-    mpars = sml.params.Params(recursive_iterate(ldmpars, ldmpars[0]))
+    dmpars = Params(recursive_iterate(ldmpars, ldmpars[0], reduction=lambda x: x))
+    mpars = Params(recursive_iterate(ldmpars, ldmpars[0]))
 
     # turn dropout back off
     manually_set_dropout(model, 0)
@@ -134,7 +133,7 @@ alphas = p2alpha(allstream_prob[psort])
 sizes = 1 + stream_prob[psort]  # range [1, 2]
 xlims = (data["phi1"].min(), 10)
 
-_stream_kw = {"ls": "none", "marker": ",", "color": cmap1(0.75), "alpha": 0.25}
+_stream_kw = {"ls": "none", "marker": ",", "color": cmap1(0.75), "alpha": 0.15}
 _bounds_kw = {"c": "gray", "ls": "-", "lw": 2, "alpha": 0.8}
 _lit1_kw = {"c": "k", "ls": "--", "alpha": 0.6}
 _lit2_kw = {"c": "k", "ls": ":", "alpha": 0.6}
@@ -142,7 +141,7 @@ _lit2_kw = {"c": "k", "ls": ":", "alpha": 0.6}
 # ---------------------------------------------------------------------------
 # Colormap
 
-gs0 = gs[0, :].subgridspec(2, 1, height_ratios=(1, 1), hspace=0.1)
+gs0 = gs[0, :].subgridspec(2, 1, height_ratios=(1, 1), hspace=0.15)
 
 # Stream
 ax00 = fig.add_subplot(gs0[0, :])
@@ -167,7 +166,7 @@ ax1 = fig.add_subplot(
     xlim=xlims,
     xticklabels=[],
     ylabel=r"$\ln f_{\rm stream}$",
-    ylim=(-7, 0),
+    ylim=(-6, 0),
     rasterization_zorder=0,
 )
 
@@ -212,10 +211,10 @@ f2 = ax1.fill_between(
 )
 
 ax1.legend(
-    [(f1, f2), l1],
-    [r"Models", l1.get_label()],
+    [[(f1, l1), (f2, l2)]],
+    [r"Models"],
     numpoints=1,
-    handler_map={tuple: HandlerTuple(ndivide=None)},
+    handler_map={list: HandlerTuple(ndivide=None)},
     loc="upper left",
 )
 
@@ -261,8 +260,8 @@ ax20.scatter(
     color=cmap2(0.99),
 )
 
-for tick in ax20.get_yticklabels():
-    tick.set_verticalalignment("bottom")
+# for tick in ax20.get_yticklabels():
+#     tick.set_verticalalignment("bottom")
 
 # ---------------------------------------------------------------------------
 # Phi2
@@ -322,7 +321,7 @@ p2 = ax21.errorbar(
     label="Spur Control Points",
 )
 
-# Data (background, then stream errors, then stream data)
+# Data (background, then allstream errors, then allstream data)
 ax21.scatter(
     data["phi1"][psort][~is_strm],
     data["phi2"][psort][~is_strm],
@@ -412,6 +411,7 @@ legend = plt.legend(
     [l1, l2], [l1.get_label(), l2.get_label()], numpoints=1, ncols=2, loc="lower left"
 )
 ax21.add_artist(legend)
+ax21.locator_params(axis="x", nbins=4)
 
 
 # ---------------------------------------------------------------------------
@@ -517,12 +517,42 @@ p2 = ax31.errorbar(
     label="Spur Control Points",
 )
 
-# Data
-d1 = ax31.scatter(
-    data["phi1"][psort], data["plx"][psort], c=colors, alpha=alphas, s=2, zorder=-10
+# Data (background, then allstream errors, then allstream data)
+ax31.scatter(
+    data["phi1"][psort][~is_strm],
+    data["plx"][psort][~is_strm],
+    c=colors[~is_strm],
+    alpha=alphas[~is_strm],
+    s=sizes[psort][~is_strm],
+    zorder=-10,
+)
+d1 = ax31.errorbar(
+    data["phi1"][psort][is_strm],
+    data["plx"][psort][is_strm],
+    xerr=data["phi1_err"][psort][is_strm],
+    yerr=data["plx_err"][psort][is_strm],
+    **_stream_kw,
+    zorder=-9,
+)
+ax31.scatter(
+    data["phi1"][psort][is_strm],
+    data["plx"][psort][is_strm],
+    c=colors[is_strm],
+    alpha=alphas[is_strm],
+    s=sizes[psort][is_strm],
+    zorder=-8,
 )
 
-# Model
+# Literature
+(l1,) = ax31.plot(
+    gd1I21.phi1.degree, gd1I21.distance.parallax.value, **_lit1_kw, label="Ibata+21"
+)
+(l2,) = ax31.plot(
+    gd1PB18.phi1.degree, gd1PB18.distance.parallax.value, **_lit2_kw, label="PW+19"
+)
+
+
+# Model (stream)
 f1 = ax31.fill_between(
     data["phi1"],
     (mpstrm["plx", "mu"] - xp.exp(mpstrm["plx", "ln-sigma"])),
@@ -531,6 +561,8 @@ f1 = ax31.fill_between(
     alpha=0.25,
     where=strm_range,
 )
+
+# Model (spur)
 f2 = ax31.fill_between(
     data["phi1"],
     (mpspur["plx", "mu"] - xp.exp(mpspur["plx", "ln-sigma"])),
@@ -539,6 +571,8 @@ f2 = ax31.fill_between(
     alpha=0.25,
     where=spur_range,
 )
+
+ax31.set_ylim(data["plx"].min(), data["plx"].max())
 
 # ---------------------------------------------------------------------------
 # PM-Phi1 - variance
@@ -621,6 +655,7 @@ p1 = ax41.errorbar(
     zorder=-20,
     label="Stream Control Points",
 )
+
 # Spur control points
 ax41.errorbar(
     spur_cp["phi1"],
@@ -644,10 +679,32 @@ p2 = ax41.errorbar(
     label="Spur Control Points",
 )
 
-# Data
-d1 = ax41.scatter(
-    data["phi1"][psort], data["pmphi1"][psort], c=colors, alpha=alphas, s=2, zorder=-10
+# Data (background, then allstream errors, then allstream data)
+ax41.scatter(
+    data["phi1"][psort][~is_strm],
+    data["pmphi1"][psort][~is_strm],
+    c=colors[~is_strm],
+    alpha=alphas[~is_strm],
+    s=sizes[psort][~is_strm],
+    zorder=-10,
 )
+d1 = ax41.errorbar(
+    data["phi1"][psort][is_strm],
+    data["pmphi1"][psort][is_strm],
+    xerr=data["phi1_err"][psort][is_strm],
+    yerr=data["pmphi1_err"][psort][is_strm],
+    **_stream_kw,
+    zorder=-9,
+)
+ax41.scatter(
+    data["phi1"][psort][is_strm],
+    data["pmphi1"][psort][is_strm],
+    c=colors[is_strm],
+    alpha=alphas[is_strm],
+    s=sizes[psort][is_strm],
+    zorder=-8,
+)
+
 # Model (stream)
 f1 = ax41.fill_between(
     data["phi1"],
@@ -657,6 +714,7 @@ f1 = ax41.fill_between(
     alpha=0.25,
     where=strm_range,
 )
+
 # Model (spur)
 f2 = ax41.fill_between(
     data["phi1"],
@@ -724,10 +782,32 @@ ax51 = fig.add_subplot(
     xticklabels=[],
 )
 
-# Data
+# Data (background, then allstream errors, then allstream data)
 ax51.scatter(
-    data["phi1"][psort], data["pmphi2"][psort], c=colors, alpha=alphas, s=2, zorder=-10
+    data["phi1"][psort][~is_strm],
+    data["pmphi2"][psort][~is_strm],
+    c=colors[~is_strm],
+    alpha=alphas[~is_strm],
+    s=sizes[psort][~is_strm],
+    zorder=-10,
 )
+d1 = ax51.errorbar(
+    data["phi1"][psort][is_strm],
+    data["pmphi2"][psort][is_strm],
+    xerr=data["phi1_err"][psort][is_strm],
+    yerr=data["pmphi2_err"][psort][is_strm],
+    **_stream_kw,
+    zorder=-9,
+)
+ax51.scatter(
+    data["phi1"][psort][is_strm],
+    data["pmphi2"][psort][is_strm],
+    c=colors[is_strm],
+    alpha=alphas[is_strm],
+    s=sizes[psort][is_strm],
+    zorder=-8,
+)
+
 # Model (stream)
 f1 = ax51.fill_between(
     data["phi1"],
@@ -737,6 +817,7 @@ f1 = ax51.fill_between(
     alpha=0.25,
     where=strm_range,
 )
+
 # Model (stream)
 f2 = ax51.fill_between(
     data["phi1"],
@@ -746,6 +827,8 @@ f2 = ax51.fill_between(
     alpha=0.25,
     where=spur_range,
 )
+
+ax51.set_ylim(data["pmphi2"].min(), data["pmphi2"].max())
 
 
 # ---------------------------------------------------------------------------
