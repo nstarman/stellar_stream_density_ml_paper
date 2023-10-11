@@ -78,6 +78,7 @@ background_pm_model = sml.builtin.compat.ZukoFlowModel(
     net=zuko.flows.MAF(2, 1, hidden_features=[8, 8, 8]),
     jacobian_logdet=float(-xp.log(xp.prod(pm_flow_scaler.scale[1:]))),
     data_scaler=pm_flow_scaler,
+    indep_coord_names=("phi1",),
     coord_names=pm_coords,
     coord_bounds={k: coord_bounds[k] for k in pm_coords},
     params=ModelParameters[xp.Tensor](),
@@ -102,11 +103,11 @@ phot_flow_scaler = scaler[("phi1", *phot_coords)]
 
 background_photometric_model = sml.builtin.compat.ZukoFlowModel(
     net=zuko.flows.MAF(2, 1, hidden_features=[8, 8, 8]),
-    jacobian_logdet=-xp.log(xp.prod(phot_flow_scaler.scale[1:])),
+    jacobian_logdet=float(-xp.log(xp.prod(phot_flow_scaler.scale[1:]))),
     data_scaler=phot_flow_scaler,
     coord_names=phot_coords,
     coord_bounds=phot_coord_bounds,
-    params=ModelParameters(),
+    params=ModelParameters[xp.Tensor](),
     with_grad=False,
     name="background_photometric_model",
 )
@@ -166,7 +167,7 @@ stream_astrometric_model = sml.builtin.TruncatedNormal(
                     scaler=StandardLocation.from_data_scaler(scaler, "phi2", xp=xp),
                 ),
                 "ln-sigma": ModelParameter(
-                    bounds=SigmoidBounds(-2.0, -0.4),
+                    bounds=SigmoidBounds(-3.0, -0.4),
                     scaler=StandardLnWidth.from_data_scaler(scaler, "phi2", xp=xp),
                 ),
             },
@@ -253,11 +254,13 @@ stream_isochrone_model = sml.builtin.IsochroneMVNorm(
     isochrone_err_spl=None,
     stream_mass_function=stream_mass_function,
     # params
-    params=ModelParameters(
+    params=ModelParameters[xp.Tensor](
         {
             "distmod": {
-                "mu": ModelParameter(bounds=SigmoidBounds(13.0, 18.0), scaler=None),
-                "ln-sigma": ModelParameter(
+                "mu": ModelParameter[xp.Tensor](
+                    bounds=SigmoidBounds(13.0, 18.0), scaler=None
+                ),
+                "ln-sigma": ModelParameter[xp.Tensor](
                     bounds=SigmoidBounds(-7.6, -2.8), scaler=None
                 ),
             },
@@ -299,12 +302,12 @@ model = sml.MixtureModel(
         data=1, hidden_features=32, layers=4, features=len(_mx) - 1, dropout=0.15
     ),
     data_scaler=scaler,
-    params=ModelParameters(
+    params=ModelParameters[xp.Tensor](
         {
-            f"stream.{WEIGHT_NAME}": ModelParameter(
+            f"stream.{WEIGHT_NAME}": ModelParameter[xp.Tensor](
                 bounds=SigmoidBounds(-10.0, -0.01), scaler=None
             ),
-            f"background.{WEIGHT_NAME}": ModelParameter(
+            f"background.{WEIGHT_NAME}": ModelParameter[xp.Tensor](
                 bounds=SigmoidBounds(-5.0, 0.0), scaler=None
             ),
         }
