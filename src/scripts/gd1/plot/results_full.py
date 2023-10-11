@@ -705,6 +705,14 @@ ax41.scatter(
     zorder=-8,
 )
 
+# Literature
+(l1,) = ax31.plot(
+    gd1I21.phi1.degree, gd1I21.pm_phi1_cosphi2.value, **_lit1_kw, label="Ibata+21"
+)
+(l2,) = ax31.plot(
+    gd1PB18.phi1.degree, gd1PB18.pm_phi1_cosphi2.value, **_lit2_kw, label="PW+19"
+)
+
 # Model (stream)
 f1 = ax41.fill_between(
     data["phi1"],
@@ -808,6 +816,10 @@ ax51.scatter(
     zorder=-8,
 )
 
+# Literature
+(l1,) = ax31.plot(gd1I21.phi1.degree, gd1I21.pmphi2.value, **_lit1_kw, label="Ibata+21")
+(l2,) = ax31.plot(gd1PB18.phi1.degree, gd1PB18.pmphi2.value, **_lit2_kw, label="PW+19")
+
 # Model (stream)
 f1 = ax51.fill_between(
     data["phi1"],
@@ -836,6 +848,14 @@ ax51.set_ylim(data["pmphi2"].min(), data["pmphi2"].max())
 
 ax6 = fig.add_subplot(
     gs[6, :], xlabel=r"$\phi_1$ [deg]", ylabel=r"$d$ [kpc]", xlim=xlims
+)
+
+# Literature
+(l1,) = ax31.plot(
+    gd1I21.phi1.degree, gd1I21.distance.value, **_lit1_kw, label="Ibata+21"
+)
+(l2,) = ax31.plot(
+    gd1PB18.phi1.degree, gd1PB18.distance.value, **_lit2_kw, label="PW+19"
 )
 
 # Model (stream)
