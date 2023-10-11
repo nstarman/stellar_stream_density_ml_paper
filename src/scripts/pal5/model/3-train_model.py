@@ -77,7 +77,7 @@ loader = td.DataLoader(
     drop_last=True,  # drop rando last for better plotting
 )
 
-optimizer = optim.Adam(
+optimizer = optim.AdamW(
     list(model.parameters()), lr=snkmk["lr"], weight_decay=snkmk["weight_decay"]
 )
 
