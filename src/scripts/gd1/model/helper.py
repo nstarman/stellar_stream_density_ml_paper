@@ -460,7 +460,7 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
 
         xmin, xmax = data["phi2"].min().numpy(), data["phi2"].max().numpy()
         x = np.linspace(xmin, xmax)
-        bkg_wgt = mpars[f"background.{WEIGHT_NAME}",][sel].mean()
+        bkg_wgt = xp.exp(mpars[f"background.{WEIGHT_NAME}",][sel].mean())
         m = mpars["background.astrometric.phi2pmphi1.phi2", "slope"][sel].mean()
         ax10i.plot(x, bkg_wgt * exp_distr(m, xmin, xmax).pdf(x), c="k")
 
