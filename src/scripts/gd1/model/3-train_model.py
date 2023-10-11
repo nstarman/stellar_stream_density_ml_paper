@@ -18,10 +18,10 @@ paths = user_paths()
 sys.path.append(paths.scripts.parent.as_posix())
 # isort: split
 
-from scripts import helper
 from scripts.gd1.datasets import data, where
 from scripts.gd1.define_model import model
 from scripts.gd1.model.helper import diagnostic_plot
+from scripts.helper import manually_set_dropout
 
 # =============================================================================
 # Initial set up
@@ -38,6 +38,8 @@ except NameError:
         "epochs": 1_250 * 10,
         "lr": 1e-3,
         "weight_decay": 1e-8,
+        # early_stopping
+        # "early_stopping": 1_250 * 10,
     }
 
 if snkmk["load_from_static"]:
@@ -127,13 +129,15 @@ for epoch in epoch_iterator:
     if snkmk["diagnostic_plots"] and (
         (epoch % 100 == 0) or (epoch == snkmk["epochs"] - 1)
     ):
-        helper.manually_set_dropout(model, 0)
+        model.eval()
+        manually_set_dropout(model, 0)
 
         fig = diagnostic_plot(model, data, where=where)
         fig.savefig(diagnostic_path / f"epoch_{epoch:05}.png")
         plt.close(fig)
 
-        helper.manually_set_dropout(model, 0.15)
+        manually_set_dropout(model, 0.15)
+        model.train()
 
         xp.save(model.state_dict(), paths.data / "gd1" / "model.pt")
 
