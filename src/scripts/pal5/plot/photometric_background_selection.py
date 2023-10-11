@@ -18,6 +18,8 @@ sys.path.append(paths.scripts.parent.as_posix())
 
 from scripts.pal5.datasets import data, off_stream
 
+data = data.astype(np.ndarray)
+
 # =============================================================================
 
 bw_method = 0.05
@@ -38,12 +40,7 @@ fig, axs = plt.subplots(2, 1, figsize=(4, 4))
 # Phi1-phi2
 
 axs[0].set(xlabel=(r"$\phi_1 \ $ [deg]"), ylabel=(r"$\phi_2 \ $ [deg]"))
-axs[0].hist2d(
-    np.array(data["phi1"][off_stream]),
-    np.array(data["phi2"][off_stream]),
-    cmap="gray",
-    bins=300,
-)
+axs[0].hist2d(data["phi1"][off_stream], data["phi2"][off_stream], cmap="gray", bins=300)
 axs[0].plot(
     data["phi1"][~off_stream],
     data["phi2"][~off_stream],
@@ -83,9 +80,10 @@ axs[1].scatter(
     label="on-off",
 )
 axs[1].invert_yaxis()
-axs[1].grid(visible=True, which="major")
 axs[1].yaxis.set_major_formatter(FormatStrFormatter("%d"))
-axs[1].legend(loc="upper left", fontsize=11, markerscale=5)
+leg = axs[1].legend(loc="upper left", fontsize=11, markerscale=5)
+for lh in leg.legendHandles:
+    lh.set_alpha(1)
 
 
 fig.tight_layout()
