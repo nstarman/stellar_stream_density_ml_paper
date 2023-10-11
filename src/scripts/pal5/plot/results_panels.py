@@ -33,16 +33,16 @@ from scripts.pal5.define_model import model
 # Matplotlib style
 plt.style.use(paths.scripts / "paper.mplstyle")
 
+# Load model
+model = pycopy.deepcopy(model)
+model.load_state_dict(xp.load(paths.data / "pal5" / "model" / "model_10800.pt"))
+# model = model.eval()
+
 # Load results from 4-likelihoods.py
 lik_tbl = QTable.read(paths.data / "pal5" / "membership_likelhoods.ecsv")
 stream_prob = np.array(lik_tbl["stream (50%)"])
 bkg_prob = np.array(lik_tbl["bkg (50%)"])
 stream_wgt = np.array(lik_tbl["stream.ln-weight"])
-
-# Load model
-model = pycopy.deepcopy(model)
-model.load_state_dict(xp.load(paths.data / "pal5" / "model" / "model_10800.pt"))
-# model = model.eval()
 
 # =============================================================================
 # Likelihood
