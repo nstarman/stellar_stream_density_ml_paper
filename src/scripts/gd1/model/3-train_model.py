@@ -104,7 +104,7 @@ for epoch in epoch_iterator:
 
         # Forward Step
         pred = model(step_data)
-        if pred.isnan().any():
+        if not pred.isfinite().all():
             raise ValueError
 
         mpars = model.unpack_params(pred)
