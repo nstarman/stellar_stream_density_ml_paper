@@ -50,7 +50,7 @@ with asdf.open(
     isochrone_data = Data(**af["isochrone_data"])
 
 # Load model
-model.load_state_dict(xp.load(paths.data / "gd1" / "model" / "model_2700.pt"))
+model.load_state_dict(xp.load(paths.data / "gd1" / "model" / "model_3500.pt"))
 model = model.eval()
 
 # Load results from 4-likelihoods.py
@@ -104,14 +104,14 @@ gs = GridSpec(
     2,
     1,
     figure=fig,
-    height_ratios=(5, 10),
-    hspace=0.12,
+    height_ratios=(4.5, 10),
+    hspace=0.09,
     left=0.07,
     right=0.98,
     top=0.965,
     bottom=0.03,
 )
-gs0 = gs[0].subgridspec(3, 1, height_ratios=(2, 3, 5))
+gs0 = gs[0].subgridspec(3, 1, height_ratios=(2, 2.75, 4), hspace=0.09)
 
 colors = color_by_probable_member(
     (stream_prob[psort], cmap1), (spur_prob[psort], cmap2)
@@ -122,7 +122,7 @@ xlims = (data["phi1"].min().numpy(), data["phi1"].max().numpy())
 # ---------------------------------------------------------------------------
 # Colormap
 
-gs00 = gs0[0, :].subgridspec(2, 1, height_ratios=(1, 1), hspace=0.15)
+gs00 = gs0[0, :].subgridspec(2, 1, height_ratios=(1, 1), hspace=0.13)
 
 # Stream
 ax00 = fig.add_subplot(gs00[0, :])
@@ -143,7 +143,7 @@ cbar.ax.text(0.5, 0.5, "Spur Probability", ha="center", va="center", fontsize=14
 # Weight plot
 
 ax02 = fig.add_subplot(
-    gs0[1, :], xlim=xlims, xticklabels=[], ylabel=r"$f_{\rm stream}$", ylim=(0, 0.3)
+    gs0[1, :], xlim=xlims, xticklabels=[], ylabel=r"$f_{\rm stream}$", ylim=(0, 0.25)
 )
 
 f1 = ax02.fill_between(
@@ -191,6 +191,7 @@ ax03 = fig.add_subplot(
     xlabel=r"$\phi_1$ [deg]",
     xlim=xlims,
     ylabel=r"$\phi_2$ [deg]",
+    ylim=(-5, 5),
     xticklabels=[],
     rasterization_zorder=0,
 )
@@ -199,10 +200,13 @@ ax03.scatter(
     data["phi1"][psort], data["phi2"][psort], c=colors, alpha=alphas, s=2, zorder=-10
 )
 
+xlabel = ax03.xaxis.get_label()
+xlabel.set_bbox({"facecolor": "white", "edgecolor": "white"})
+
 # =============================================================================
 # Slice plots
 
-gs1 = gs[1].subgridspec(5, 4, height_ratios=(1, 1, 1, 1, 2), hspace=0.1)
+gs1 = gs[1].subgridspec(5, 4, height_ratios=(1, 1, 1, 1, 1.75), hspace=0.45)
 
 # Legend
 legend1 = plt.legend(
@@ -213,7 +217,7 @@ legend1 = plt.legend(
     ],
     ncols=4,
     loc="upper right",
-    bbox_to_anchor=(1, -0.18),
+    bbox_to_anchor=(1, -0.06),
 )
 ax03.add_artist(legend1)
 
