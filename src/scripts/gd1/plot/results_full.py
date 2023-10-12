@@ -472,7 +472,7 @@ ax31 = fig.add_subplot(
     rasterization_zorder=0,
 )
 
-# Stream control points
+# Stream & Spur control points
 ax31.errorbar(
     distance_cp["phi1"],
     distance_cp["parallax"],
@@ -493,28 +493,6 @@ p1 = ax31.errorbar(
     capsize=2,
     zorder=-20,
     label="Stream Control Points",
-)
-# Spur control points
-ax31.errorbar(
-    distance_cp["phi1"],
-    distance_cp["parallax"],
-    yerr=distance_cp["w_parallax"],
-    fmt="o",
-    color="k",
-    capthick=3,
-    elinewidth=3,
-    capsize=3,
-    zorder=-21,
-)
-p2 = ax31.errorbar(
-    distance_cp["phi1"],
-    distance_cp["parallax"],
-    yerr=distance_cp["w_parallax"],
-    fmt=".",
-    c=cmap2(0.99),
-    capsize=2,
-    zorder=-20,
-    label="Spur Control Points",
 )
 
 # Data (background, then allstream errors, then allstream data)
@@ -850,6 +828,34 @@ ax51.set_ylim(data["pmphi2"].min(), data["pmphi2"].max())
 
 ax6 = fig.add_subplot(
     gs[6, :], xlabel=r"$\phi_1$ [deg]", ylabel=r"$d$ [kpc]", xlim=xlims
+)
+
+mu = Distance(distmod=distance_cp["distmod"])
+sigma = Distance(
+    distmod=(distance_cp["distmod"] + distance_cp["w_distmod"])
+) - Distance(distmod=(distance_cp["distmod"] - distance_cp["w_distmod"]))
+
+# Stream control points
+ax6.errorbar(
+    distance_cp["phi1"],
+    mu.value,
+    yerr=sigma.value,
+    fmt="o",
+    color="k",
+    capthick=3,
+    elinewidth=3,
+    capsize=3,
+    zorder=-21,
+)
+p1 = ax6.errorbar(
+    distance_cp["phi1"],
+    mu.value,
+    yerr=sigma.value,
+    fmt=".",
+    c=cmap1(0.99),
+    capsize=2,
+    zorder=-20,
+    label="Stream Control Points",
 )
 
 # Literature
