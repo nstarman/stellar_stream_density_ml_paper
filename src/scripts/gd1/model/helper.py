@@ -163,7 +163,7 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
         alpha=0.25,
     )
     (l1,) = ax02.plot(
-        data["phi1"], stream_weights.mean(1), c="k", ls="--", lw=2, label="Model (MLE)"
+        data["phi1"], stream_weights.mean(1), c="k", ls="--", lw=2, label="Model"
     )
     f2 = ax02.fill_between(
         data["phi1"],
@@ -176,7 +176,7 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
 
     ax02.legend(
         [(f1, f2), l1],
-        [r"Models (15% dropout)", l1.get_label()],
+        [r"Models", l1.get_label()],
         numpoints=1,
         handler_map={tuple: HandlerTuple(ndivide=None)},
         loc="upper left",
@@ -254,13 +254,6 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
         color=cmap2(0.99),
         alpha=0.25,
     )
-    ax04.legend(
-        [p1, (f1, f2)],
-        ["Data", r"Models"],
-        numpoints=1,
-        handler_map={tuple: HandlerTuple(ndivide=None)},
-        loc="upper left",
-    )
 
     # ---------------------------------------------------------------------------
     # PM-Phi1
@@ -294,13 +287,6 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
         color=cmap2(0.99),
         alpha=0.25,
     )
-    ax05.legend(
-        [p1, (f1, f2)],
-        ["Data", r"Models"],
-        numpoints=1,
-        handler_map={tuple: HandlerTuple(ndivide=None)},
-        loc="upper left",
-    )
 
     # ---------------------------------------------------------------------------
     # PM-Phi2
@@ -324,7 +310,7 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
         (mpa["pmphi2", "mu"] + xp.exp(mpa["pmphi2", "ln-sigma"]))[stream_cutoff],
         color=cmap1(0.99),
         alpha=0.25,
-        label="Model (MLE)",
+        label="Model",
     )
     f2 = ax06.fill_between(
         data["phi1"][spur_cutoff],
@@ -332,13 +318,6 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
         (mpb["pmphi2", "mu"] + xp.exp(mpb["pmphi2", "ln-sigma"]))[spur_cutoff],
         color=cmap2(0.99),
         alpha=0.25,
-    )
-    ax06.legend(
-        [p1, (f1, f2)],
-        ["Data", r"Models"],
-        numpoints=1,
-        handler_map={tuple: HandlerTuple(ndivide=None)},
-        loc="upper left",
     )
 
     # ---------------------------------------------------------------------------
@@ -390,26 +369,18 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
         color=cmap2(0.99),
     )
 
-    ax07.legend(
-        [(f1, f2)],
-        [r"Models"],
-        numpoints=1,
-        handler_map={tuple: HandlerTuple(ndivide=None)},
-        loc="upper left",
-    )
-
     # =============================================================================
     # Slice plots
 
     # Legend
     legend1 = plt.legend(
         handles=[
-            mpl.patches.Patch(color=cmap1(0.01), label="Background (MLE)"),
+            mpl.patches.Patch(color=cmap1(0.01), label="Background"),
             mpl.lines.Line2D(
                 [0], [0], color="k", lw=3, ls="-", label="Background Distribution"
             ),
-            mpl.patches.Patch(color=cmap1(0.99), label="Stream (MLE)"),
-            mpl.patches.Patch(color=cmap2(0.99), label="Spur (MLE)"),
+            mpl.patches.Patch(color=cmap1(0.99), label="Stream"),
+            mpl.patches.Patch(color=cmap2(0.99), label="Spur"),
         ],
         ncols=4,
         loc="upper right",
@@ -455,7 +426,7 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
             alpha=0.75,
             density=True,
             stacked=True,
-            label=["", "Stream Model (MLE)", "Spur Model (MLE)"],
+            label=["", "Stream Model", "Spur Model"],
         )
 
         xmin, xmax = data["phi2"].min().numpy(), data["phi2"].max().numpy()
@@ -482,7 +453,7 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
             alpha=0.75,
             density=True,
             stacked=True,
-            label=["", "Stream Model (MLE)", "Spur Model (MLE)"],
+            label=["", "Stream Model", "Spur Model"],
         )
 
         if i == 0:
@@ -504,7 +475,7 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
             alpha=0.75,
             density=True,
             stacked=True,
-            label=["", "Stream Model (MLE)", "Spur Model (MLE)"],
+            label=["", "Stream Model", "Spur Model"],
         )
 
         xmin, xmax = data["pmphi1"].min().numpy(), data["pmphi1"].max().numpy()
@@ -527,7 +498,7 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
             alpha=0.75,
             density=True,
             stacked=True,
-            label=["", "Stream Model (MLE)", "Spur Model (MLE)"],
+            label=["", "Stream Model", "Spur Model"],
         )
 
         xmin, xmax = data["pmphi2"].min().numpy(), data["pmphi2"].max().numpy()
