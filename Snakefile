@@ -633,7 +633,7 @@ rule pal5_train_model:
         lr=1e-3,
         weight_decay=1e-8,
         # end point
-        early_stopping = 10600,
+        early_stopping = -1,
     conda:
         "environment.yml"
     cache: True

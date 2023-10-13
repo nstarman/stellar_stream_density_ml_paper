@@ -129,6 +129,7 @@ for epoch in epoch_iterator:
     if snkmk["diagnostic_plots"] and (
         (epoch % 100 == 0) or (epoch == snkmk["epochs"] - 1)
     ):
+        # turn dropout off
         model.eval()
         manually_set_dropout(model, 0)
 
@@ -136,6 +137,7 @@ for epoch in epoch_iterator:
         fig.savefig(diagnostic_path / f"epoch_{epoch:05}.png")
         plt.close(fig)
 
+        # turn dropout on
         manually_set_dropout(model, 0.15)
         model.train()
 

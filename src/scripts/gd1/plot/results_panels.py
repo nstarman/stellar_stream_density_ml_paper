@@ -50,7 +50,7 @@ with asdf.open(
     isochrone_data = Data(**af["isochrone_data"])
 
 # Load model
-model.load_state_dict(xp.load(paths.data / "gd1" / "model" / "model_3500.pt"))
+model.load_state_dict(xp.load(paths.data / "gd1" / "model" / "model_12499.pt"))
 model = model.eval()
 
 # Load results from 4-likelihoods.py

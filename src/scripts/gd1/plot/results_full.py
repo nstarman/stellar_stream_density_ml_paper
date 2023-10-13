@@ -52,7 +52,7 @@ distance_cp = QTable.read(paths.data / "gd1" / "control_points_distance.ecsv")
 
 # Load model
 model = pycopy.deepcopy(model)
-model.load_state_dict(xp.load(paths.data / "gd1" / "model" / "model_3500.pt"))
+model.load_state_dict(xp.load(paths.data / "gd1" / "model" / "model_12499.pt"))
 model = model.eval()
 
 # Load results from 4-likelihoods.py
@@ -133,7 +133,7 @@ alphas = p2alpha(allstream_prob[psort])
 sizes = 1 + stream_prob[psort]  # range [1, 2]
 xlims = (data["phi1"].min(), 10)
 
-_stream_kw = {"ls": "none", "marker": ",", "color": cmap1(0.75), "alpha": 0.15}
+_stream_kw = {"ls": "none", "marker": ",", "color": cmap1(0.75), "alpha": 0.1}
 _bounds_kw = {"c": "gray", "ls": "-", "lw": 2, "alpha": 0.8}
 _lit1_kw = {"c": "k", "ls": "--", "alpha": 0.6}
 _lit2_kw = {"c": "k", "ls": ":", "alpha": 0.6}
@@ -349,7 +349,7 @@ ax21.scatter(
 
 # Literature
 (l1,) = ax21.plot(gd1I21.phi1.degree, gd1I21.phi2.degree, **_lit1_kw, label="Ibata+21")
-(l2,) = ax21.plot(gd1PB18.phi1.degree, gd1PB18.phi2.degree, **_lit2_kw, label="PW+19")
+(l2,) = ax21.plot(gd1PB18.phi1.degree, gd1PB18.phi2.degree, **_lit2_kw, label=r"P&B18")
 
 # Model (stream)
 mpstrm = mpars.get_prefixed("stream.astrometric")

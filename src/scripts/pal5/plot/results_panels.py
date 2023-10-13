@@ -127,7 +127,7 @@ _bounds = model.params[(f"stream.{WEIGHT_NAME}",)].bounds
 ax01.axhline(_bounds.lower[0], **_bounds_kw)
 ax01.axhline(_bounds.upper[0], **_bounds_kw)
 
-# # 15% dropout
+# 15% dropout
 f1 = ax01.fill_between(
     data["phi1"],
     np.percentile(stream_wgt, 5, axis=1),
@@ -172,17 +172,6 @@ ax02.scatter(
     zorder=-10,
 )
 
-f1 = ax02.fill_between(
-    data["phi1"],
-    (mpa["phi2", "mu"] - xp.exp(mpa["phi2", "ln-sigma"])),
-    (mpa["phi2", "mu"] + xp.exp(mpa["phi2", "ln-sigma"])),
-    color=cmap1(0.99),
-    alpha=0.25,
-    label="Model (MLE)",
-    zorder=-9,
-    where=strm_range,
-)
-
 ax02.scatter(
     data["phi1"][psort][is_strm],
     data["phi2"][psort][is_strm],
@@ -214,8 +203,8 @@ legend_elements_data = [
     ),
 ]
 legend = plt.legend(
-    [legend_elements_data, f1],
-    ["Data", "Model"],
+    [legend_elements_data],
+    ["Data"],
     numpoints=1,
     ncol=(2, 2),
     loc="upper left",
