@@ -13,7 +13,7 @@ import torch as xp
 from scipy.interpolate import CubicSpline
 from torch import nn
 
-from stream_ml.core.utils.funcs import pairwise_distance
+from stream_ml.core.utils import pairwise_distance
 from stream_ml.pytorch.builtin.compat._flow import _FlowModel
 
 if TYPE_CHECKING:
@@ -21,8 +21,7 @@ if TYPE_CHECKING:
 
     from matplotlib.colors import LinearSegmentedColormap
 
-    from stream_ml.core import ModelAPI
-    from stream_ml.core.params import Params
+    from stream_ml.core import ModelAPI, Params
     from stream_ml.core.typing import Array, ArrayNamespace
 
 

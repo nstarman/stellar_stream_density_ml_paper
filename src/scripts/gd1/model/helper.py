@@ -19,8 +19,7 @@ from scipy import stats
 from showyourwork.paths import user as user_paths
 
 import stream_ml.visualization as smlvis
-from stream_ml.core import WEIGHT_NAME, Data
-from stream_ml.pytorch.params import Params
+from stream_ml.core import WEIGHT_NAME, Data, Params
 from stream_ml.visualization.background import (
     exponential_like_distribution as exp_distr,
 )

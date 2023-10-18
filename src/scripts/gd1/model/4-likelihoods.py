@@ -9,7 +9,7 @@ from astropy.table import QTable
 from showyourwork.paths import user as user_paths
 from tqdm import tqdm
 
-from stream_ml.pytorch.params import Params
+from stream_ml.core import Params
 
 paths = user_paths()
 

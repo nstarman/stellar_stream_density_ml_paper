@@ -18,8 +18,7 @@ from matplotlib.legend_handler import HandlerTuple
 from matplotlib.lines import Line2D
 from showyourwork.paths import user as user_paths
 
-from stream_ml.core import WEIGHT_NAME
-from stream_ml.pytorch.params import Params
+from stream_ml.core import WEIGHT_NAME, Params
 
 paths = user_paths()
 
