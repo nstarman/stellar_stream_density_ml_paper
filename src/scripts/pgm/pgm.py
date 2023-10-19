@@ -72,7 +72,7 @@ pgm.add_edge("stream_w,obs", "stream_x,obs")
 pgm.add_edge("stream_m,obs", "stream_x,obs")
 
 # Mixture probability
-pgm.add_node("stream_mixture_coefficient", r"$\alpha_q$", 1, 3)
+pgm.add_node("stream_mixture_coefficient", r"$f_q$", 1, 3)
 pgm.add_node("stream_mixture_index", r"$q_n$", 1, 1)
 pgm.add_edge("stream_mixture_coefficient", "stream_mixture_index")
 pgm.add_edge("stream_mixture_index", "stream_x,obs")
@@ -162,7 +162,7 @@ pgm.add_edge("w,obs", "x,obs")
 pgm.add_edge("m,obs", "x,obs")
 
 # Mixture probability
-pgm.add_node("mixture_coefficient", r"$\alpha_q$", base_shift + 1, 3)
+pgm.add_node("mixture_coefficient", r"$f_q$", base_shift + 1, 3)
 pgm.add_node("mixture_index", r"$q_n$", base_shift + 1, 1)
 pgm.add_edge("mixture_coefficient", "mixture_index")
 pgm.add_edge("mixture_index", "x,obs")
