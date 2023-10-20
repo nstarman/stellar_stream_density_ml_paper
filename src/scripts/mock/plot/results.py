@@ -130,6 +130,7 @@ ax01 = fig.add_subplot(
     ylim=(0, 0.5),
     xticklabels=[],
     aspect="auto",
+    rasterization_zorder=0,
 )
 
 # Truth
@@ -144,10 +145,13 @@ ax01.bar(
     edgecolor="k",
     color="none",
     label="Ground Truth",
+    zorder=-10,
 )
 
 # Model
-ax01.plot(data["phi1"], np.exp(weight), c=cmap(0.99), ls="--", lw=2, label="Model")
+ax01.plot(
+    data["phi1"], np.exp(weight), c=cmap(0.99), ls="--", lw=2, label="Model", zorder=-5
+)
 
 for tick in ax01.get_yticklabels():
     tick.set_verticalalignment("bottom")
@@ -161,7 +165,12 @@ mpa = mpars.get_prefixed("stream.astrometric")
 
 gs02 = gs0[2].subgridspec(2, 1, height_ratios=(1, 3), wspace=0.0, hspace=0.0)
 ax02 = fig.add_subplot(
-    gs02[0, :], xlim=xlim, xticklabels=[], ylabel=r"$\sigma_{\phi_2}$", aspect="auto"
+    gs02[0, :],
+    xlim=xlim,
+    xticklabels=[],
+    ylabel=r"$\sigma_{\phi_2}$",
+    aspect="auto",
+    rasterization_zorder=0,
 )
 
 # Truth
@@ -175,7 +184,7 @@ true_std = np.array(
         for i in range(1, len(bin_edges))
     ]
 )
-ax02.plot(bin_centers, true_std, c="k", label="Ground Truth")
+ax02.plot(bin_centers, true_std, c="k", label="Ground Truth", zorder=-10)
 
 # Model
 ax02.fill_between(
@@ -185,12 +194,14 @@ ax02.fill_between(
     color=cmap(0.99),
     alpha=0.25,
     where=where,
+    zorder=-5,
 )
 ax02.scatter(
     data["phi1"][where],
     np.exp(mpa["phi2", "ln-sigma"][where]),
     s=1,
     c=cmap(0.99),
+    zorder=-4,
 )
 
 for tick in ax02.get_yticklabels():
@@ -214,8 +225,8 @@ ax03.scatter(
     s=10,
     c="k",
     alpha=0.5,
-    zorder=-100,
     label="Ground Truth",
+    zorder=-11,
 )
 line = ax03.scatter(
     data["phi1"][psort],
@@ -235,6 +246,7 @@ ax03.plot(
     ls="--",
     lw=1,
     label="Model",
+    zorder=-9,
 )
 
 # legend
@@ -255,7 +267,12 @@ ax03.legend(
 
 gs04 = gs0[3].subgridspec(2, 1, height_ratios=(1, 3), wspace=0.0, hspace=0.0)
 ax04 = fig.add_subplot(
-    gs04[0, :], xlim=xlim, xticklabels=[], ylabel=r"$\sigma_{\varpi}$", aspect="auto"
+    gs04[0, :],
+    xlim=xlim,
+    xticklabels=[],
+    ylabel=r"$\sigma_{\varpi}$",
+    aspect="auto",
+    rasterization_zorder=0,
 )
 
 # Truth
@@ -266,7 +283,7 @@ true_std = np.array(
         for i in range(1, len(bin_edges))
     ]
 )
-ax04.plot(bin_centers, true_std, c="k", label="Ground Truth")
+ax04.plot(bin_centers, true_std, c="k", label="Ground Truth", zorder=-10)
 
 # Model
 ax04.fill_between(
@@ -278,12 +295,14 @@ ax04.fill_between(
     color=cmap(0.99),
     alpha=0.25,
     where=where,
+    zorder=-5,
 )
 ax04.scatter(
     data["phi1"][where],
     np.exp(mpa["parallax", "ln-sigma"][where]),
     s=1,
     c=cmap(0.99),
+    zorder=-4,
 )
 
 for tick in ax04.get_yticklabels():
@@ -308,8 +327,8 @@ ax05.scatter(
     s=10,
     c="k",
     alpha=0.5,
-    zorder=-100,
     label="Ground Truth",
+    zorder=-11,
 )
 ax05.scatter(
     data["phi1"][psort],
@@ -328,6 +347,7 @@ ax05.plot(
     ls="--",
     lw=1,
     label="Model",
+    zorder=-9,
 )
 
 xlabel = ax05.xaxis.get_label()
@@ -480,7 +500,7 @@ for i, b in enumerate(np.unique(which_bin)):
         c=prob[sorter],
         cmap="seismic",
         s=1,
-        zorder=-10,
+        zorder=-11,
     )
 
     prob = bkg_prob[sel]

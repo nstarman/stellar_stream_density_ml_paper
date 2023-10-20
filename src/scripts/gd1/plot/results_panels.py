@@ -142,7 +142,12 @@ cbar.ax.text(0.5, 0.5, "Spur Probability", ha="center", va="center", fontsize=14
 # Weight plot
 
 ax02 = fig.add_subplot(
-    gs0[1, :], xlim=xlims, xticklabels=[], ylabel=r"$f_{\rm stream}$", ylim=(0, 0.25)
+    gs0[1, :],
+    xlim=xlims,
+    xticklabels=[],
+    ylabel=r"$f_{\rm stream}$",
+    ylim=(0, 0.25),
+    rasterization_zorder=0,
 )
 
 f1 = ax02.fill_between(
@@ -151,6 +156,7 @@ f1 = ax02.fill_between(
     np.exp(np.percentile(stream_wgt, 95, axis=1)),
     color=cmap1(0.99),
     alpha=0.25,
+    zorder=-10,
 )
 (l1,) = ax02.plot(
     data["phi1"],
@@ -158,6 +164,7 @@ f1 = ax02.fill_between(
     c=cmap1(0.99),
     ls="--",
     lw=2,
+    zorder=-9,
 )
 f2 = ax02.fill_between(
     data["phi1"],
@@ -165,6 +172,7 @@ f2 = ax02.fill_between(
     np.exp(np.percentile(spur_wgt, 95, axis=1)),
     color=cmap2(0.99),
     alpha=0.25,
+    zorder=-10,
 )
 (l2,) = ax02.plot(
     data["phi1"],
@@ -172,6 +180,7 @@ f2 = ax02.fill_between(
     c=cmap2(0.99),
     ls="--",
     lw=2,
+    zorder=-9,
 )
 
 ax02.legend(
@@ -397,6 +406,7 @@ for i, b in enumerate(np.unique(which_bin)):
         data_["g"],
         c=colors[sel[psort]],
         s=1,
+        zorder=-10,
     )
     ax14i.plot(
         isochrone_data["g"] - isochrone_data["r"],
@@ -404,6 +414,7 @@ for i, b in enumerate(np.unique(which_bin)):
         + mpars["stream.photometric.distmod", "mu"][sel].mean().numpy(),
         c="green",
         label="Isochrone",
+        zorder=-5,
     )
 
     if i == 0:
