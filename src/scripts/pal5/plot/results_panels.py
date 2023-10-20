@@ -135,6 +135,7 @@ f1 = ax01.fill_between(
     color=cmap1(0.99),
     alpha=0.25,
     where=strm_range,
+    zorder=-10,
 )
 # Mean
 (l1,) = ax01.plot(
@@ -144,6 +145,7 @@ f1 = ax01.fill_between(
     ls="--",
     lw=2,
     label="Mean",
+    zorder=-5,
 )
 
 ax01.legend([(f1, l1)], [r"Model "], numpoints=1, loc="upper left")
@@ -214,6 +216,7 @@ ax02.add_artist(legend)
 
 xlabel = ax02.xaxis.get_label()
 xlabel.set_bbox({"facecolor": "white", "edgecolor": "white"})
+ax02.locator_params(axis="x", nbins=10)
 
 # =============================================================================
 # Slice plots
@@ -388,7 +391,13 @@ for i, b in enumerate(np.unique(which_bin)):
     )
     ax14i.set_xticks([0.1, 0.5, 0.9], ["0.1", "0.5", "0.9"])
 
-    ax14i.scatter(data_["g"] - data_["r"], data_["g"], c=colors[in_bin[psort]], s=1)
+    ax14i.scatter(
+        data_["g"] - data_["r"],
+        data_["g"],
+        c=colors[in_bin[psort]],
+        s=1,
+        zorder=-10,
+    )
 
     for label in ax14i.get_xticklabels():
         label.set_horizontalalignment("center")
