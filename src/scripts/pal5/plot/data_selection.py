@@ -97,6 +97,7 @@ ax00.hist2d(
     bins=(np.linspace(-22, 2, 128), np.linspace(-9, 4, 128)),
     cmap="Greys",
     norm=mpl.colors.LogNorm(),
+    zorder=-10,
 )
 ax00.add_patch(
     _sel_patch(pm_edges.loc["tight_icrs"], "pm_phi1", "pm_phi2", color="tab:blue")
@@ -152,6 +153,7 @@ ax10.hist2d(
     label="GD-1",
     norm=mpl.colors.LogNorm(),
     cmap="Greys",
+    zorder=-10,
 )
 
 ax10.plot(
@@ -159,6 +161,7 @@ ax10.plot(
     isochrone_15[:, 0],
     c="tab:blue",
     label="isochrone",
+    zorder=-5,
 )
 
 ax10.set_ylim(24, 12)
@@ -167,7 +170,12 @@ ax10.legend(loc="upper left")
 # -----------------------------------------------------------------------------
 # Phot selection
 
-ax11 = fig.add_subplot(gs0[1, 1], xlabel=r"$\phi_1$ [deg]", ylabel=r"$\phi_2$ [deg]")
+ax11 = fig.add_subplot(
+    gs0[1, 1],
+    xlabel=r"$\phi_1$ [deg]",
+    ylabel=r"$\phi_2$ [deg]",
+    rasterization_zorder=0,
+)
 ax11.hist2d(
     table["phi1"][~masks_table["phot_15"]].value,
     table["phi2"][~masks_table["phot_15"]].value,
@@ -176,6 +184,7 @@ ax11.hist2d(
     bins=200,
     alpha=0.5,
     norm=mpl.colors.LogNorm(),
+    zorder=-10,
 )
 
 # -----------------------------------------------------------------------------
@@ -192,6 +201,7 @@ ax30 = fig.add_subplot(
     gs1[0, 0],
     xlabel=r"$\phi_1$ [deg]",
     ylabel=r"$\phi_2$ [$\degree$]",
+    rasterization_zorder=0,
 )
 ax30.hist2d(
     table["phi1"].value[sel],
@@ -200,6 +210,7 @@ ax30.hist2d(
     density=True,
     bins=100,
     norm=mpl.colors.LogNorm(),
+    zorder=-10,
 )
 # add text to the top left corner of the plot saying log-density
 ax30.text(
@@ -215,19 +226,28 @@ ax30.set_axisbelow(False)
 
 
 # Parallax
-ax31 = fig.add_subplot(gs1[0, 1], xlabel=r"$\phi_1$ [deg]", ylabel=r"$\varpi$ [mas]")
+ax31 = fig.add_subplot(
+    gs1[0, 1],
+    xlabel=r"$\phi_1$ [deg]",
+    ylabel=r"$\varpi$ [mas]",
+    rasterization_zorder=0,
+)
 ax31.hist2d(
     table["phi1"].value[sel],
     table["parallax"].value[sel],
     cmap="Blues",
     density=True,
     bins=100,
+    zorder=-10,
 )
 ax31.set_axisbelow(False)
 
 # PM-Phi1
 ax32 = fig.add_subplot(
-    gs1[0, 2], xlabel=r"$\phi_1$ [deg]", ylabel=r"$\mu_{\phi_1}^*$ [mas yr$^{-1}$]"
+    gs1[0, 2],
+    xlabel=r"$\phi_1$ [deg]",
+    ylabel=r"$\mu_{\phi_1}^*$ [mas yr$^{-1}$]",
+    rasterization_zorder=0,
 )
 ax32.hist2d(
     table["phi1"].value[sel],
@@ -235,12 +255,16 @@ ax32.hist2d(
     cmap="Blues",
     density=True,
     bins=100,
+    zorder=-10,
 )
 ax32.set_axisbelow(False)
 
 # PM-Phi2
 ax33 = fig.add_subplot(
-    gs1[0, 3], xlabel=r"$\phi_1$ [deg]", ylabel=r"$\mu_{\phi_2}$ [mas yr$^{-1}$]"
+    gs1[0, 3],
+    xlabel=r"$\phi_1$ [deg]",
+    ylabel=r"$\mu_{\phi_2}$ [mas yr$^{-1}$]",
+    rasterization_zorder=0,
 )
 ax33.hist2d(
     table["phi1"].value[sel],
@@ -248,6 +272,7 @@ ax33.hist2d(
     cmap="Blues",
     density=True,
     bins=100,
+    zorder=-10,
 )
 ax33.set_axisbelow(False)
 
