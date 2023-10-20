@@ -38,7 +38,7 @@ except NameError:
         "epochs": 1_250 * 10,
         "lr": 1e-3,
         "weight_decay": 1e-8,
-        "early_stopping": 10600,
+        "early_stopping": -1,
     }
 
 if snkmk["load_from_static"]:
@@ -147,9 +147,12 @@ xp.save(model.state_dict(), paths.data / "pal5" / "model" / f"model_{epoch:04d}.
 # We institute early stopping to determine the "best" state of the model.
 
 # Load the early stopping model
-model.load_state_dict(
-    xp.load(paths.data / "pal5" / "model" / f"model_{snkmk['early_stopping']:04d}.pt")
-)
+if snkmk["early_stopping"] > 0:
+    model.load_state_dict(
+        xp.load(
+            paths.data / "pal5" / "model" / f"model_{snkmk['early_stopping']:04d}.pt"
+        )
+    )
 
 # Save the model
 xp.save(model.state_dict(), paths.data / "pal5" / "model.pt")
