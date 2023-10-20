@@ -65,7 +65,7 @@ with asdf.open(
 
 
 def diagnostic_plot(  # noqa: C901, PLR0912
-    model: ModelAPI, data: Data, where: Data
+    model: ModelAPI, data: Data, where: Data, cutoff: float = -7
 ) -> plt.Figure:
     """Plot the model."""
     # =============================================================================
@@ -98,8 +98,8 @@ def diagnostic_plot(  # noqa: C901, PLR0912
 
     # =============================================================================
 
-    stream_cutoff = mpars[(f"stream.{WEIGHT_NAME}",)] > -4
-    spur_cutoff = mpars[(f"spur.{WEIGHT_NAME}",)] > -5
+    stream_cutoff = mpars[(f"stream.{WEIGHT_NAME}",)] > cutoff
+    spur_cutoff = mpars[(f"spur.{WEIGHT_NAME}",)] > cutoff
 
     bkg_prob = xp.exp(bkg_lnlik - tot_lnlik)
     stream_prob = xp.exp(stream_lnlik - tot_lnlik)
