@@ -182,6 +182,7 @@ f1 = ax1.fill_between(
     color=cmap1(0.99),
     alpha=0.25,
     where=strm_range,
+    zorder=-10,
 )
 (l1,) = ax1.plot(
     data["phi1"][strm_range],
@@ -190,6 +191,7 @@ f1 = ax1.fill_between(
     ls="--",
     lw=2,
     label="Mean",
+    zorder=-9,
 )
 
 # Spur
@@ -200,6 +202,7 @@ f2 = ax1.fill_between(
     color=cmap2(0.99),
     alpha=0.25,
     where=spur_range,
+    zorder=-10,
 )
 (l2,) = ax1.plot(
     data["phi1"][spur_range],
@@ -207,6 +210,7 @@ f2 = ax1.fill_between(
     c=cmap2(0.99),
     ls="--",
     lw=2,
+    zorder=-9,
 )
 
 ax1.legend(
@@ -222,7 +226,12 @@ ax1.legend(
 
 gs2 = gs[2].subgridspec(2, 1, height_ratios=(1, 3), wspace=0.0, hspace=0.0)
 ax20 = fig.add_subplot(
-    gs2[0, :], xlim=xlims, xticklabels=[], ylabel=r"$\ln\sigma_{\phi_2}$", aspect="auto"
+    gs2[0, :],
+    xlim=xlims,
+    xticklabels=[],
+    ylabel=r"$\ln\sigma_{\phi_2}$",
+    aspect="auto",
+    rasterization_zorder=0,
 )
 
 # Model (stream)
@@ -234,12 +243,14 @@ ax20.fill_between(
     color=cmap1(0.99),
     alpha=0.25,
     where=strm_range,
+    zorder=-10,
 )
 ax20.scatter(
     data["phi1"][strm_range],
     np.percentile(ln_sigma, 50, axis=1)[strm_range],
     s=1,
     color=cmap1(0.99),
+    zorder=-9,
 )
 
 # Model (spur)
@@ -251,16 +262,15 @@ ax20.fill_between(
     color=cmap2(0.99),
     alpha=0.25,
     where=spur_range,
+    zorder=-10,
 )
 ax20.scatter(
     data["phi1"][spur_range],
     np.percentile(ln_sigma, 50, axis=1)[spur_range],
     s=1,
     color=cmap2(0.99),
+    zorder=-9,
 )
-
-# for tick in ax20.get_yticklabels():
-#     tick.set_verticalalignment("bottom")
 
 # ---------------------------------------------------------------------------
 # Phi2
@@ -359,6 +369,7 @@ f1 = ax21.fill_between(
     color=cmap1(0.99),
     alpha=0.25,
     where=strm_range,
+    zorder=-7,
 )
 
 # Model (spur)
@@ -370,6 +381,7 @@ f2 = ax21.fill_between(
     color=cmap2(0.99),
     alpha=0.25,
     where=spur_range,
+    zorder=-6,
 )
 
 # Legend
@@ -418,7 +430,12 @@ ax21.locator_params(axis="x", nbins=4)
 
 gs3 = gs[3].subgridspec(2, 1, height_ratios=(1, 3), wspace=0.0, hspace=0.0)
 ax30 = fig.add_subplot(
-    gs3[0, :], xlim=xlims, xticklabels=[], ylabel=r"$\ln\sigma_{\varpi}$", aspect="auto"
+    gs3[0, :],
+    xlim=xlims,
+    xticklabels=[],
+    ylabel=r"$\ln\sigma_{\varpi}$",
+    aspect="auto",
+    rasterization_zorder=0,
 )
 
 # Model (stream)
@@ -430,12 +447,14 @@ ax30.fill_between(
     color=cmap1(0.99),
     alpha=0.25,
     where=strm_range,
+    zorder=-10,
 )
 ax30.scatter(
     data["phi1"][strm_range],
     np.percentile(ln_sigma, 50, axis=1)[strm_range],
     s=1,
     color=cmap1(0.99),
+    zorder=-9,
 )
 
 # Model (spur)
@@ -447,12 +466,14 @@ ax30.fill_between(
     color=cmap2(0.99),
     alpha=0.25,
     where=spur_range,
+    zorder=-8,
 )
 ax30.scatter(
     data["phi1"][spur_range],
     np.percentile(ln_sigma, 50, axis=1)[spur_range],
     s=1,
     color=cmap2(0.99),
+    zorder=-7,
 )
 
 for tick in ax30.get_yticklabels():
@@ -501,7 +522,7 @@ ax31.scatter(
     c=colors[~is_strm],
     alpha=alphas[~is_strm],
     s=sizes[psort][~is_strm],
-    zorder=-10,
+    zorder=-15,
 )
 d1 = ax31.errorbar(
     data["phi1"][psort][is_strm],
@@ -509,7 +530,7 @@ d1 = ax31.errorbar(
     xerr=data["phi1_err"][psort][is_strm],
     yerr=data["plx_err"][psort][is_strm],
     **_stream_kw,
-    zorder=-9,
+    zorder=-14,
 )
 ax31.scatter(
     data["phi1"][psort][is_strm],
@@ -517,7 +538,7 @@ ax31.scatter(
     c=colors[is_strm],
     alpha=alphas[is_strm],
     s=sizes[psort][is_strm],
-    zorder=-8,
+    zorder=-13,
 )
 
 # Literature
@@ -537,6 +558,7 @@ f1 = ax31.fill_between(
     color=cmap1(0.99),
     alpha=0.25,
     where=strm_range,
+    zorder=-10,
 )
 
 # Model (spur)
@@ -547,6 +569,7 @@ f2 = ax31.fill_between(
     color=cmap2(0.99),
     alpha=0.25,
     where=spur_range,
+    zorder=-9,
 )
 
 ax31.set_ylim(data["plx"].min(), data["plx"].max())
@@ -556,7 +579,12 @@ ax31.set_ylim(data["plx"].min(), data["plx"].max())
 
 gs4 = gs[4].subgridspec(2, 1, height_ratios=(1, 3), wspace=0.0, hspace=0.0)
 ax40 = fig.add_subplot(
-    gs4[0, :], xlim=xlims, xticklabels=[], ylabel=r"$\ln\sigma_{\varpi}$", aspect="auto"
+    gs4[0, :],
+    xlim=xlims,
+    xticklabels=[],
+    ylabel=r"$\ln\sigma_{\varpi}$",
+    aspect="auto",
+    rasterization_zorder=0,
 )
 
 # Model (stream)
@@ -568,12 +596,14 @@ ax40.fill_between(
     color=cmap1(0.99),
     alpha=0.25,
     where=strm_range,
+    zorder=-10,
 )
 ax40.scatter(
     data["phi1"][strm_range],
     np.percentile(ln_sigma, 50, axis=1)[strm_range],
     s=1,
     color=cmap1(0.99),
+    zorder=-9,
 )
 
 # Model (spur)
@@ -585,12 +615,14 @@ ax40.fill_between(
     color=cmap2(0.99),
     alpha=0.25,
     where=spur_range,
+    zorder=-8,
 )
 ax40.scatter(
     data["phi1"][spur_range],
     np.percentile(ln_sigma, 50, axis=1)[spur_range],
     s=1,
     color=cmap2(0.99),
+    zorder=-7,
 )
 
 for tick in ax40.get_yticklabels():
@@ -663,7 +695,7 @@ ax41.scatter(
     c=colors[~is_strm],
     alpha=alphas[~is_strm],
     s=sizes[psort][~is_strm],
-    zorder=-10,
+    zorder=-15,
 )
 d1 = ax41.errorbar(
     data["phi1"][psort][is_strm],
@@ -671,7 +703,7 @@ d1 = ax41.errorbar(
     xerr=data["phi1_err"][psort][is_strm],
     yerr=data["pmphi1_err"][psort][is_strm],
     **_stream_kw,
-    zorder=-9,
+    zorder=-14,
 )
 ax41.scatter(
     data["phi1"][psort][is_strm],
@@ -679,7 +711,7 @@ ax41.scatter(
     c=colors[is_strm],
     alpha=alphas[is_strm],
     s=sizes[psort][is_strm],
-    zorder=-8,
+    zorder=-13,
 )
 
 # Literature
@@ -698,6 +730,7 @@ f1 = ax41.fill_between(
     color=cmap1(0.99),
     alpha=0.25,
     where=strm_range,
+    zorder=-10,
 )
 
 # Model (spur)
@@ -708,6 +741,7 @@ f2 = ax41.fill_between(
     color=cmap2(0.99),
     alpha=0.25,
     where=spur_range,
+    zorder=-9,
 )
 
 
@@ -716,7 +750,12 @@ f2 = ax41.fill_between(
 
 gs5 = gs[5].subgridspec(2, 1, height_ratios=(1, 3), wspace=0.0, hspace=0.0)
 ax50 = fig.add_subplot(
-    gs5[0, :], xlim=xlims, xticklabels=[], ylabel=r"$\ln\sigma_{\varpi}$", aspect="auto"
+    gs5[0, :],
+    xlim=xlims,
+    xticklabels=[],
+    ylabel=r"$\ln\sigma_{\varpi}$",
+    aspect="auto",
+    rasterization_zorder=0,
 )
 
 # Model (stream)
@@ -728,12 +767,14 @@ ax50.fill_between(
     color=cmap1(0.99),
     alpha=0.25,
     where=strm_range,
+    zorder=-10,
 )
 ax50.scatter(
     data["phi1"][strm_range],
     np.percentile(ln_sigma, 50, axis=1)[strm_range],
     s=1,
     color=cmap1(0.99),
+    zorder=-9,
 )
 
 # Model (spur)
@@ -745,12 +786,14 @@ ax50.fill_between(
     color=cmap2(0.99),
     alpha=0.25,
     where=spur_range,
+    zorder=-10,
 )
 ax50.scatter(
     data["phi1"][spur_range],
     np.percentile(ln_sigma, 50, axis=1)[spur_range],
     s=1,
     color=cmap2(0.99),
+    zorder=-8,
 )
 
 for tick in ax50.get_yticklabels():
@@ -807,6 +850,7 @@ f1 = ax51.fill_between(
     color=cmap1(0.99),
     alpha=0.25,
     where=strm_range,
+    zorder=-6,
 )
 
 # Model (stream)
@@ -817,6 +861,7 @@ f2 = ax51.fill_between(
     color=cmap2(0.99),
     alpha=0.25,
     where=spur_range,
+    zorder=-5,
 )
 
 ax51.set_ylim(data["pmphi2"].min(), data["pmphi2"].max())
@@ -826,7 +871,11 @@ ax51.set_ylim(data["pmphi2"].min(), data["pmphi2"].max())
 # Distance
 
 ax6 = fig.add_subplot(
-    gs[6, :], xlabel=r"$\phi_1$ [deg]", ylabel=r"$d$ [kpc]", xlim=xlims
+    gs[6, :],
+    xlabel=r"$\phi_1$ [deg]",
+    ylabel=r"$d$ [kpc]",
+    xlim=xlims,
+    rasterization_zorder=0,
 )
 
 mu = Distance(distmod=distance_cp["distmod"])
@@ -877,6 +926,7 @@ ax6.fill_between(
     alpha=0.15,
     color=cmap1(0.99),
     where=strm_range,
+    zorder=-15,
 )
 f1 = ax6.fill_between(
     data["phi1"],
@@ -885,6 +935,7 @@ f1 = ax6.fill_between(
     alpha=0.25,
     color=cmap1(0.99),
     where=strm_range,
+    zorder=-14,
 )
 
 # Model (spur)
@@ -901,6 +952,7 @@ ax6.fill_between(
     alpha=0.15,
     color=cmap2(0.99),
     where=spur_range,
+    zorder=-13,
 )
 f2 = ax6.fill_between(
     data["phi1"],
@@ -909,6 +961,7 @@ f2 = ax6.fill_between(
     alpha=0.25,
     color=cmap2(0.99),
     where=spur_range,
+    zorder=-12,
 )
 
 fig.savefig(paths.figures / "gd1" / "results_full.pdf")
