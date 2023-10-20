@@ -1,5 +1,6 @@
 """Plot GD1 Likelihoods."""
 
+import contextlib
 import sys
 from io import StringIO
 
@@ -234,6 +235,12 @@ write_kwargs = {
 out = StringIO()
 table.write(out, **write_kwargs)
 lines = out.getvalue().split("\n")
+
+# pop the units
+with contextlib.suppress(IndexError):
+    lines.pop(
+        lines.index("$\\mathrm{{}^{\\circ}}$ &  &  &  \\")
+    )
 
 # color the lines
 end = lines.index("\\bottomrule\\bottomrule")
