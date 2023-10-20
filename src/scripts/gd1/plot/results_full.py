@@ -51,7 +51,7 @@ distance_cp = QTable.read(paths.data / "gd1" / "control_points_distance.ecsv")
 
 # Load model
 model = pycopy.deepcopy(model)
-model.load_state_dict(xp.load(paths.data / "gd1" / "model" / "model_12499.pt"))
+model.load_state_dict(xp.load(paths.data / "gd1" / "model.pt"))
 model = model.eval()
 
 # Load results from 4-likelihoods.py
