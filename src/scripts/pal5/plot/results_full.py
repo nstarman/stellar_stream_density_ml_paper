@@ -48,7 +48,7 @@ model = model.eval()
 # Load results from 4-likelihoods.py
 lik_tbl = QTable.read(paths.data / "pal5" / "membership_likelhoods.ecsv")
 stream_prob = np.array(lik_tbl["stream (50%)"])
-stream_wgt = np.array(lik_tbl["stream.ln-weight"])
+stream_lnwgt = np.array(lik_tbl["stream.ln-weight"])
 
 # Progenitor
 progenitor_prob = np.zeros(len(masks))
@@ -71,7 +71,7 @@ is_strm = is_strm_[psort]
 strm_range = (data["phi1"][is_strm_].min() <= data["phi1"]) & (
     data["phi1"] <= data["phi1"][is_strm_].max()
 )
-is_progenitor = ~((data["phi1"] < -0.6) | (data["phi1"] > 0.6))[psort].numpy()
+is_progenitor = ~((data["phi1"] < -0.3) | (data["phi1"] > 0.3))[psort].numpy()
 
 # Also evaluate the model with dropout on
 with xp.no_grad():
@@ -93,7 +93,7 @@ with xp.no_grad():
 ##############################################################################
 # Make Figure
 
-fig = plt.figure(figsize=(11, 15))
+fig = plt.figure(figsize=(11.5, 15))
 
 gs = GridSpec(
     6,
@@ -102,7 +102,7 @@ gs = GridSpec(
     height_ratios=(1, 3, 6.5, 5, 6.5, 6.5),
     hspace=0.15,
     left=0.07,
-    right=0.98,
+    right=0.98,  # if secondary axis -> 0.94
     top=0.965,
     bottom=0.03,
 )
@@ -149,15 +149,15 @@ ax01.axhline(_bounds.upper[0], **_bounds_kw)
 # Stream
 f1 = ax01.fill_between(
     data["phi1"],
-    np.percentile(stream_wgt, 5, axis=1),
-    np.percentile(stream_wgt, 95, axis=1),
+    np.percentile(stream_lnwgt, 5, axis=1),
+    np.percentile(stream_lnwgt, 95, axis=1),
     color=cmap1(0.99),
     alpha=0.25,
     zorder=-10,
 )
 (l1,) = ax01.plot(
     data["phi1"],
-    np.percentile(stream_wgt, 50, axis=1),
+    np.percentile(stream_lnwgt, 50, axis=1),
     c=cmap1(0.99),
     ls="--",
     lw=2,
@@ -165,6 +165,22 @@ f1 = ax01.fill_between(
     zorder=-5,
 )
 
+# # Linear Density
+# kernel = gaussian_kde(data["phi1"], bw_method=0.05)
+
+# secax_y = ax01.twinx()
+# color = "tab:blue"
+# secax_y.set_ylabel(r"$\ln \rm{N}_{\rm stream}(\phi_1)$", color=color)
+# y = (
+#     np.log(len(data))
+#     + np.log(kernel(data["phi1"]))
+#     + np.percentile(stream_lnwgt, 50, axis=1)
+# )
+# secax_y.plot(data["phi1"], y, color=color)
+# secax_y.tick_params(axis="y", labelcolor=color)
+# secax_y.set_ylim(2, y.max() + 0.5)
+
+# Legend
 ax01.legend([(f1, l1)], [r"Model"], numpoints=1, loc="upper left")
 
 
