@@ -1,6 +1,5 @@
 """Plot results."""
 
-
 import sys
 
 import astropy.units as u
