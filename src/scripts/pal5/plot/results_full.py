@@ -42,7 +42,7 @@ stream_cp = QTable.read(paths.data / "pal5" / "control_points_stream.ecsv")
 
 # Load model
 model = pycopy.deepcopy(model)
-model.load_state_dict(xp.load(paths.data / "pal5" / "model" / "model_10800.pt"))
+model.load_state_dict(xp.load(paths.data / "pal5" / "model.pt"))
 model = model.eval()
 
 # Load results from 4-likelihoods.py
@@ -71,6 +71,7 @@ is_strm = is_strm_[psort]
 strm_range = (data["phi1"][is_strm_].min() <= data["phi1"]) & (
     data["phi1"] <= data["phi1"][is_strm_].max()
 )
+is_progenitor = ~((data["phi1"] < -0.6) | (data["phi1"] > 0.6))[psort].numpy()
 
 # Also evaluate the model with dropout on
 with xp.no_grad():
@@ -152,6 +153,7 @@ f1 = ax01.fill_between(
     np.percentile(stream_wgt, 95, axis=1),
     color=cmap1(0.99),
     alpha=0.25,
+    zorder=-10,
 )
 (l1,) = ax01.plot(
     data["phi1"],
@@ -160,6 +162,7 @@ f1 = ax01.fill_between(
     ls="--",
     lw=2,
     label="Mean",
+    zorder=-5,
 )
 
 ax01.legend([(f1, l1)], [r"Model"], numpoints=1, loc="upper left")
@@ -170,7 +173,12 @@ ax01.legend([(f1, l1)], [r"Model"], numpoints=1, loc="upper left")
 
 gs2 = gs[2].subgridspec(2, 1, height_ratios=(1, 3), wspace=0.0, hspace=0.0)
 ax02 = fig.add_subplot(
-    gs2[0, :], xlim=xlims, xticklabels=[], ylabel=r"$\ln\sigma_{\phi_2}$", aspect="auto"
+    gs2[0, :],
+    xlim=xlims,
+    xticklabels=[],
+    ylabel=r"$\ln\sigma_{\phi_2}$",
+    aspect="auto",
+    rasterization_zorder=0,
 )
 
 ln_sigma = dmpars["stream.astrometric.phi2", "ln-sigma"]
@@ -183,12 +191,14 @@ ax02.fill_between(
     color=cmap1(0.99),
     alpha=0.25,
     where=strm_range,
+    zorder=-10,
 )
 ax02.scatter(
     data["phi1"][strm_range],
     np.percentile(ln_sigma, 50, axis=1)[strm_range],
     s=1,
     color=cmap1(0.99),
+    zorder=-5,
 )
 
 for tick in ax02.get_yticklabels():
@@ -244,11 +254,19 @@ ax03.scatter(
     zorder=-10,
 )
 d1 = ax03.errorbar(
-    data["phi1"][psort][is_strm],
-    data["phi2"][psort][is_strm],
-    xerr=data["phi1_err"][psort][is_strm],
-    yerr=data["phi2_err"][psort][is_strm],
+    data["phi1"][psort][is_strm & ~is_progenitor],
+    data["phi2"][psort][is_strm & ~is_progenitor],
+    xerr=data["phi1_err"][psort][is_strm & ~is_progenitor],
+    yerr=data["phi2_err"][psort][is_strm & ~is_progenitor],
     **_stream_kw,
+    zorder=-9,
+)
+ax03.errorbar(
+    data["phi1"][psort][is_strm & is_progenitor],
+    data["phi2"][psort][is_strm & is_progenitor],
+    xerr=data["phi1_err"][psort][is_strm & is_progenitor],
+    yerr=data["phi2_err"][psort][is_strm & is_progenitor],
+    **(_stream_kw | {"alpha": 0.05}),
     zorder=-9,
 )
 ax03.scatter(
@@ -317,9 +335,6 @@ ax03.add_artist(legend)
 
 
 # ---------------------------------------------------------------------------
-# Parallax - variance
-
-# ---------------------------------------------------------------------------
 # Parallax
 
 ax05 = fig.add_subplot(
@@ -342,13 +357,22 @@ ax05.scatter(
     zorder=-10,
 )
 ax05.errorbar(
-    data["phi1"][psort][is_strm],
-    data["plx"][psort][is_strm],
-    xerr=data["phi1_err"][psort][is_strm],
-    yerr=data["plx_err"][psort][is_strm],
+    data["phi1"][psort][is_strm & ~is_progenitor],
+    data["plx"][psort][is_strm & ~is_progenitor],
+    xerr=data["phi1_err"][psort][is_strm & ~is_progenitor],
+    yerr=data["plx_err"][psort][is_strm & ~is_progenitor],
     **_stream_kw,
     zorder=-9,
 )
+ax05.errorbar(
+    data["phi1"][psort][is_strm & is_progenitor],
+    data["plx"][psort][is_strm & is_progenitor],
+    xerr=data["phi1_err"][psort][is_strm & is_progenitor],
+    yerr=data["plx_err"][psort][is_strm & is_progenitor],
+    **(_stream_kw | {"alpha": 0.05}),
+    zorder=-9,
+)
+
 ax05.scatter(
     data["phi1"][psort][is_strm],
     data["plx"][psort][is_strm],
@@ -373,6 +397,7 @@ ax06 = fig.add_subplot(
     xticklabels=[],
     ylabel=r"$\ln\sigma_{\mu_{\phi_1}^*}$",
     aspect="auto",
+    rasterization_zorder=0,
 )
 
 ln_sigma = dmpars["stream.astrometric.pmphi1", "ln-sigma"]
@@ -385,12 +410,14 @@ ax06.fill_between(
     color=cmap1(0.99),
     alpha=0.25,
     where=strm_range,
+    zorder=-10,
 )
 ax06.scatter(
     data["phi1"][strm_range],
     (np.percentile(ln_sigma, 50, axis=1)[strm_range]),
     s=1,
     color=cmap1(0.99),
+    zorder=-5,
 )
 
 for tick in ax06.get_yticklabels():
@@ -421,11 +448,19 @@ ax07.scatter(
     zorder=-10,
 )
 ax07.errorbar(
-    data["phi1"][psort][is_strm],
-    data["pmphi1"][psort][is_strm],
-    xerr=data["phi1_err"][psort][is_strm],
-    yerr=data["pmphi1_err"][psort][is_strm],
+    data["phi1"][psort][is_strm & ~is_progenitor],
+    data["pmphi1"][psort][is_strm & ~is_progenitor],
+    xerr=data["phi1_err"][psort][is_strm & ~is_progenitor],
+    yerr=data["pmphi1_err"][psort][is_strm & ~is_progenitor],
     **_stream_kw,
+    zorder=-9,
+)
+ax07.errorbar(
+    data["phi1"][psort][is_strm & is_progenitor],
+    data["pmphi1"][psort][is_strm & is_progenitor],
+    xerr=data["phi1_err"][psort][is_strm & is_progenitor],
+    yerr=data["pmphi1_err"][psort][is_strm & is_progenitor],
+    **(_stream_kw | {"alpha": 0.05}),
     zorder=-9,
 )
 ax07.scatter(
@@ -459,6 +494,7 @@ ax07.fill_between(
     color=cmap1(0.99),
     alpha=0.25,
     where=strm_range,
+    zorder=-5,
 )
 
 # ---------------------------------------------------------------------------
@@ -471,6 +507,7 @@ ax08 = fig.add_subplot(
     xticklabels=[],
     ylabel=r"$ln\sigma_{\mu_{\phi_2}}$",
     aspect="auto",
+    rasterization_zorder=0,
 )
 
 ln_sigma = dmpars["stream.astrometric.pmphi2", "ln-sigma"]
@@ -483,12 +520,14 @@ ax08.fill_between(
     color=cmap1(0.99),
     alpha=0.25,
     where=strm_range,
+    zorder=-10,
 )
 ax08.scatter(
     data["phi1"][strm_range],
     (np.percentile(ln_sigma, 50, axis=1))[strm_range],
     s=1,
     color=cmap1(0.99),
+    zorder=-5,
 )
 
 for tick in ax08.get_yticklabels():
@@ -518,11 +557,19 @@ ax09.scatter(
     zorder=-10,
 )
 ax09.errorbar(
-    data["phi1"][psort][is_strm],
-    data["pmphi2"][psort][is_strm],
-    xerr=data["phi1_err"][psort][is_strm],
-    yerr=data["pmphi2_err"][psort][is_strm],
+    data["phi1"][psort][is_strm & ~is_progenitor],
+    data["pmphi2"][psort][is_strm & ~is_progenitor],
+    xerr=data["phi1_err"][psort][is_strm & ~is_progenitor],
+    yerr=data["pmphi2_err"][psort][is_strm & ~is_progenitor],
     **_stream_kw,
+    zorder=-9,
+)
+ax09.errorbar(
+    data["phi1"][psort][is_strm & is_progenitor],
+    data["pmphi2"][psort][is_strm & is_progenitor],
+    xerr=data["phi1_err"][psort][is_strm & is_progenitor],
+    yerr=data["pmphi2_err"][psort][is_strm & is_progenitor],
+    **(_stream_kw | {"alpha": 0.05}),
     zorder=-9,
 )
 ax09.scatter(
@@ -546,6 +593,9 @@ ax09.fill_between(
     color=cmap1(0.99),
     alpha=0.25,
     where=strm_range,
+    zorder=-5,
 )
+
+# ===========================================================================
 
 fig.savefig(paths.figures / "pal5" / "results_full.pdf")
