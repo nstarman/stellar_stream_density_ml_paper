@@ -75,18 +75,18 @@ def _sel_patch(row: Row, k1: str, k2: str, **kwargs: Any) -> mpl.patches.Rectang
     return rec
 
 
-fig = plt.figure(layout="constrained", figsize=(11, 8))
-outer_grid = fig.add_gridspec(2, 1, wspace=0, hspace=0, height_ratios=[2, 1])
+fig = plt.figure(layout="constrained", figsize=(11, 6))
+outer_grid = fig.add_gridspec(2, 1, wspace=0, hspace=0, height_ratios=[1, 1.75])
 
-gs0 = outer_grid[0, :].subgridspec(2, 2, width_ratios=[1, 3])
-gs1 = outer_grid[1, :].subgridspec(1, 4, width_ratios=[1, 1, 1, 1])
+gs0 = outer_grid[0, :].subgridspec(1, 4, width_ratios=[1, 3, 3, 1])
+gs1 = outer_grid[1, :].subgridspec(2, 2)
 
 
 # -----------------------------------------------------------------------------
 # PM space
 
 ax00 = fig.add_subplot(
-    gs0[0, 0],
+    gs0[0, 1],
     xlabel=r"$\mu_{\phi_1}$ [mas yr$^{-1}$]",
     ylabel=r"$\mu_{\phi_2}$ [mas yr$^{-1}$]",
     rasterization_zorder=100,
@@ -100,38 +100,16 @@ ax00.hist2d(
     zorder=-10,
 )
 ax00.add_patch(
-    _sel_patch(pm_edges.loc["tight_icrs"], "pm_phi1", "pm_phi2", color="tab:blue")
+    _sel_patch(pm_edges.loc["med_icrs"], "pm_phi1", "pm_phi2", color="tab:blue")
 )
 
 ax00.set_xlim(-10, None)
 
 # -----------------------------------------------------------------------------
-# PM selection
-
-ax01 = fig.add_subplot(
-    gs0[0, 1],
-    xlabel=r"$\phi_1$ [deg]",
-    ylabel=r"$\phi_2$ [deg]",
-    xlim=(p1min, p1max),
-    ylim=(p2min, p2max),
-    rasterization_zorder=0,
-)
-ax01.plot(
-    table["phi1"][masks_table["pm_tight_icrs"]],
-    table["phi2"][masks_table["pm_tight_icrs"]],
-    c="tab:blue",
-    marker=",",
-    linestyle="none",
-    alpha=1,
-    zorder=-10,
-)
-ax01.set_axisbelow(False)
-
-# -----------------------------------------------------------------------------
 # Phot space
 
 ax10 = fig.add_subplot(
-    gs0[1, 0],
+    gs0[0, 2],
     xlabel=r"$g_0 - i_0$ [mag]",
     ylabel=r"$g_0$ [mag]",
     xlim=(-1, 3),
@@ -147,8 +125,8 @@ _mask = (
     & masks_table["things"]
 )
 ax10.hist2d(
-    (table["g0"] - table["i0"]).value[_mask & masks_table["pm_tight_icrs"]],
-    table["g0"].value[_mask & masks_table["pm_tight_icrs"]],
+    (table["g0"] - table["i0"]).value[_mask & masks_table["pm_med_icrs"]],
+    table["g0"].value[_mask & masks_table["pm_med_icrs"]],
     bins=100,
     label="GD-1",
     norm=mpl.colors.LogNorm(),
@@ -168,30 +146,10 @@ ax10.set_ylim(24, 12)
 ax10.legend(loc="upper left")
 
 # -----------------------------------------------------------------------------
-# Phot selection
-
-ax11 = fig.add_subplot(
-    gs0[1, 1],
-    xlabel=r"$\phi_1$ [deg]",
-    ylabel=r"$\phi_2$ [deg]",
-    rasterization_zorder=0,
-)
-ax11.hist2d(
-    table["phi1"][~masks_table["phot_15"]].value,
-    table["phi2"][~masks_table["phot_15"]].value,
-    cmap="Blues",
-    density=True,
-    bins=200,
-    alpha=0.5,
-    norm=mpl.colors.LogNorm(),
-    zorder=-10,
-)
-
-# -----------------------------------------------------------------------------
 # Combined Selection
 
 sel = (
-    masks_table["pm_tight_icrs"]
+    masks_table["pm_med_icrs"]
     & masks_table["phot_15"]
     & (table["parallax"] > -0.5 * u.mas)
 )
@@ -244,7 +202,7 @@ ax31.set_axisbelow(False)
 
 # PM-Phi1
 ax32 = fig.add_subplot(
-    gs1[0, 2],
+    gs1[1, 0],
     xlabel=r"$\phi_1$ [deg]",
     ylabel=r"$\mu_{\phi_1}^*$ [mas yr$^{-1}$]",
     rasterization_zorder=0,
@@ -261,7 +219,7 @@ ax32.set_axisbelow(False)
 
 # PM-Phi2
 ax33 = fig.add_subplot(
-    gs1[0, 3],
+    gs1[1, 1],
     xlabel=r"$\phi_1$ [deg]",
     ylabel=r"$\mu_{\phi_2}$ [mas yr$^{-1}$]",
     rasterization_zorder=0,
