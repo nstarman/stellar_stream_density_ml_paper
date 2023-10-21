@@ -42,19 +42,21 @@ axs[0].set(
     xlabel=(r"$\phi_1 \ $ [deg]"),
     ylabel=(r"$\phi_2 \ $ [deg]"),
     aspect=2,
-    rasterization_zorder=100,
+    rasterization_zorder=0,
 )
 _kw = {"ls": "none", "marker": ",", "ms": 1e-2}
-axs[0].plot(data["phi1"][off_stream], data["phi2"][off_stream], color="k", **_kw)
+axs[0].plot(
+    data["phi1"][off_stream], data["phi2"][off_stream], color="k", **_kw, zorder=-10
+)
 axs[0].plot(
     data["phi1"][~off_stream],
     data["phi2"][~off_stream],
     color="tab:blue",
     alpha=0.5,
-    **_kw
+    **_kw,
+    zorder=-10
 )
-axs[0].grid(visible=True, which="both", axis="y")
-axs[0].grid(visible=True, which="major", axis="x")
+axs[0].set_axisbelow(False)
 
 # -------------------------------------------------
 # Photometric
@@ -64,6 +66,7 @@ axs[1].set(
     ylabel=(r"$g \ $ [mag]"),
     aspect="auto",
     xlim=(0, 0.8),
+    rasterization_zorder=0,
 )
 
 axs[1].scatter(
@@ -72,6 +75,7 @@ axs[1].scatter(
     s=1,
     color="k",
     label="off-stream",
+    zorder=-10,
 )
 alpha = stream_kde(positions.T) - background_kde(positions.T)
 alpha[alpha < 0] = 0
@@ -81,7 +85,7 @@ axs[1].scatter(
     data["g"][~off_stream],
     s=1,
     alpha=0.05 + 0.95 * alpha,
-    rasterized=True,
+    zorder=-10,
     label="on-off",
 )
 axs[1].invert_yaxis()
