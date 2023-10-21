@@ -200,7 +200,6 @@ ax03 = fig.add_subplot(
     xlim=xlims,
     ylabel=r"$\phi_2$ [deg]",
     ylim=(-5, 5),
-    xticklabels=[],
     rasterization_zorder=0,
 )
 
