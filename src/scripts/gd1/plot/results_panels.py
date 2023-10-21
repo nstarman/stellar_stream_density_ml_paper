@@ -155,7 +155,7 @@ f1 = ax02.fill_between(
     np.exp(np.percentile(stream_wgt, 5, axis=1)),
     np.exp(np.percentile(stream_wgt, 95, axis=1)),
     color=cmap1(0.99),
-    alpha=0.25,
+    alpha=0.1,
     zorder=-10,
 )
 (l1,) = ax02.plot(
@@ -171,7 +171,7 @@ f2 = ax02.fill_between(
     np.exp(np.percentile(spur_wgt, 5, axis=1)),
     np.exp(np.percentile(spur_wgt, 95, axis=1)),
     color=cmap2(0.99),
-    alpha=0.25,
+    alpha=0.1,
     zorder=-10,
 )
 (l2,) = ax02.plot(
