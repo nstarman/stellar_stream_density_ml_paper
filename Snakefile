@@ -1,4 +1,17 @@
 # ==============================================================================
+# PGM
+
+rule pgm:
+    output:
+        "src/tex/output/pgm.pdf"
+    conda:
+        "environment.yml"
+    cache: True
+    script:
+        "src/scripts/pgm.py"
+
+
+# ==============================================================================
 # Isochrone files
 
 rule download_brutus_mist_file:
