@@ -33,6 +33,7 @@ datasets:
 dependencies:
   # src/tex/ms.tex:
   #   - src/tex/stylesheet.tex
+  # ==============================
   # MOCK
   src/scripts/mock/data/make.py:
     - src/data/brutus/MIST_1.2_iso_vvcrit0.0.h5
@@ -45,30 +46,31 @@ dependencies:
     - src/data/mock/data.asdf
   src/scripts/mock/data/variable_nstream.py:
     - src/data/mock/data.asdf
-  src/scripts/mock/define_model.py:
+  src/scripts/mock/model.py:
     - src/data/mock/data.asdf
-  src/scripts/mock/model/1-train_flow.py:
+  src/scripts/mock/models/1-train_flow.py:
     - src/data/mock/data.asdf
-    - src/scripts/mock/define_model.py
-  src/scripts/mock/model/2-train_model.py:
+    - src/scripts/mock/model.py
+  src/scripts/mock/models/2-train_model.py:
     - src/data/mock/data.asdf
-    - src/scripts/mock/define_model.py
+    - src/scripts/mock/model.py
     - src/data/mock/background_photometry_model.pt
   src/scripts/mock/plot/photometric_background_selection.py:
     - src/data/mock/data.asdf
-    - src/scripts/mock/define_model.py
+    - src/scripts/mock/model.py
   src/scripts/mock/plot/results.py:
     - src/data/mock/data.asdf
-    - src/scripts/mock/define_model.py
+    - src/scripts/mock/model.py
     - src/data/mock/model.pt
   src/scripts/mock/plot/variable_ncorrect.py:
     - src/data/mock/data.asdf
-    - src/scripts/mock/define_model.py
+    - src/scripts/mock/model.py
     - src/data/mock/model.pt
   src/scripts/mock/plot/variable_falseident.py:
     - src/data/mock/data.asdf
-    - src/scripts/mock/define_model.py
+    - src/scripts/mock/model.py
     - src/data/mock/model.pt
+  # ==============================
   # GD1
   src/scripts/gd1/data/2-combine_data.py:
     - src/data/gd1/gaia_ps1_xm_polygons.asdf
@@ -76,50 +78,68 @@ dependencies:
     - src/data/gd1/gaia_ps1_xm.asdf
   src/scripts/gd1/data/3.3-masks.py:
     - src/data/gd1/gaia_ps1_xm.asdf
-  src/scripts/gd1/model/0-info.py:
+  src/scripts/gd1/models/0-info.py:
     - src/data/gd1/gaia_ps1_xm.asdf
     - src/data/gd1/masks.asdf
-  src/scripts/gd1/datasets.py:
+  src/scripts/gd1/datasets_subset.py:
     - src/data/gd1/gaia_ps1_xm.asdf
     - src/data/gd1/info.asdf
-  src/scripts/gd1/define_model.py:
+  src/scripts/gd1/datasets_fullset.py:
+    - src/data/gd1/gaia_ps1_xm.asdf
+    - src/data/gd1/info.asdf
+  src/scripts/gd1/model.py:
     - src/data/gd1/info.asdf
     - src/data/gd1/control_points_stream.ecsv
     - src/data/gd1/control_points_spur.ecsv
     - src/data/gd1/control_points_distance.ecsv
-  src/scripts/gd1/model/2-train_background_photometry_flow.py:
-    - src/data/gd1/data.done  # hack
-    - src/data/gd1/model.done  # hack
-  src/scripts/gd1/model/2-train_parallax_photometry_flow.py:
-    - src/data/gd1/data.done  # hack
-    - src/data/gd1/model.done  # hack
-  src/scripts/gd1/model/3-train_model.py:
-    - src/data/gd1/data.done  # hack
-    - src/data/gd1/model.done  # hack
+  # --- subset ---
+  src/scripts/gd1/models/subset/2-train_background_photometry_flow.py:
+    - src/data/gd1/subset/data.done
+    - src/data/gd1/model.done
+  src/scripts/gd1/models/subset/2-train_parallax_photometry_flow.py:
+    - src/data/gd1/subset/data.done
+    - src/data/gd1/model.done
+  src/scripts/gd1/models/subset/3-train_model.py:
+    - src/data/gd1/subset/data.done
+    - src/data/gd1/model.done
     - src/data/gd1/background_photometry_model.pt
     - src/data/gd1/background_parallax_model.pt
-  src/scripts/gd1/model/4-likelihoods.py:
-    - src/data/gd1/data.done  # hack
-    - src/data/gd1/model.pt  # hack
-  src/scripts/gd1/model/5-variable_nstream.py:
+  # --- fullset ---
+  src/scripts/gd1/models/fullset/2-train_background_photometry_flow.py:
+    - src/data/gd1/fullset/data.done
+    - src/data/gd1/model.done
+  src/scripts/gd1/models/fullset/2-train_parallax_photometry_flow.py:
+    - src/data/gd1/fullset/data.done
+    - src/data/gd1/model.done
+  src/scripts/gd1/models/fullset/3-train_model.py:
+    - src/data/gd1/fullset/data.done
+    - src/data/gd1/model.done
+    - src/data/gd1/background_photometry_model.pt
+    - src/data/gd1/background_parallax_model.pt
+  src/scripts/gd1/models/4-likelihoods.py:
+    - src/data/gd1/fullset/data.done
+    - src/data/gd1/model.pt
+  src/scripts/gd1/models/5-variable_nstream.py:
     - src/data/gd1/membership_likelhoods.ecsv
-  src/scripts/gd1/model/5-variable_nspur.py:
+  src/scripts/gd1/models/5-variable_nspur.py:
     - src/data/gd1/membership_likelhoods.ecsv
+  # ------
   src/scripts/gd1/plot/data_selection.py:
     - src/data/gd1/gaia_ps1_xm.asdf
     - src/data/gd1/pm_edges.ecsv
     - src/data/gd1/masks.asdf
   src/scripts/gd1/plot/photometric_background_selection.py:
-    - src/data/gd1/data.done  # hack
+    - src/data/gd1/subset/data.done
   src/scripts/gd1/plot/results_full.py:
-    - src/data/gd1/data.done  # hack
+    - src/data/gd1/fullset/data.done
     - src/data/gd1/model.pt
   src/scripts/gd1/plot/results_panels.py:
-    - src/data/gd1/data.done  # hack
+    - src/data/gd1/fullset/data.done
     - src/data/gd1/model.pt
   src/scripts/gd1/plot/smooth_likelihood.py:
-    - src/data/gd1/data.done  # hack
+    - src/data/gd1/fullset/data.done
     - src/data/gd1/model.pt
+  # ==============================
   # Pal5
   src/scripts/pal5/data/2-combine_data.py:
     - src/data/pal5/gaia_ps1_xm_polygons.asdf
@@ -129,7 +149,7 @@ dependencies:
     - src/data/pal5/gaia_ps1_xm.asdf
     - src/data/pal5/pm_edges.ecsv
     - src/data/pal5/footprint.npz
-  src/scripts/pal5/model/0-info.py:
+  src/scripts/pal5/models/0-info.py:
     - src/data/pal5/gaia_ps1_xm.asdf
     - src/data/pal5/masks.asdf
   src/scripts/pal5/datasets.py:
@@ -138,28 +158,31 @@ dependencies:
   src/scripts/pal5/define_model.py:
     - src/data/pal5/info.asdf
     - src/data/pal5/control_points_stream.ecsv
-  src/scripts/pal5/model/3-train_model.py:
-    - src/data/pal5/data.done  # hack
-    - src/data/pal5/model.done  # hack
+  src/scripts/pal5/models/2-train_background_pm_flow.py:
+    - src/data/pal5/data.done
+    - src/data/pal5/model.done
+  src/scripts/pal5/models/3-train_model.py:
+    - src/data/pal5/data.done
+    - src/data/pal5/model.done
     - src/data/gd1/background_photometry_model.pt
-  src/scripts/pal5/model/4-likelihoods.py:
-    - src/data/pal5/data.done  # hack
-    - src/data/pal5/model.pt  # hack
+  src/scripts/pal5/models/4-likelihoods.py:
+    - src/data/pal5/data.done
+    - src/data/pal5/model.pt
   src/scripts/pal5/plot/data_selection.py:
     - src/data/pal5/gaia_ps1_xm.asdf
     - src/data/pal5/pm_edges.ecsv
     - src/data/pal5/masks.asdf
     - src/data/pal5/info.asdf
   src/scripts/pal5/plot/photometric_background_selection.py:
-    - src/data/pal5/data.done  # hack
+    - src/data/pal5/data.done
   src/scripts/pal5/plot/results_full.py:
-    - src/data/pal5/data.done  # hack
+    - src/data/pal5/data.done
     - src/data/pal5/model.pt
   src/scripts/pal5/plot/results_panels.py:
-    - src/data/pal5/data.done  # hack
+    - src/data/pal5/data.done
     - src/data/pal5/model.pt
   src/scripts/pal5/plot/smooth_likelihood.py:
-    - src/data/pal5/data.done  # hack
+    - src/data/pal5/data.done
     - src/data/pal5/model.pt
 
 
