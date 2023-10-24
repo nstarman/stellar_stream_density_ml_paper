@@ -101,6 +101,10 @@ dependencies:
   src/scripts/gd1/model/4-likelihoods.py:
     - src/data/gd1/data.done  # hack
     - src/data/gd1/model.pt  # hack
+  src/scripts/gd1/model/5-variable_nstream.py:
+    - src/data/gd1/membership_likelhoods.ecsv
+  src/scripts/gd1/model/5-variable_nspur.py:
+    - src/data/gd1/membership_likelhoods.ecsv
   src/scripts/gd1/plot/data_selection.py:
     - src/data/gd1/gaia_ps1_xm.asdf
     - src/data/gd1/pm_edges.ecsv
