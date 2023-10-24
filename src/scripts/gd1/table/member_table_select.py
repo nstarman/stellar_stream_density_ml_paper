@@ -192,8 +192,6 @@ value and uncertainty when it is non-zero.
 \\
 \textit{The full table, including source ids, is available online.}
 """  # noqa: E501
-#     \capitem{} and 3 stars with significant MLE for both the stream and spur
-#                ($\mathcal{L}^{(S)}_{\rm MLE} > 0.1, \mathcal{L}^{(spur)}_{\rm MLE} > 0.7$).  # noqa: E501
 
 write_kwargs = {
     "format": "ascii.latex",
@@ -242,6 +240,9 @@ lines.insert(end - 3, r"\rowcolor{gray!7}")
 lines.insert(end - 4, r"\rowcolor{gray!7}")
 lines.insert(end - 5, r"\rowcolor{gray!7}")
 lines.insert(end - 11, r"\rowcolor{gray!7}")
+
+lines.insert(next((i for i, line in enumerate(lines) if r"\begin{tabular}" in line)),
+             r"\label{tab:gd1_member_table}")
 
 # Save to disk
 with (paths.output / "gd1" / "member_table_select.tex").open("w") as f:
