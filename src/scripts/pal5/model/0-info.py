@@ -3,7 +3,6 @@
 from dataclasses import asdict
 
 import asdf
-import astropy.units as u
 import numpy as np
 from astropy.table import QTable
 from showyourwork.paths import user as user_paths
@@ -45,8 +44,6 @@ sel = (
     & masks[snkmk["phot_mask"]]
     & masks["phi1_subset"]
 )
-# Let's also just use -20 < phi1 < 20
-sel &= (table["phi1"] > -20 * u.deg) & (table["phi1"] < 20 * u.deg)
 
 table = table[sel]
 
