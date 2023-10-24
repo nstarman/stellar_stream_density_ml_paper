@@ -13,7 +13,6 @@ table = QTable(
     rows=[
         ["tight", *(-15, -10) * u.mas / u.yr, *(-4.5, -2) * u.mas / u.yr],
         ["medium", *(-15, -5) * u.mas / u.yr, *(-5, -1) * u.mas / u.yr],
-        # ["loose", *(-15, -3.5) * u.mas / u.yr, *(-6, -1) * u.mas / u.yr],
     ],
     names=("label", "pm_phi1_min", "pm_phi1_max", "pm_phi2_min", "pm_phi2_max"),
     dtype=(str, float, float, float, float),
