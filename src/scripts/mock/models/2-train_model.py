@@ -20,7 +20,7 @@ sys.path.append(paths.scripts.parent.as_posix())
 # isort: split
 
 from scripts import helper
-from scripts.mock.define_model import model
+from scripts.mock.model import model
 from scripts.mock.model.helper import diagnostic_plot
 
 # =============================================================================
@@ -31,7 +31,7 @@ try:
     snkmk = dict(snakemake.params)
 except NameError:
     snkmk = {
-        "load_from_static": True,
+        "load_from_static": False,
         "save_to_static": False,
         "diagnostic_plots": True,
         "init_T": 500,
@@ -66,7 +66,7 @@ with asdf.open(
 # ensure the folders exist
 (paths.data / "mock").mkdir(exist_ok=True, parents=True)
 (paths.static / "mock").mkdir(exist_ok=True, parents=True)
-diagnostic_path = paths.scripts / "mock" / "_diagnostics" / "model"
+diagnostic_path = paths.scripts / "mock" / "_diagnostics" / "models"
 diagnostic_path.mkdir(parents=True, exist_ok=True)
 
 # =============================================================================

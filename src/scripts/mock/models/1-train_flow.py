@@ -20,8 +20,8 @@ paths = user_paths()
 sys.path.append(paths.scripts.parent.as_posix())
 # isort: split
 
-from scripts.mock.define_model import bkg_flow as model_without_grad
-from scripts.mock.define_model import flow_coords
+from scripts.mock.model import bkg_flow as model_without_grad
+from scripts.mock.model import flow_coords
 
 # =============================================================================
 # Parameters
