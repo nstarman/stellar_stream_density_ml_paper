@@ -21,7 +21,7 @@ sys.path.append(paths.scripts.parent.as_posix())
 from scripts.helper import manually_set_dropout
 from scripts.pal5.datasets import data, where
 from scripts.pal5.model import model
-from scripts.pal5.model.helper import diagnostic_plot
+from scripts.pal5.models.helper import diagnostic_plot
 
 # =============================================================================
 # Parameters
@@ -43,6 +43,7 @@ except NameError:
 
 save_path = paths.data / "pal5"
 save_path.mkdir(parents=True, exist_ok=True)
+(save_path / "models").mkdir(parents=True, exist_ok=True)
 
 if snkmk["load_from_static"]:
     model.load_state_dict(xp.load(paths.static / "pal5" / "model.pt"))
@@ -104,11 +105,14 @@ for epoch in epoch_iterator:
 
         # Forward Step
         pred = model(step_data)
+        mpars = model.unpack_params(pred)
         if not pred.isfinite().all():
             raise ValueError
 
-        mpars = model.unpack_params(pred)
+        # Evaluate loss
         loss_val = -model.ln_posterior_tot(mpars, step_data, where=step_where)
+        if loss_val.isnan().any():
+            raise ValueError
 
         # backward pass
         optimizer.zero_grad()
