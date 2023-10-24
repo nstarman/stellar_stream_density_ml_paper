@@ -54,13 +54,6 @@ with asdf.open(
 ) as af:
     isochrone_data = Data(**af["isochrone_data"])
 
-
-# TODO: load control points
-# # Load Control Points
-# stream_cp = QTable.read(paths.data / "gd1" / "control_points_stream.ecsv")
-# spur_cp = QTable.read(paths.data / "gd1" / "control_points_spur.ecsv")
-
-
 # =============================================================================
 
 
