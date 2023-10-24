@@ -81,6 +81,7 @@ write_kwargs = {
     "caption": caption,
     "latexdict": {
         "tabletype": "table",
+        "tablealign": "htp",
         "preamble": preamble[1:-1],
         "col_align": r"@{}*{4}{r<{\hspace{7pt}}}@{}",
         "header_start": r"\toprule",
