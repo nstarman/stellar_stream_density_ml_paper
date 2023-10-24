@@ -567,7 +567,7 @@ ax31.fill_between(
     color=cmap_stream(0.99),
     alpha=0.1,
     where=stream_range,
-    zorder=-10,
+    zorder=-11,
 )
 ax31.fill_between(
     data["phi1"],
@@ -596,7 +596,7 @@ ax31.fill_between(
     color=cmap_spur(0.99),
     alpha=0.25,
     where=spur_range,
-    zorder=-9,
+    zorder=-8,
 )
 
 # Data allstream errors, then allstream data)
@@ -614,7 +614,7 @@ ax31.scatter(
     c=colors[is_strm],
     alpha=alphas[is_strm],
     s=sizes[psort][is_strm],
-    zorder=-13,
+    zorder=-5,
 )
 
 ax31.set_ylim(data["plx"].min(), data["plx"].max())
@@ -641,7 +641,7 @@ ax40.fill_between(
     color=cmap_stream(0.99),
     alpha=0.1,
     where=stream_range,
-    zorder=-9,
+    zorder=-10,
 )
 ax40.scatter(
     data["phi1"][stream_range],
@@ -667,9 +667,8 @@ ax40.scatter(
     np.percentile(ln_sigma, 50, axis=1)[spur_range],
     s=1,
     color=cmap_spur(0.99),
-    zorder=-7,
+    zorder=-6,
 )
-
 
 for tick in ax40.get_yticklabels():
     tick.set_verticalalignment("bottom")
@@ -730,7 +729,7 @@ p2 = ax41.errorbar(
     fmt=".",
     c=cmap_spur(0.99),
     capsize=2,
-    zorder=-20,
+    zorder=-19,
     label="Spur Control Points",
 )
 
@@ -769,7 +768,7 @@ ax41.fill_between(
     color=cmap_stream(0.99),
     alpha=0.25,
     where=stream_range,
-    zorder=-10,
+    zorder=-8,
 )
 
 # Model (spur)
@@ -789,7 +788,7 @@ ax41.fill_between(
     color=cmap_spur(0.99),
     alpha=0.25,
     where=spur_range,
-    zorder=-9,
+    zorder=-7,
 )
 
 # Data: allstream errors, then allstream data
@@ -807,7 +806,7 @@ ax41.scatter(
     c=colors[is_strm],
     alpha=alphas[is_strm],
     s=sizes[psort][is_strm],
-    zorder=-13,
+    zorder=-5,
 )
 
 
@@ -833,14 +832,14 @@ ax50.fill_between(
     color=cmap_stream(0.99),
     alpha=0.1,
     where=stream_range,
-    zorder=-9,
+    zorder=-10,
 )
 ax50.scatter(
     data["phi1"][stream_range],
     np.percentile(ln_sigma, 50, axis=1)[stream_range],
     s=1,
     color=cmap_stream(0.99),
-    zorder=-9,
+    zorder=-8,
 )
 
 # Model (spur)
@@ -859,7 +858,7 @@ ax50.scatter(
     np.percentile(ln_sigma, 50, axis=1)[spur_range],
     s=1,
     color=cmap_spur(0.99),
-    zorder=-9,
+    zorder=-7,
 )
 
 for tick in ax50.get_yticklabels():
@@ -883,7 +882,7 @@ ax51.scatter(
     c=colors[~is_strm],
     alpha=alphas[~is_strm],
     s=sizes[psort][~is_strm],
-    zorder=-10,
+    zorder=-11,
 )
 
 # Literature
@@ -900,7 +899,7 @@ ax51.fill_between(
     color=cmap_stream(0.99),
     alpha=0.1,
     where=stream_range,
-    zorder=-6,
+    zorder=-9,
 )
 ax51.fill_between(
     data["phi1"],
@@ -909,7 +908,7 @@ ax51.fill_between(
     color=cmap_stream(0.99),
     alpha=0.25,
     where=stream_range,
-    zorder=-6,
+    zorder=-7,
 )
 
 # Model (stream)
@@ -920,7 +919,7 @@ ax51.fill_between(
     color=cmap_spur(0.99),
     alpha=0.1,
     where=spur_range,
-    zorder=-5,
+    zorder=-8,
 )
 ax51.fill_between(
     data["phi1"],
@@ -929,7 +928,7 @@ ax51.fill_between(
     color=cmap_spur(0.99),
     alpha=0.25,
     where=spur_range,
-    zorder=-5,
+    zorder=-6,
 )
 
 # Data: allstream errors, then allstream data
@@ -939,7 +938,7 @@ d1 = ax51.errorbar(
     xerr=data["phi1_err"][psort][is_strm],
     yerr=data["pmphi2_err"][psort][is_strm],
     **_stream_kw,
-    zorder=-4,
+    zorder=-10,
 )
 ax51.scatter(
     data["phi1"][psort][is_strm],
@@ -959,7 +958,7 @@ ax51.set_ylim(data["pmphi2"].min(), data["pmphi2"].max())
 gs6 = gs[6].subgridspec(2, 1, height_ratios=(1, 3), wspace=0.0, hspace=0.0)
 
 ax60 = fig.add_subplot(
-    gs5[0, :],
+    gs6[0, :],
     xlim=xlims,
     xticklabels=[],
     ylabel=r"$\ln\sigma_{d}$",
@@ -988,7 +987,7 @@ ax60.fill_between(
     color=cmap_stream(0.99),
     alpha=0.1,
     where=stream_range,
-    zorder=-9,
+    zorder=-10,
 )
 ax60.scatter(
     data["phi1"][stream_range],
@@ -1019,14 +1018,14 @@ ax60.fill_between(
     color=cmap_spur(0.99),
     alpha=0.1,
     where=spur_range,
-    zorder=-9,
+    zorder=-8,
 )
 ax60.scatter(
     data["phi1"][spur_range],
     np.percentile(ln_sigma, 50, axis=1)[spur_range],
     s=1,
     color=cmap_spur(0.99),
-    zorder=-9,
+    zorder=-7,
 )
 
 for tick in ax60.get_yticklabels():
@@ -1036,7 +1035,7 @@ for tick in ax60.get_yticklabels():
 # Distance
 
 ax61 = fig.add_subplot(
-    gs[0, :],
+    gs6[1, :],
     xlabel=r"$\phi_1$ [deg]",
     ylabel=r"$d$ [kpc]",
     xlim=xlims,
@@ -1104,7 +1103,7 @@ ax61.fill_between(
     alpha=0.25,
     color=cmap_stream(0.99),
     where=stream_range,
-    zorder=-14,
+    zorder=-11,
 )
 
 # Model (spur)
@@ -1132,7 +1131,9 @@ ax61.fill_between(
     alpha=0.25,
     color=cmap_spur(0.99),
     where=spur_range,
-    zorder=-12,
+    zorder=-11,
 )
+
+# ===========================================================================
 
 fig.savefig(paths.figures / "gd1" / "results_full.pdf")
