@@ -54,8 +54,8 @@ PHI1_EDGES = (
 PHI2_BOUNDS = (-9, 5) * u.deg
 PLX_BOUNDS = (-10, 1.0) * u.milliarcsecond
 BP_RP_BOUNDS = (-1, 3) * u.mag
-GMAG_BOUNDS = (0, 50) * u.mag
-IMAG_BOUNDS = (0, 50) * u.mag
+GMAG_BOUNDS = (0, 30) * u.mag
+IMAG_BOUNDS = (0, 30) * u.mag
 
 
 gaia_cols = {
