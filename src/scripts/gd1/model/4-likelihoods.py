@@ -79,28 +79,6 @@ with xp.no_grad():
     model = model.eval()
 
 
-bkg_prob_percentiles = np.c_[
-    np.percentile(bkg_probs, 5, axis=1),
-    np.percentile(bkg_probs, 50, axis=1),
-    np.percentile(bkg_probs, 95, axis=1),
-]
-stream_prob_percentiles = np.c_[
-    np.percentile(stream_probs, 5, axis=1),
-    np.percentile(stream_probs, 50, axis=1),
-    np.percentile(stream_probs, 95, axis=1),
-]
-spur_prob_percentiles = np.c_[
-    np.percentile(spur_probs, 5, axis=1),
-    np.percentile(spur_probs, 50, axis=1),
-    np.percentile(spur_probs, 95, axis=1),
-]
-allstream_prob_percentiles = np.c_[
-    np.percentile(allstream_probs, 5, axis=1),
-    np.percentile(allstream_probs, 50, axis=1),
-    np.percentile(allstream_probs, 95, axis=1),
-]
-
-
 # =============================================================================
 # MLE
 
@@ -132,25 +110,25 @@ lik_tbl = QTable()
 lik_tbl["source id"] = table["source_id"]
 
 lik_tbl["bkg (MLE)"] = bkg_prob.numpy()
-lik_tbl["bkg (5%)"] = bkg_prob_percentiles[:, 0]
-lik_tbl["bkg (50%)"] = bkg_prob_percentiles[:, 1]
-lik_tbl["bkg (95%)"] = bkg_prob_percentiles[:, 1]
+lik_tbl["bkg (5%)"] = np.percentile(bkg_probs, 5, axis=1)
+lik_tbl["bkg (50%)"] = np.percentile(bkg_probs, 50, axis=1)
+lik_tbl["bkg (95%)"] = np.percentile(bkg_probs, 95, axis=1)
 
 lik_tbl["stream.ln-weight"] = stream_weights
 lik_tbl["stream (MLE)"] = stream_prob.numpy()
-lik_tbl["stream (5%)"] = stream_prob_percentiles[:, 0]
-lik_tbl["stream (50%)"] = stream_prob_percentiles[:, 1]
-lik_tbl["stream (95%)"] = stream_prob_percentiles[:, 1]
+lik_tbl["stream (5%)"] = np.percentile(stream_probs, 5, axis=1)
+lik_tbl["stream (50%)"] = np.percentile(stream_probs, 50, axis=1)
+lik_tbl["stream (95%)"] = np.percentile(stream_probs, 95, axis=1)
 
 lik_tbl["spur.ln-weight"] = spur_weights
 lik_tbl["spur (MLE)"] = spur_prob.numpy()
-lik_tbl["spur (5%)"] = spur_prob_percentiles[:, 0]
-lik_tbl["spur (50%)"] = spur_prob_percentiles[:, 1]
-lik_tbl["spur (95%)"] = spur_prob_percentiles[:, 1]
+lik_tbl["spur (5%)"] = np.percentile(spur_probs, 5, axis=1)
+lik_tbl["spur (50%)"] = np.percentile(spur_probs, 50, axis=1)
+lik_tbl["spur (95%)"] = np.percentile(spur_probs, 95, axis=1)
 
 lik_tbl["allstream (MLE)"] = allstream_prob.numpy()
-lik_tbl["allstream (5%)"] = allstream_prob_percentiles[:, 0]
-lik_tbl["allstream (50%)"] = allstream_prob_percentiles[:, 1]
-lik_tbl["allstream (95%)"] = allstream_prob_percentiles[:, 1]
+lik_tbl["allstream (5%)"] = np.percentile(allstream_probs, 5, axis=1)
+lik_tbl["allstream (50%)"] = np.percentile(allstream_probs, 50, axis=1)
+lik_tbl["allstream (95%)"] = np.percentile(allstream_probs, 95, axis=1)
 
 lik_tbl.write(paths.data / "gd1" / "membership_likelhoods.ecsv", overwrite=True)
