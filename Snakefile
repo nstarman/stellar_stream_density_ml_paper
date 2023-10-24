@@ -318,6 +318,20 @@ rule gd1_control_points_spur:
         "src/scripts/gd1/model/1-control_points_spur.py"
 
 
+rule gd1_control_points:
+    output:
+        "src/tex/output/gd1/control_points.tex"
+    input:
+        "src/data/gd1/control_points_stream.ecsv",
+        "src/data/gd1/control_points_spur.ecsv",
+        "src/data/gd1/control_points_distance.ecsv",
+    conda:
+        "environment.yml"
+    cache: True
+    script:
+        "src/scripts/gd1/table/control_points.py"
+
+
 rule gd1_info:
     output:
         "src/data/gd1/info.asdf"
