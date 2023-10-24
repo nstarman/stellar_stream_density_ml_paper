@@ -297,16 +297,16 @@ _mx = {"stream": stream_model, "background": background_model}
 model = sml.MixtureModel(
     _mx,
     net=sml.nn.sequential(
-        data=1, hidden_features=32, layers=4, features=len(_mx) - 1, dropout=0.15
+        data=1, hidden_features=64, layers=5, features=len(_mx) - 1, dropout=0.15
     ),
     data_scaler=scaler,
     params=ModelParameters[xp.Tensor](
         {
             f"stream.{WEIGHT_NAME}": ModelParameter[xp.Tensor](
-                bounds=SigmoidBounds(-10.0, -0.01), scaler=None
+                bounds=SigmoidBounds(-10.0, -0.01, neg_inf=-1e4), scaler=None
             ),
             f"background.{WEIGHT_NAME}": ModelParameter[xp.Tensor](
-                bounds=SigmoidBounds(-5.0, 0.0), scaler=None
+                bounds=SigmoidBounds(-5.0, 0.0, neg_inf=-1e4), scaler=None
             ),
         }
     ),
