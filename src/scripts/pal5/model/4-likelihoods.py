@@ -99,18 +99,6 @@ with xp.no_grad():
     manually_set_dropout(model, 0)
     model = model.eval()
 
-
-stream_prob_percentiles = np.c_[
-    np.percentile(stream_probs, 5, axis=1),
-    np.percentile(stream_probs, 50, axis=1),
-    np.percentile(stream_probs, 95, axis=1),
-]
-bkg_prob_percentiles = np.c_[
-    np.percentile(bkg_probs, 5, axis=1),
-    np.percentile(bkg_probs, 50, axis=1),
-    np.percentile(bkg_probs, 95, axis=1),
-]
-
 # =============================================================================
 # MLE
 
@@ -139,13 +127,13 @@ with xp.no_grad():
 lik_tbl = QTable()
 lik_tbl["source id"] = table["source_id"]
 lik_tbl["bkg (MLE)"] = bkg_prob.numpy()
-lik_tbl["bkg (5%)"] = bkg_prob_percentiles[:, 0]
-lik_tbl["bkg (50%)"] = bkg_prob_percentiles[:, 1]
-lik_tbl["bkg (95%)"] = bkg_prob_percentiles[:, 2]
+lik_tbl["bkg (5%)"] = np.percentile(bkg_probs, 5, axis=1)
+lik_tbl["bkg (50%)"] = np.percentile(bkg_probs, 50, axis=1)
+lik_tbl["bkg (95%)"] = np.percentile(bkg_probs, 95, axis=1)
 lik_tbl["stream.ln-weight"] = stream_weights
 lik_tbl["stream (MLE)"] = stream_prob.numpy()
-lik_tbl["stream (5%)"] = stream_prob_percentiles[:, 0]
-lik_tbl["stream (50%)"] = stream_prob_percentiles[:, 1]
-lik_tbl["stream (95%)"] = stream_prob_percentiles[:, 2]
+lik_tbl["stream (5%)"] = np.percentile(stream_probs, 5, axis=1)
+lik_tbl["stream (50%)"] = np.percentile(stream_probs, 50, axis=1)
+lik_tbl["stream (95%)"] = np.percentile(stream_probs, 95, axis=1)
 
 lik_tbl.write(paths.data / "pal5" / "membership_likelhoods.ecsv", overwrite=True)
