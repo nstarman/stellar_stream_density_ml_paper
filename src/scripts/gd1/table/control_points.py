@@ -20,7 +20,7 @@ sys.path.append(paths.scripts.parent.as_posix())
 
 # =============================================================================
 
-cps_stream = QTable.read(paths.data / "gd12" / "control_points_stream.ecsv")
+cps_stream = QTable.read(paths.data / "gd1" / "control_points_stream.ecsv")
 cps_spur = QTable.read(paths.data / "gd1" / "control_points_spur.ecsv")
 cps_dist = QTable.read(paths.data / "gd1" / "control_points_distance.ecsv")
 
