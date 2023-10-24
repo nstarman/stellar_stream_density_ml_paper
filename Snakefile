@@ -478,6 +478,30 @@ rule gd1_member_table_full:
         "src/scripts/gd1/table/member_table_full.py"
 
 
+rule gd1_variable_nstream:
+    output:
+        "src/tex/output/gd1/nstream/nstream_variable.txt"
+    input:
+        "src/data/gd1/membership_likelhoods.ecsv",
+    conda:
+        "environment.yml"
+    cache: True
+    script:
+        "src/scripts/gd1/model/5-variable_nstream.py"
+
+
+rule gd1_variable_nspur:
+    output:
+        "src/tex/output/gd1/nspur/nspur_variable.txt"
+    input:
+        "src/data/gd1/membership_likelhoods.ecsv",
+    conda:
+        "environment.yml"
+    cache: True
+    script:
+        "src/scripts/gd1/model/5-variable_nspur.py"
+
+
 # ==============================================================================
 # Palomar 5
 
