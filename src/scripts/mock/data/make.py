@@ -236,11 +236,3 @@ af["coord_bounds"] = {
 
 af.write_to(paths.data / "mock" / "data.asdf", all_array_storage="internal")
 af.close()
-
-
-# # ----------
-# # Diagnostics
-# if snkmk["diagnostic_plots"]:
-#     with contextlib.suppress(Exception):
-#         nbpath = (Path(__file__).parent / "diagnostics.ipynb").as_posix()
-#         os.system(f"jupyter execute {nbpath}")
