@@ -1,17 +1,13 @@
 """Download MIST files for brutus."""
 
-import pathlib
 import shutil
 import sys
 from typing import Any
 
 import brutus.utils
+from showyourwork.paths import user as user_paths
 
-# Add the parent directory to the path
-sys.path.append(pathlib.Path(__file__).parents[2].as_posix())
-# isort: split
-
-from scripts import paths
+paths = user_paths()
 
 ##############################################################################
 
