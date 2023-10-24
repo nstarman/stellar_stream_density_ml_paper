@@ -35,7 +35,7 @@ plt.style.use(paths.scripts / "paper.mplstyle")
 
 # Load model
 model = pycopy.deepcopy(model)
-model.load_state_dict(xp.load(paths.data / "pal5" / "model" / "model_10800.pt"))
+model.load_state_dict(xp.load(paths.data / "pal5" / "models" / "model_10800.pt"))
 # model = model.eval()
 
 # Load results from 4-likelihoods.py

@@ -20,7 +20,7 @@ sys.path.append(paths.scripts.parent.as_posix())
 
 from scripts.helper import manually_set_dropout
 from scripts.pal5.datasets import data, where
-from scripts.pal5.define_model import model
+from scripts.pal5.model import model
 from scripts.pal5.model.helper import diagnostic_plot
 
 # =============================================================================
@@ -41,13 +41,16 @@ except NameError:
         "early_stopping": -1,
     }
 
+save_path = paths.data / "pal5"
+save_path.mkdir(parents=True, exist_ok=True)
+
 if snkmk["load_from_static"]:
     model.load_state_dict(xp.load(paths.static / "pal5" / "model.pt"))
-    xp.save(model.state_dict(), paths.data / "pal5" / "model.pt")
+    xp.save(model.state_dict(), save_path / "model.pt")
 
     sys.exit(0)
 
-diagnostic_path = paths.scripts / "pal5" / "_diagnostics" / "model"
+diagnostic_path = paths.scripts / "pal5" / "_diagnostics" / "models"
 diagnostic_path.mkdir(parents=True, exist_ok=True)
 
 
@@ -55,7 +58,7 @@ diagnostic_path.mkdir(parents=True, exist_ok=True)
 # Load saved model components
 
 model["background"]["astrometric"]["pm"].load_state_dict(
-    xp.load(paths.data / "pal5" / "background_pm_model.pt")
+    xp.load(save_path / "background_pm_model.pt")
 )
 
 
@@ -133,13 +136,11 @@ for epoch in epoch_iterator:
         manually_set_dropout(model, 0.15)
         model.train()
 
-        xp.save(
-            model.state_dict(), paths.data / "pal5" / "model" / f"model_{epoch:04d}.pt"
-        )
+        xp.save(model.state_dict(), save_path / "models" / f"model_{epoch:04d}.pt")
 
 
 # Save final state of the model
-xp.save(model.state_dict(), paths.data / "pal5" / "model" / f"model_{epoch:04d}.pt")
+xp.save(model.state_dict(), save_path / "models" / f"model_{epoch:04d}.pt")
 
 
 # =============================================================================
@@ -149,13 +150,11 @@ xp.save(model.state_dict(), paths.data / "pal5" / "model" / f"model_{epoch:04d}.
 # Load the early stopping model
 if snkmk["early_stopping"] > 0:
     model.load_state_dict(
-        xp.load(
-            paths.data / "pal5" / "model" / f"model_{snkmk['early_stopping']:04d}.pt"
-        )
+        xp.load(save_path / "models" / f"model_{snkmk['early_stopping']:04d}.pt")
     )
 
 # Save the model
-xp.save(model.state_dict(), paths.data / "pal5" / "model.pt")
+xp.save(model.state_dict(), save_path / "model.pt")
 
 if snkmk["save_to_static"]:
     xp.save(model.state_dict(), paths.static / "pal5" / "model.pt")

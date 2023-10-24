@@ -26,13 +26,13 @@ from scripts.helper import (
     recursive_iterate,
 )
 from scripts.pal5.datasets import data, table, where
-from scripts.pal5.define_model import model
+from scripts.pal5.model import model
 
 # =============================================================================
 # Load model
 
 model = pycopy.deepcopy(model)
-model.load_state_dict(xp.load(paths.data / "pal5" / "model" / "model_10800.pt"))
+model.load_state_dict(xp.load(paths.data / "pal5" / "models" / "model_10800.pt"))
 model = model.eval()
 
 

@@ -4,7 +4,6 @@ import sys
 from dataclasses import replace
 from typing import Any
 
-import galstreams
 import matplotlib.pyplot as plt
 import numpy as np
 import torch as xp
@@ -22,10 +21,7 @@ sys.path.append(paths.scripts.parent.as_posix())
 # isort: split
 
 from scripts.pal5.datasets import data, off_stream, where
-from scripts.pal5.define_model import (
-    background_pm_model as model_without_grad,
-)
-from scripts.pal5.frames import pal5_frame as frame
+from scripts.pal5.model import background_photometric_model as model_without_grad
 
 # =============================================================================
 # Load Data
@@ -43,22 +39,17 @@ except NameError:
 
 if snkmk["load_from_static"]:
     model_without_grad.load_state_dict(
-        xp.load(paths.static / "pal5" / "background_pm_model.pt")
+        xp.load(paths.static / "pal5" / "background_photometry_model.pt")
     )
     xp.save(
         model_without_grad.state_dict(),
-        paths.data / "pal5" / "background_pm_model.pt",
+        paths.data / "pal5" / "background_photometry_model.pt",
     )
     sys.exit(0)
 
 
-figure_path = paths.scripts / "pal5" / "_diagnostics" / "pm_flow"
+figure_path = paths.scripts / "pal5" / "_diagnostics" / "phot_flow"
 figure_path.mkdir(parents=True, exist_ok=True)
-
-if snkmk["diagnostic_plots"]:
-    allstreams = galstreams.MWStreams(implement_Off=True)
-    pal5PW19 = allstreams["Pal5-PW19"].track.transform_to(frame)
-    pal5I21 = allstreams["Pal5-I21"].track.transform_to(frame)
 
 # =============================================================================
 # Train
@@ -69,7 +60,6 @@ model = replace(model_without_grad, with_grad=True)
 
 # Prerequisites for training
 coord_names = model.indep_coord_names + model.coord_names
-
 dataset = td.TensorDataset(
     data[coord_names].array[off_stream],
     where[coord_names].array[off_stream],
@@ -93,7 +83,7 @@ for epoch in tqdm(range(snkmk["epochs"])):
         loss.backward()
         optimizer.step()
 
-    xp.save(model.state_dict(), paths.data / "pal5" / "background_pm_model.pt")
+    xp.save(model.state_dict(), paths.data / "pal5" / "background_photometry_model.pt")
 
     # -----------------------------------------------------------
     # Diagnostic plots (not in the paper)
@@ -105,49 +95,28 @@ for epoch in tqdm(range(snkmk["epochs"])):
             prob = model.posterior(mpars, data, where=where)
         psort = np.argsort(prob[off_stream])
 
-        fig = plt.figure()
-        ax = fig.add_subplot(
-            111,
-            xlabel=r"$\mu_{\phi_1}^*$ [mas/yr]",
-            ylabel=r"$\mu_{\phi_2}$ [mas/yr]",
-        )
+        fig, ax = plt.subplots()
         ax.plot(
-            data["pmphi1"][~off_stream],
-            data["pmphi2"][~off_stream],
+            (data["g"] - data["r"])[~off_stream],
+            data["g"][~off_stream],
             ls="none",
             marker=",",
             c="black",
-            label="on-stream",
         )
         im = ax.scatter(
-            data["pmphi1"][off_stream][psort],
-            data["pmphi2"][off_stream][psort],
+            (data["g"] - data["r"])[off_stream][psort],
+            data["g"][off_stream][psort],
             s=0.1,
             c=prob[off_stream][psort],
-            label="off-stream",
         )
-
-        ax.plot(
-            pal5PW19.pm_phi1_cosphi2,
-            pal5PW19.pm_phi2,
-            label="Pal5-PW19",
-            c="tab:red",
-            lw=2,
-        )
-        ax.plot(
-            pal5I21.pm_phi1_cosphi2,
-            pal5I21.pm_phi2,
-            label="Pal5-I21",
-            c="tab:purple",
-            lw=2,
-        )
-
         plt.colorbar(im, ax=ax)
-        ax.legend()
+        ax.set(xlim=(0, 0.8), ylim=(22, 13.5))
         fig.savefig(figure_path / f"epoch_{epoch:05}.png")
         plt.close(fig)
 
-xp.save(model.state_dict(), paths.data / "pal5" / "background_pm_model.pt")
+xp.save(model.state_dict(), paths.data / "pal5" / "background_photometry_model.pt")
 
 if snkmk["save_to_static"]:
-    xp.save(model.state_dict(), paths.static / "pal5" / "background_pm_model.pt")
+    xp.save(
+        model.state_dict(), paths.static / "pal5" / "background_photometry_model.pt"
+    )

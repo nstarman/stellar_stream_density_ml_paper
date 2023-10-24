@@ -24,6 +24,8 @@ sys.path.append(paths.scripts.parent.as_posix())
 
 ##############################################################################
 
+pal5_cp = QTable.read(paths.data / "pal5" / "control_points_stream.ecsv")
+
 with asdf.open(paths.data / "pal5" / "info.asdf", mode="r") as af:
     renamer = af["renamer"]
     scaler = sml.utils.StandardScaler(**af["scaler"]).astype(
@@ -127,8 +129,6 @@ background_model = sml.IndependentModels(
 
 # -----------------------------------------------------------------------------
 # Astrometry
-
-pal5_cp = QTable.read(paths.data / "pal5" / "control_points_stream.ecsv")
 
 # Selection of control points
 stream_astrometric_prior = sml.prior.ControlRegions(

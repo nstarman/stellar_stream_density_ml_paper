@@ -31,7 +31,7 @@ snkmk: dict[str, Any]
 try:
     snkmk = dict(snakemake.params)
 except NameError:
-    snkmk = {"load_from_static": False, "save_to_static": False}
+    snkmk = {"load_from_static": True, "save_to_static": False}
 
 SAVE_LOC = paths.data / "pal5" / "gaia_ps1_xm_polygons.asdf"
 
