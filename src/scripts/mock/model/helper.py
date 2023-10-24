@@ -20,7 +20,7 @@ paths = user_paths()
 sys.path.append(paths.scripts.parent.as_posix())
 # isort: split
 
-from scripts.helper import manually_set_dropout
+from scripts.helper import manually_set_dropout, p2alpha
 
 # =============================================================================
 
@@ -38,18 +38,17 @@ def diagnostic_plot(
         mpars = model.unpack_params(model(data))
         model.eval()
 
-        stream_lik = model.component_posterior("stream", mpars, data, where=where)
-        bkg_lik = model.component_posterior("background", mpars, data, where=where)
+        stream_lnlik = model.component_ln_posterior("stream", mpars, data, where=where)
+        bkg_lnlik = model.component_ln_posterior("background", mpars, data, where=where)
+        tot_lnlik = np.logaddexp(stream_lnlik, bkg_lnlik)
 
-    weight = mpars[(f"stream.{WEIGHT_NAME}",)]
-    where = weight > -4
+    # Determine if the point is in the stream
+    is_strm = mpars[(f"stream.{WEIGHT_NAME}",)] > -4
 
-    stream_prob = stream_lik / (stream_lik + bkg_lik)
+    bkg_prob = np.exp(bkg_lnlik - tot_lnlik)
+    stream_prob = np.exp(stream_lnlik - tot_lnlik)
     psort = np.argsort(stream_prob)
-    pmax = stream_prob.max()
-    pmin = stream_prob.min()
-
-    bkg_prob = bkg_lik / (stream_lik + bkg_lik)
+    alpha = p2alpha(stream_prob[psort], minval=0.1)
 
     # =============================================================================
     # Make Figure
@@ -77,20 +76,16 @@ def diagnostic_plot(
     # ---------------------------------------------------------------------------
     # Weight plot
 
-    ax01 = fig.add_subplot(gs0[1, :])
-    ax01.set(ylabel="Stream fraction", ylim=(0, 0.5))
-    ax01.set_xticklabels([])
+    ax01 = fig.add_subplot(
+        gs0[1, :], ylabel="Stream fraction", ylim=(0, 0.5), xticklabels=[]
+    )
 
     # Truth
     phi1 = table["phi1"].to_value("deg")[isstream]
 
     Hs, bin_edges = np.histogram(phi1, bins=75)
     Ht, bin_edges = np.histogram(data["phi1"], bins=bin_edges)
-    ax01.bar(
-        bin_edges[:-1],
-        Hs / Ht,
-        width=bin_edges[1] - bin_edges[0],
-    )
+    ax01.bar(bin_edges[:-1], Hs / Ht, width=bin_edges[1] - bin_edges[0])
 
     with xp.no_grad():
         manually_set_dropout(model, 0.15)
@@ -101,18 +96,22 @@ def diagnostic_plot(
             ],
             1,
         )
-        weight_percentiles = np.c_[
-            np.percentile(weights, 5, axis=1), np.percentile(weights, 95, axis=1)
-        ]
         manually_set_dropout(model, 0)
     ax01.fill_between(
         data["phi1"],
-        np.exp(weight_percentiles[:, 0]),
-        np.exp(weight_percentiles[:, 1]),
+        np.exp(np.percentile(weights, 5, axis=1)),
+        np.exp(np.percentile(weights, 95, axis=1)),
         color="k",
         alpha=0.25,
     )
-    ax01.plot(data["phi1"], np.exp(weight), c="k", ls="--", lw=2, label="Model (MLE)")
+    ax01.plot(
+        data["phi1"],
+        np.exp(mpars[(f"stream.{WEIGHT_NAME}",)]),
+        c="k",
+        ls="--",
+        lw=2,
+        label="Model (MLE)",
+    )
 
     ax01.legend(loc="upper left")
 
@@ -121,9 +120,12 @@ def diagnostic_plot(
 
     mpa = mpars.get_prefixed("stream.astrometric")
 
-    ax02 = fig.add_subplot(gs0[2, :])
-    ax02.set_xticklabels([])
-    ax02.set(ylabel=r"$\phi_2$ [$\degree$]")
+    ax02 = fig.add_subplot(
+        gs0[2, :],
+        xticklabels=[],
+        ylabel=r"$\phi_2$ [$\degree$]",
+        rasterization_zorder=0,
+    )
 
     ax02.scatter(
         phi1,
@@ -138,34 +140,39 @@ def diagnostic_plot(
         data["phi1"][psort],
         data["phi2"][psort],
         c=stream_prob[psort],
-        alpha=0.1 + (1 - 0.1) / (pmax - pmin) * (stream_prob[psort] - pmin),
+        alpha=alpha,
         s=2,
-        zorder=-10,
+        zorder=-50,
         cmap="seismic",
     )
-    ax02.set_rasterization_zorder(0)
     ax02.fill_between(
-        data["phi1"][where],
-        mpa["phi2", "mu"][where] - xp.exp(mpa["phi2", "ln-sigma"][where]),
-        mpa["phi2", "mu"][where] + xp.exp(mpa["phi2", "ln-sigma"][where]),
+        data["phi1"][is_strm],
+        mpa["phi2", "mu"][is_strm] - xp.exp(mpa["phi2", "ln-sigma"][is_strm]),
+        mpa["phi2", "mu"][is_strm] + xp.exp(mpa["phi2", "ln-sigma"][is_strm]),
         color="k",
         alpha=0.15,
+        zorder=-10,
     )
     ax02.plot(
-        data["phi1"][where],
-        mpa["phi2", "mu"][where],
+        data["phi1"][is_strm],
+        mpa["phi2", "mu"][is_strm],
         c="k",
         ls="--",
         lw=2,
         label="Model (MLE)",
+        zorder=-5,
     )
     ax02.legend(loc="upper left")
 
     # ---------------------------------------------------------------------------
     # Distance
 
-    ax03 = fig.add_subplot(gs0[3, :])
-    ax03.set(xlabel=r"$\phi_1$ [deg]", ylabel=r"$\varpi$ [mas yr$^-1$]")
+    ax03 = fig.add_subplot(
+        gs0[3, :],
+        xlabel=r"$\phi_1$ [deg]",
+        ylabel=r"$\varpi$ [mas yr$^-1$]",
+        rasterization_zorder=0,
+    )
 
     ax03.scatter(
         phi1,
@@ -180,33 +187,34 @@ def diagnostic_plot(
         data["phi1"][psort],
         data["parallax"][psort],
         c=stream_prob[psort],
-        alpha=0.1 + (1 - 0.1) / (pmax - pmin) * (stream_prob[psort] - pmin),
+        alpha=alpha,
         s=2,
-        zorder=-10,
+        zorder=-50,
         cmap="seismic",
     )
-    ax03.set_rasterization_zorder(0)
     ax03.fill_between(
-        data["phi1"][where],
-        mpa["parallax", "mu"][where] - xp.exp(mpa["parallax", "ln-sigma"][where]),
-        mpa["parallax", "mu"][where] + xp.exp(mpa["parallax", "ln-sigma"][where]),
+        data["phi1"][is_strm],
+        mpa["parallax", "mu"][is_strm] - xp.exp(mpa["parallax", "ln-sigma"][is_strm]),
+        mpa["parallax", "mu"][is_strm] + xp.exp(mpa["parallax", "ln-sigma"][is_strm]),
         color="k",
         alpha=0.15,
+        zorder=-10,
     )
     ax03.plot(
-        data["phi1"][where],
-        mpa["parallax", "mu"][where],
+        data["phi1"][is_strm],
+        mpa["parallax", "mu"][is_strm],
         c="k",
         ls="--",
         lw=2,
         label="Model (MLE)",
+        zorder=-5,
     )
     ax03.legend(loc="upper left")
 
     # =============================================================================
     # Slice plots
 
-    gs1 = gs[1].subgridspec(4, 4)
+    gs1 = gs[1].subgridspec(3, 4)
 
     # Bin the data for plotting
     bins = np.linspace(data["phi1"].min(), data["phi1"].max(), num=5, endpoint=True)
@@ -218,7 +226,7 @@ def diagnostic_plot(
         # ---------------------------------------------------------------------------
         # Phi2
 
-        ax10i = fig.add_subplot(gs1[0, i])
+        ax10i = fig.add_subplot(gs1[0, i], xlabel=r"$\phi_2$ [$\degree$]")
 
         # Connect to top plot(s)
         for ax in (ax01, ax02):
@@ -258,7 +266,6 @@ def diagnostic_plot(
             label=["", "Ground Truth"],
         )
 
-        ax10i.set_xlabel(r"$\phi_2$ [$\degree$]")
         if i == 0:
             ax10i.set_ylabel("frequency")
             ax10i.legend(loc="upper left")
@@ -308,7 +315,7 @@ def diagnostic_plot(
         # ------------------------------------------
         # Stream
 
-        ax12i = fig.add_subplot(gs1[2, i])
+        ax12i = fig.add_subplot(gs1[2, i], xticklabels=[])
 
         prob = stream_prob[sel]
         sorter = np.argsort(prob)
@@ -320,32 +327,10 @@ def diagnostic_plot(
             s=1,
             rasterized=True,
         )
-        ax12i.set_xticklabels([])
 
         if i == 0:
             ax12i.set_ylabel("r [mag]")
         else:
             ax12i.set_yticklabels([])
-
-        # ------------------------------------------
-        # Background
-
-        ax13i = fig.add_subplot(gs1[3, i])
-        prob = bkg_prob[sel]
-        sorter = np.argsort(prob)
-        ax13i.scatter(
-            data["g"][sel][sorter],
-            data["r"][sel][sorter],
-            c=1 - prob[sorter],
-            cmap="seismic",
-            s=1,
-            rasterized=True,
-        )
-        ax13i.set(xlabel="g [mag]")
-
-        if i == 0:
-            ax13i.set_ylabel("r [mag]")
-        else:
-            ax13i.set_yticklabels([])
 
     return fig

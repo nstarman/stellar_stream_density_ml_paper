@@ -94,6 +94,7 @@ optimizer = optim.AdamW(list(model.parameters()), lr=snkmk["lr"])
 # Train
 
 for epoch in tqdm(range(snkmk["epochs"])):
+    # Iterate over batches
     for data_step_, where_step_ in loader:
         data_step = sml.Data(data_step_, names=flow_coords)
         where_step = sml.Data(where_step_, names=flow_coords)

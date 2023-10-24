@@ -88,15 +88,11 @@ optimizer = optim.AdamW(list(model.parameters()), lr=snkmk["lr"])
 scheduler = optim.lr_scheduler.SequentialLR(
     optimizer,
     [
-        optim.lr_scheduler.ConstantLR(
-            optimizer, 0.2, total_iters=snkmk["init_T"] - 1
-        ),  # converge
+        optim.lr_scheduler.ConstantLR(optimizer, 0.2, total_iters=snkmk["init_T"] - 1),
         optim.lr_scheduler.CosineAnnealingWarmRestarts(
             optimizer, T_0=snkmk["T_0"], eta_min=snkmk["eta_min"]
         ),
-        optim.lr_scheduler.ConstantLR(
-            optimizer, 0.02, total_iters=snkmk["final_T"]
-        ),  # converge
+        optim.lr_scheduler.ConstantLR(optimizer, 0.02, total_iters=snkmk["final_T"]),
     ],
     milestones=[
         snkmk["init_T"],
@@ -116,6 +112,7 @@ epoch_iterator = tqdm(
 model.train()
 model.zero_grad()
 for epoch in epoch_iterator:
+    # Iterate over batches
     for data_step_, where_step_ in loader:
         data_step = sml.Data(data_step_, names=data.names)
         where_step = sml.Data(where_step_, names=data.names)
