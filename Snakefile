@@ -1,4 +1,4 @@
-# ==============================================================================
+################################################################################
 # PGM
 
 rule pgm:
@@ -11,7 +11,7 @@ rule pgm:
         "src/scripts/pgm.py"
 
 
-# ==============================================================================
+################################################################################
 # Isochrone files
 
 rule download_brutus_mist_file:
@@ -40,7 +40,7 @@ rule download_brutus_nn_file:
         "src/scripts/brutus/download_nn_file.py"
 
 
-# ==============================================================================
+################################################################################
 # Mock data
 
 rule mock_make_data:
@@ -107,11 +107,23 @@ rule mock_isochrone_feh_variable:
         "src/scripts/mock/data/variable_isochrone_feh.py"
 
 
+rule gd1_model_script:
+    output: touch("src/data/mock/model.done")
+    input:
+        "src/data/mock/data.asdf",
+    conda:
+        "environment.yml"
+    cache: False
+    script:
+        "src/scripts/mock/model.py"
+
+
 rule mock_train_flow:
     output:
         "src/data/mock/background_photometry_model.pt"
     input:
-        "src/data/mock/data.asdf"
+        "src/data/mock/data.asdf",
+        "model.done",
     params:
         load_from_static=True,  # set to False to train the model
         save_to_static=False,
@@ -123,7 +135,7 @@ rule mock_train_flow:
         "environment.yml"
     cache: True
     script:
-        "src/scripts/mock/model/1-train_flow.py"
+        "src/scripts/mock/models/1-train_flow.py"
 
 
 rule mock_train_model:
@@ -131,6 +143,7 @@ rule mock_train_model:
         "src/data/mock/model.pt"
     input:
         "src/data/mock/data.asdf",
+        "model.done",
         "src/data/mock/background_photometry_model.pt",
     params:
         load_from_static=True,  # set to False to train the model
@@ -147,7 +160,7 @@ rule mock_train_model:
         "environment.yml"
     cache: True
     script:
-        "src/scripts/mock/model/2-train_model.py"
+        "src/scripts/mock/models/2-train_model.py"
 
 
 rule mock_ncorrect_variable:
@@ -177,7 +190,7 @@ rule mock_falseident_variable:
 
 
 
-# ==============================================================================
+################################################################################
 # Dustmaps
 
 rule download_dustmaps:
@@ -203,7 +216,7 @@ rule panstarrs1_corrections:
         "src/scripts/dustmaps/ps1_corrections.py"
 
 
-# ==============================================================================
+###############################################################################
 # GD-1
 
 rule gd1_query_data:
@@ -288,6 +301,61 @@ rule gd1_masks:
         "src/scripts/gd1/data/3.3-masks.py"
 
 
+rule gd1_info:
+    output:
+        "src/data/gd1/info.asdf"
+    input:
+        "src/data/gd1/gaia_ps1_xm.asdf",
+        "src/data/gd1/masks.asdf",
+    params:
+        phot_mask="phot_medium",
+    conda:
+        "environment.yml"
+    cache: True
+    script:
+        "src/scripts/gd1/model/0-info.py"
+
+
+# NOTE: this is a hacky way to aggregate the dependencies of the data script
+rule gd1_data_subset_script:
+    output: touch("src/data/gd1/subset/data.done")
+    input:
+        "src/data/gd1/gaia_ps1_xm.asdf",
+        "src/data/gd1/info.asdf",
+    conda:
+        "environment.yml"
+    cache: False
+    script:
+        "src/scripts/gd1/datasets_subset.py"
+
+
+# NOTE: this is a hacky way to aggregate the dependencies of the data script
+rule gd1_data_fullset_script:
+    output: touch("src/data/gd1/fullset/data.done")
+    input:
+        "src/data/gd1/gaia_ps1_xm.asdf",
+        "src/data/gd1/info.asdf",
+    conda:
+        "environment.yml"
+    cache: False
+    script:
+        "src/scripts/gd1/datasets_fullset.py"
+
+
+rule gd1_model_script:
+    output: touch("src/data/gd1/model.done")
+    input:
+        "src/data/gd1/info.asdf",
+        "src/data/gd1/control_points_stream.ecsv",
+        "src/data/gd1/control_points_spur.ecsv",
+        "src/data/gd1/control_points_distance.ecsv",
+    conda:
+        "environment.yml"
+    cache: False
+    script:
+        "src/scripts/gd1/model.py"
+
+
 rule gd1_control_points_distance:
     output:
         "src/data/gd1/control_points_distance.ecsv"
@@ -332,73 +400,14 @@ rule gd1_control_points:
         "src/scripts/gd1/table/control_points.py"
 
 
-rule gd1_info:
+# =========================================================
+# Subset
+
+rule gd1_subset_train_background_parallax_flow:
     output:
-        "src/data/gd1/info.asdf"
+        "src/data/gd1/subset/background_parallax_model.pt"
     input:
-        "src/data/gd1/gaia_ps1_xm.asdf",
-        "src/data/gd1/masks.asdf",
-    params:
-        pm_mask="pm_tight",
-        phot_mask="phot_medium",
-    conda:
-        "environment.yml"
-    cache: True
-    script:
-        "src/scripts/gd1/model/0-info.py"
-
-
-# NOTE: this is a hacky way to aggregate the dependencies of the data script
-rule gd1_data_script:
-    output: touch("src/data/gd1/data.done")
-    input:
-        "src/data/gd1/gaia_ps1_xm.asdf",
-        "src/data/gd1/info.asdf",
-    conda:
-        "environment.yml"
-    cache: False
-    script:
-        "src/scripts/gd1/datasets.py"
-
-
-# NOTE: this is a hacky way to aggregate the dependencies of the model script
-rule gd1_model_script:
-    output: touch("src/data/gd1/model.done")
-    input:
-        "src/data/gd1/info.asdf",
-        "src/data/gd1/control_points_stream.ecsv",
-        "src/data/gd1/control_points_spur.ecsv",
-        "src/data/gd1/control_points_distance.ecsv",
-    conda:
-        "environment.yml"
-    cache: False
-    script:
-        "src/scripts/gd1/define_model.py"
-
-
-rule gd1_train_background_photometry_flow:
-    output:
-        "src/data/gd1/background_photometry_model.pt"
-    input:
-        "src/data/gd1/data.done",
-        "src/data/gd1/model.done",
-    params:
-        load_from_static=True,  # set to False to recompute
-        save_to_static=False,
-        diagnostic_plots=True,
-        epochs=2_000,
-    conda:
-        "environment.yml"
-    cache: True
-    script:
-        "src/scripts/gd1/model/2-train_background_photometry_flow.py"
-
-
-rule gd1_train_background_parallax_flow:
-    output:
-        "src/data/gd1/background_parallax_model.pt"
-    input:
-        "src/data/gd1/data.done",
+        "src/data/gd1/subset/data.done",
         "src/data/gd1/model.done",
     params:
         load_from_static=True,  # set to False to recompute
@@ -409,20 +418,37 @@ rule gd1_train_background_parallax_flow:
         "environment.yml"
     cache: True
     script:
-        "src/scripts/gd1/model/2-train_background_parallax_flow.py"
+        "src/scripts/gd1/model/subset/1-train_background_parallax_flow.py"
 
 
-# TODO: rerun from scratch
-rule gd1_train_model:
+rule gd1_subset_train_background_photometry_flow:
     output:
-        "src/data/gd1/model.pt"
+        "src/data/gd1/subset/background_photometry_model.pt"
     input:
-        "src/data/gd1/data.done",
+        "src/data/gd1/subset/data.done",
         "src/data/gd1/model.done",
-        "src/data/gd1/background_photometry_model.pt",
-        "src/data/gd1/background_parallax_model.pt",
     params:
         load_from_static=True,  # set to False to recompute
+        save_to_static=False,
+        diagnostic_plots=True,
+        epochs=2_000,
+    conda:
+        "environment.yml"
+    cache: True
+    script:
+        "src/scripts/gd1/model/subset/2-train_background_photometry_flow.py"
+
+
+rule gd1_subset_train_model:
+    output:
+        "src/data/gd1/subset/model.pt"
+    input:
+        "src/data/gd1/subset/data.done",
+        "src/data/gd1/model.done",
+        "src/data/gd1/subset/background_photometry_model.pt",
+        "src/data/gd1/subset/background_parallax_model.pt",
+    params:
+        load_from_static=False,  # set to False to recompute
         save_to_static=False,
         diagnostic_plots=True,
         # epoch milestones
@@ -433,16 +459,78 @@ rule gd1_train_model:
         "environment.yml"
     cache: True
     script:
-        "src/scripts/gd1/model/3-train_model.py"
+        "src/scripts/gd1/model/subset/3-train_model.py"
+
+
+# =========================================================
+# Full-set
+
+rule gd1_full_train_background_parallax_flow:
+    output:
+        "src/data/gd1/fullset/background_parallax_model.pt"
+    input:
+        "src/data/gd1/fullset/data.done",
+        "src/data/gd1/model.done",
+    params:
+        load_from_static=True,  # set to False to recompute
+        save_to_static=False,
+        diagnostic_plots=True,
+        epochs=1_000,
+    conda:
+        "environment.yml"
+    cache: True
+    script:
+        "src/scripts/gd1/model/fullset/1-train_background_parallax_flow.py"
+
+
+rule gd1_full_train_background_photometry_flow:
+    output:
+        "src/data/gd1/fullset/background_photometry_model.pt"
+    input:
+        "src/data/gd1/fullset/data.done",
+        "src/data/gd1/model.done",
+    params:
+        load_from_static=True,  # set to False to recompute
+        save_to_static=False,
+        diagnostic_plots=True,
+        epochs=2_000,
+    conda:
+        "environment.yml"
+    cache: True
+    script:
+        "src/scripts/gd1/model/fullset/2-train_background_photometry_flow.py"
+
+
+rule gd1_full_train_model:
+    output:
+        "src/data/gd1/model.pt"
+    input:
+        "src/data/gd1/fullset/data.done",
+        "src/data/gd1/model.done",
+        "src/data/gd1/fullset/background_photometry_model.pt",
+        "src/data/gd1/fullset/background_parallax_model.pt",
+    params:
+        load_from_static=False,  # set to False to recompute
+        save_to_static=False,
+        diagnostic_plots=True,
+        # epoch milestones
+        epochs=1_250 * 10,
+        lr=1e-3,
+        weight_decay=1e-8,
+    conda:
+        "environment.yml"
+    cache: True
+    script:
+        "src/scripts/gd1/model/fullset/3-train_model.py"
 
 
 rule gd1_member_likelihoods:
     output:
         "src/data/gd1/membership_likelhoods.ecsv"
     input:
-        "src/data/gd1/data.done",
+        "src/data/gd1/fullset/data.done",
         "src/data/gd1/model.done",
-        "src/data/gd1/model.pt",
+        "src/data/gd1/fullset/model.pt",
     conda:
         "environment.yml"
     cache: True
@@ -468,7 +556,7 @@ rule gd1_member_table_full:
     output:
         "src/tex/output/gd1/member_table_full.tex"
     input:
-        "src/data/gd1/data.done",
+        "src/data/gd1/fullset/data.done",
         "src/data/gd1/model.done",
         "src/data/gd1/membership_likelhoods.ecsv",
     conda:
@@ -648,25 +736,25 @@ rule pal5_model_script:
         "environment.yml"
     cache: False
     script:
-        "src/scripts/pal5/define_model.py"
+        "src/scripts/pal5/model.py"
 
 
-rule pal5_train_background_photometry_flow:
-    output:
-        "src/data/pal5/background_photometry_model.pt"
-    input:
-        "src/data/pal5/data.done",
-        "src/data/pal5/model.done",
-    params:
-        load_from_static=True,  # set to False to recompute
-        save_to_static=False,
-        diagnostic_plots=True,
-        epochs=2_000,
-    conda:
-        "environment.yml"
-    cache: True
-    script:
-        "src/scripts/pal5/model/2-train_background_photometry_flow.py"
+# rule pal5_train_background_photometry_flow:
+#     output:
+#         "src/data/pal5/background_photometry_model.pt"
+#     input:
+#         "src/data/pal5/data.done",
+#         "src/data/pal5/model.done",
+#     params:
+#         load_from_static=True,  # set to False to recompute
+#         save_to_static=False,
+#         diagnostic_plots=True,
+#         epochs=2_000,
+#     conda:
+#         "environment.yml"
+#     cache: True
+#     script:
+#         "src/scripts/pal5/model/2-train_background_photometry_flow.py"
 
 
 rule pal5_train_model:
