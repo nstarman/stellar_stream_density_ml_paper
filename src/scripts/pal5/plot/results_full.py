@@ -165,21 +165,6 @@ f1 = ax01.fill_between(
     zorder=-5,
 )
 
-# # Linear Density
-# kernel = gaussian_kde(data["phi1"], bw_method=0.05)
-
-# secax_y = ax01.twinx()
-# color = "tab:blue"
-# secax_y.set_ylabel(r"$\ln \rm{N}_{\rm stream}(\phi_1)$", color=color)
-# y = (
-#     np.log(len(data))
-#     + np.log(kernel(data["phi1"]))
-#     + np.percentile(stream_lnwgt, 50, axis=1)
-# )
-# secax_y.plot(data["phi1"], y, color=color)
-# secax_y.tick_params(axis="y", labelcolor=color)
-# secax_y.set_ylim(2, y.max() + 0.5)
-
 # Legend
 ax01.legend([(f1, l1)], [r"Model"], numpoints=1, loc="upper left")
 
@@ -219,7 +204,7 @@ ax02.scatter(
 
 for tick in ax02.get_yticklabels():
     tick.set_verticalalignment("bottom")
-ax02.set_ylim(-3, 0)
+ax02.set_ylim(-3.1, -2)
 
 # ---------------------------------------------------------------------------
 # Phi2
@@ -260,7 +245,7 @@ p2 = ax03.errorbar(
     label="Stream Control Points",
 )
 
-# Data (background, then stream errors, then stream data)
+# Data: background
 ax03.scatter(
     data["phi1"][psort][~is_strm],
     data["phi2"][psort][~is_strm],
@@ -269,6 +254,32 @@ ax03.scatter(
     s=sizes[psort][~is_strm],
     zorder=-10,
 )
+
+# Literature
+(l1,) = ax03.plot(
+    pal5I21.phi1.degree, pal5I21.phi2.degree, **_lit1_kw, label="Ibata+21"
+)
+(l2,) = ax03.plot(pal5PW19.phi1.degree, pal5PW19.phi2.degree, **_lit2_kw, label="PW+19")
+
+# Model
+f10 = ax03.fill_between(
+    data["phi1"],
+    np.percentile(dmpars["stream.astrometric.phi2", "mu"], 5, axis=1),
+    np.percentile(dmpars["stream.astrometric.phi2", "mu"], 95, axis=1),
+    color=cmap1(0.99),
+    alpha=0.1,
+    where=strm_range,
+)
+f11 = ax03.fill_between(
+    data["phi1"],
+    (mpa["phi2", "mu"] - xp.exp(mpa["phi2", "ln-sigma"])),
+    (mpa["phi2", "mu"] + xp.exp(mpa["phi2", "ln-sigma"])),
+    color=cmap1(0.99),
+    alpha=0.25,
+    where=strm_range,
+)
+
+# Data: stream errors then stream data
 d1 = ax03.errorbar(
     data["phi1"][psort][is_strm & ~is_progenitor],
     data["phi2"][psort][is_strm & ~is_progenitor],
@@ -292,22 +303,6 @@ ax03.scatter(
     alpha=alphas[is_strm],
     s=sizes[psort][is_strm],
     zorder=-8,
-)
-
-# Literature
-(l1,) = ax03.plot(
-    pal5I21.phi1.degree, pal5I21.phi2.degree, **_lit1_kw, label="Ibata+21"
-)
-(l2,) = ax03.plot(pal5PW19.phi1.degree, pal5PW19.phi2.degree, **_lit2_kw, label="PW+19")
-
-# Model
-f1 = ax03.fill_between(
-    data["phi1"],
-    (mpa["phi2", "mu"] - xp.exp(mpa["phi2", "ln-sigma"])),
-    (mpa["phi2", "mu"] + xp.exp(mpa["phi2", "ln-sigma"])),
-    color=cmap1(0.99),
-    alpha=0.25,
-    where=strm_range,
 )
 
 # Legend
@@ -335,7 +330,7 @@ legend_elements_data = [
     ),
 ]
 legend = plt.legend(
-    [legend_elements_data, (p1, p2), f1],
+    [legend_elements_data, (p1, p2), (f10, f11)],
     ["Data", "Guides", "Model"],
     numpoints=1,
     ncols=3,
@@ -531,8 +526,8 @@ ln_sigma = dmpars["stream.astrometric.pmphi2", "ln-sigma"]
 # Model
 ax08.fill_between(
     data["phi1"],
-    (np.percentile(ln_sigma, 5, axis=1)),
-    (np.percentile(ln_sigma, 95, axis=1)),
+    np.percentile(ln_sigma, 5, axis=1),
+    np.percentile(ln_sigma, 95, axis=1),
     color=cmap1(0.99),
     alpha=0.25,
     where=strm_range,
@@ -563,7 +558,7 @@ ax09 = fig.add_subplot(
     aspect="auto",
 )
 
-# Data
+# Data: background
 ax09.scatter(
     data["phi1"][psort][~is_strm],
     data["pmphi2"][psort][~is_strm],
@@ -572,6 +567,32 @@ ax09.scatter(
     s=sizes[psort][~is_strm],
     zorder=-10,
 )
+
+# Literature
+ax09.plot(pal5I21.phi1.degree, pal5I21.pm_phi2.value, **_lit1_kw, label="Ibata+21")
+ax09.plot(pal5PW19.phi1.degree, pal5PW19.pm_phi2.value, **_lit2_kw, label="PW+19")
+
+# Model
+ax09.fill_between(
+    data["phi1"],
+    np.percentile(dmpars["stream.astrometric.pmphi2", "mu"], 5, axis=1),
+    np.percentile(dmpars["stream.astrometric.pmphi2", "mu"], 95, axis=1),
+    color=cmap1(0.99),
+    alpha=0.1,
+    where=strm_range,
+    zorder=-5,
+)
+ax09.fill_between(
+    data["phi1"],
+    (mpa["pmphi2", "mu"] - xp.exp(mpa["pmphi2", "ln-sigma"])),
+    (mpa["pmphi2", "mu"] + xp.exp(mpa["pmphi2", "ln-sigma"])),
+    color=cmap1(0.99),
+    alpha=0.25,
+    where=strm_range,
+    zorder=-5,
+)
+
+# Data: stream
 ax09.errorbar(
     data["phi1"][psort][is_strm & ~is_progenitor],
     data["pmphi2"][psort][is_strm & ~is_progenitor],
@@ -595,21 +616,6 @@ ax09.scatter(
     alpha=alphas[is_strm],
     s=sizes[psort][is_strm],
     zorder=-8,
-)
-
-# Literature
-ax09.plot(pal5I21.phi1.degree, pal5I21.pm_phi2.value, **_lit1_kw, label="Ibata+21")
-ax09.plot(pal5PW19.phi1.degree, pal5PW19.pm_phi2.value, **_lit2_kw, label="PW+19")
-
-# Model
-ax09.fill_between(
-    data["phi1"],
-    (mpa["pmphi2", "mu"] - xp.exp(mpa["pmphi2", "ln-sigma"])),
-    (mpa["pmphi2", "mu"] + xp.exp(mpa["pmphi2", "ln-sigma"])),
-    color=cmap1(0.99),
-    alpha=0.25,
-    where=strm_range,
-    zorder=-5,
 )
 
 # ===========================================================================
