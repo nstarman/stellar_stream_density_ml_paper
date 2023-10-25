@@ -20,10 +20,10 @@ paths = user_paths()
 sys.path.append(paths.scripts.parent.as_posix())
 # isort: split
 
-from scripts.gd1.datasets import data, off_stream, where
-from scripts.gd1.define_model import (
-    background_astrometric_plx_model as model_without_grad,
-)
+from scripts.gd1.datasets_subset import data, off_stream, where
+from scripts.gd1.model import make_model
+
+model_without_grad = make_model("subset")["background"]["astrometric"]["plx"]
 
 # =============================================================================
 # Load Data
@@ -39,18 +39,27 @@ except NameError:
         "diagnostic_plots": True,
     }
 
+save_path = paths.data / "gd1" / "subset"
+save_path.mkdir(parents=True, exist_ok=True)
+
+static_path = paths.static / "gd1" / "subset"
+static_path.mkdir(parents=True, exist_ok=True)
+
 if snkmk["load_from_static"]:
+    # Load from static
     model_without_grad.load_state_dict(
-        xp.load(paths.static / "gd1" / "background_parallax_model.pt")
+        xp.load(static_path / "background_parallax_model.pt")
     )
+
+    # Save to data
     xp.save(
         model_without_grad.state_dict(),
-        paths.data / "gd1" / "background_parallax_model.pt",
+        save_path / "background_parallax_model.pt",
     )
+
     sys.exit(0)
 
-
-figure_path = paths.figures / "gd1" / "_diagnostics" / "plx_flow"
+figure_path = paths.scripts / "gd1" / "_diagnostics" / "subset" / "plx_flow"
 figure_path.mkdir(parents=True, exist_ok=True)
 
 # =============================================================================
@@ -67,13 +76,19 @@ dataset = td.TensorDataset(
     where[coord_names].array[off_stream],
 )
 loader = td.DataLoader(
-    dataset=dataset, batch_size=500, shuffle=True, num_workers=0, drop_last=True
+    dataset=dataset,
+    batch_size=int(len(data) * 0.075),
+    shuffle=True,
+    num_workers=0,
+    drop_last=True,
 )
 optimizer = optim.AdamW(model.parameters(), lr=1e-3)
 
 # Train
 for epoch in tqdm(range(snkmk["epochs"])):
+    # Train batches
     for data_step_, where_step_ in loader:
+        # Step
         data_step = sml.Data(data_step_, names=coord_names)
         where_step = sml.Data(where_step_, names=coord_names)
 
@@ -113,7 +128,9 @@ for epoch in tqdm(range(snkmk["epochs"])):
             fig.savefig(figure_path / f"epoch_{epoch:05}.png")
             plt.close(fig)
 
-xp.save(model.state_dict(), paths.data / "gd1" / "background_parallax_model.pt")
+    xp.save(model.state_dict(), save_path / "background_parallax_model.pt")
+
+xp.save(model.state_dict(), save_path / "background_parallax_model.pt")
 
 if snkmk["save_to_static"]:
-    xp.save(model.state_dict(), paths.static / "gd1" / "background_parallax_model.pt")
+    xp.save(model.state_dict(), static_path / "background_parallax_model.pt")

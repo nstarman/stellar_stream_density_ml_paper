@@ -26,7 +26,7 @@ paths = user_paths()
 sys.path.append(paths.scripts.parent.as_posix())
 # isort: split
 
-from scripts.gd1.datasets_fullset import data
+from scripts.gd1.datasets_subset import data
 from scripts.gd1.frames import gd1_frame as frame
 from scripts.gd1.model import make_model
 from scripts.helper import (
@@ -50,9 +50,9 @@ spur_cp = QTable.read(paths.data / "gd1" / "control_points_spur.ecsv")
 distance_cp = QTable.read(paths.data / "gd1" / "control_points_distance.ecsv")
 
 # Load model
-model = make_model("fullset")
+model = make_model("subset")
 model = pycopy.deepcopy(model)
-model.load_state_dict(xp.load(paths.data / "gd1" / "fullset" / "model.pt"))
+model.load_state_dict(xp.load(paths.data / "gd1" / "subset" / "model.pt"))
 model = model.eval()
 
 # Load results from 4-likelihoods.py
@@ -1137,4 +1137,4 @@ ax61.fill_between(
 
 # ===========================================================================
 
-fig.savefig(paths.figures / "gd1" / "results_full.pdf")
+fig.savefig(paths.figures / "gd1" / "results_sub.pdf")

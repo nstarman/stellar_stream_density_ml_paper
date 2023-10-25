@@ -33,7 +33,7 @@ pm_edges.add_index("label", unique=True)
 with asdf.open(
     paths.data / "gd1" / "isochrone.asdf", lazy_load=False, copy_arrays=True
 ) as af:
-    iso_medium = af["isochrone_medium"]
+    isochrone = af["isochrone_medium"]
 
 
 ###############################################################################
@@ -112,7 +112,7 @@ ax10.hist2d(
 )
 
 # Isochrone
-ax10.plot(*iso_medium.T, c="tab:blue", label="w=0.3", zorder=-5)
+ax10.plot(*isochrone.T, c="tab:blue", label="w=0.3", zorder=-5)
 
 ax10.set(xlim=(-1, 3), ylim=(24, 12))  # has to be after the hist2d
 ax10.legend(loc="upper left")

@@ -4,7 +4,6 @@
 from dataclasses import asdict
 
 import asdf
-import astropy.units as u
 import numpy as np
 from astropy.table import QTable
 from showyourwork.paths import user as user_paths
@@ -16,17 +15,6 @@ paths = user_paths()
 
 ##############################################################################
 
-try:
-    snkmk = snakemake.params
-except NameError:
-    snkmk = {
-        "pm_mask": "pm_tight",
-        "phot_mask": "phot_medium",
-    }
-
-
-##############################################################################
-
 # Read tables
 table = QTable.read(paths.data / "gd1" / "gaia_ps1_xm.asdf")
 masks = QTable.read(paths.data / "gd1" / "masks.asdf")
@@ -35,20 +23,20 @@ masks = QTable.read(paths.data / "gd1" / "masks.asdf")
 af = asdf.AsdfFile()
 
 # -----------------------------------------------------------------------------
-# Mask
-# TODO: move this to the data files
+# Mask - subset
 
 sel = (
-    (table["parallax"] > 0 * u.mas)  # TODO: allow negative parallax
-    & masks[snkmk["pm_mask"]]
-    & masks[snkmk["phot_mask"]]
+    masks["pm_tight"] & masks["phot_medium"] & masks["neg_parallax"] & masks["low_phi2"]
 )
-table = table[sel]
 
 # Save mask
-af["mask_info"] = {"pm_mask": snkmk["pm_mask"], "phot_mask": snkmk["phot_mask"]}
+af["mask_info"] = {
+    "pm_mask": "pm_tight",
+    "phot_mask": "phot_medium",
+    "plx_mask": "neg_parallax",
+    "phi2_mask": "low_phi2",
+}
 af["mask"] = sel
-
 
 # ----------------------------------------------------
 # Data
@@ -116,24 +104,26 @@ af["names"] = (
     "r0_error",
 )
 
-data = sml.Data.from_format(
-    table, fmt="astropy.table", names=af["names"], renamer=af["renamer"]
+data_sub = sml.Data.from_format(
+    table[sel], fmt="astropy.table", names=af["names"], renamer=af["renamer"]
 )
-
 
 # -----------------------------------------------------------------------------
 # Coordinate Bounds
 
-af["coord_bounds"] = {k: (np.nanmin(data[k]), np.nanmax(data[k])) for k in data.names}
+af["coord_bounds"] = {
+    k: (np.nanmin(data_sub[k]), np.nanmax(data_sub[k])) for k in data_sub.names
+}
 
 # -----------------------------------------------------------------------------
 # Scaling for ML
+# We only scale for the full dataset
 
-scaler = StandardScaler.fit(data, names=data.names)
+scaler = StandardScaler.fit(data_sub, names=data_sub.names)
 
 af["scaler"] = asdict(scaler)
 
 # -----------------------------------------------------------------------------
 
-af.write_to(paths.data / "gd1" / "info.asdf")
+af.write_to(paths.data / "gd1" / "subset" / "info.asdf")
 af.close()

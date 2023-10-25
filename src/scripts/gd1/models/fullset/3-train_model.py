@@ -18,9 +18,9 @@ paths = user_paths()
 sys.path.append(paths.scripts.parent.as_posix())
 # isort: split
 
-from scripts.gd1.datasets import data, where
-from scripts.gd1.define_model import model
-from scripts.gd1.model.helper import diagnostic_plot
+from scripts.gd1.datasets_fullset import data, where
+from scripts.gd1.model import make_model
+from scripts.gd1.models.helper import diagnostic_plot
 from scripts.helper import manually_set_dropout
 
 # =============================================================================
@@ -34,38 +34,55 @@ except NameError:
         "load_from_static": False,
         "save_to_static": False,
         "diagnostic_plots": True,
-        # epoch milestones
-        "epochs": 1_250 * 10,
+        # hyperparameters
         "lr": 1e-3,
         "weight_decay": 1e-8,
-        # early_stopping
-        # "early_stopping": 1_250 * 10,
+        "eta_min": 1e-4,
+        # epoch parameters
+        "T_burn": 200,
+        "T_cos": 300,
+        "n_T": 3,
+        "T_endburn": 10_000 - 200 - 300 * 3,
     }
+    snkmk["epochs"] = (
+        snkmk["T_burn"] + snkmk["T_cos"] * snkmk["n_T"] + snkmk["T_endburn"]
+    )
+
+save_path = paths.data / "gd1" / "fullset"
+save_path.mkdir(parents=True, exist_ok=True)
+(save_path / "models").mkdir(parents=True, exist_ok=True)
+
+static_path = paths.static / "gd1" / "fullset"
+static_path.mkdir(parents=True, exist_ok=True)
+
+model = make_model("fullset")
 
 if snkmk["load_from_static"]:
-    model.load_state_dict(xp.load(paths.static / "gd1" / "model.pt"))
-    xp.save(model.state_dict(), paths.data / "gd1" / "model.pt")
+    model.load_state_dict(xp.load(static_path / "model.pt"))
+    xp.save(model.state_dict(), save_path / "model.pt")
 
     sys.exit(0)
 
-diagnostic_path = paths.scripts / "gd1" / "_diagnostics" / "model"
+diagnostic_path = paths.scripts / "gd1" / "_diagnostics" / "fullset" / "models"
 diagnostic_path.mkdir(parents=True, exist_ok=True)
 
 # =============================================================================
 # Load saved model components
 
+model.load_state_dict(xp.load(paths.data / "gd1" / "subset" / "model.pt"))
+# overload with better background models
 model["background"]["astrometric"]["plx"].load_state_dict(
-    xp.load(paths.data / "gd1" / "background_parallax_model.pt")
+    xp.load(save_path / "background_parallax_model.pt")
 )
 model["background"]["photometric"].load_state_dict(
-    xp.load(paths.data / "gd1" / "background_photometry_model.pt")
+    xp.load(save_path / "background_photometry_model.pt")
 )
 
 
 # =============================================================================
 # Training Parameters
 
-BATCH_SIZE = int(len(data) * 0.075)
+BATCH_SIZE = int(len(data) * 0.05)
 
 dataset = td.TensorDataset(
     data.array,  # data
@@ -84,7 +101,26 @@ optimizer = optim.AdamW(
     list(model.parameters()), lr=snkmk["lr"], weight_decay=snkmk["weight_decay"]
 )
 
-scheduler = optim.lr_scheduler.ConstantLR(optimizer, factor=0.1)  # constant 1e-4
+# scheduler = optim.lr_scheduler.ConstantLR(optimizer, factor=0.1)  # constant
+# 1e-4
+scheduler = optim.lr_scheduler.SequentialLR(
+    optimizer,
+    [
+        optim.lr_scheduler.ConstantLR(
+            optimizer, 0.2, total_iters=snkmk["T_burn"] - 1
+        ),  # converge
+        optim.lr_scheduler.CosineAnnealingWarmRestarts(
+            optimizer, T_0=snkmk["T_cos"], eta_min=snkmk["eta_min"]
+        ),
+        optim.lr_scheduler.ConstantLR(
+            optimizer, 0.1, total_iters=snkmk["T_endburn"]
+        ),  # converge
+    ],
+    milestones=[
+        snkmk["T_burn"],
+        snkmk["T_burn"] + snkmk["n_T"] * snkmk["T_cos"],
+    ],
+)
 
 # =============================================================================
 # Train
@@ -107,6 +143,7 @@ for epoch in epoch_iterator:
         if not pred.isfinite().all():
             raise ValueError
 
+        # Evaluate loss function
         mpars = model.unpack_params(pred)
         loss_val = -model.ln_posterior_tot(mpars, step_data, where=step_where)
 
@@ -141,26 +178,22 @@ for epoch in epoch_iterator:
         manually_set_dropout(model, 0.15)
         model.train()
 
-        xp.save(model.state_dict(), paths.data / "gd1" / "model.pt")
+        xp.save(model.state_dict(), save_path / "model.pt")
 
         xp.save(
-            model.state_dict(), paths.data / "gd1" / "model" / f"model_{epoch:04d}.pt"
+            model.state_dict(),
+            save_path / "models" / f"model_{epoch:04d}.pt",
         )
 
 
 # Save final state of the model
-xp.save(model.state_dict(), paths.data / "gd1" / "model" / f"model_{epoch:04d}.pt")
+xp.save(model.state_dict(), save_path / "models" / f"model_{epoch:04d}.pt")
 
 
 # =============================================================================
 # Save
-# We institute early stopping to determine the "best" state of the model.
 
-# model.load_state_dict(
-#     xp.load(paths.data / "gd1" / "model" / f"model_{snkmk['early_stopping']:04d}.pt")
-# )
-
-xp.save(model.state_dict(), paths.data / "gd1" / "model.pt")
+xp.save(model.state_dict(), save_path / "model.pt")
 
 if snkmk["save_to_static"]:
-    xp.save(model.state_dict(), paths.static / "gd1" / "model.pt")
+    xp.save(model.state_dict(), static_path / "model.pt")

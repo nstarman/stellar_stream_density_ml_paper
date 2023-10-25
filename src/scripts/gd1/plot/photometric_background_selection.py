@@ -15,7 +15,7 @@ paths = user_paths()
 sys.path.append(paths.scripts.parent.as_posix())
 # isort: split
 
-from scripts.gd1.datasets import data, off_stream
+from scripts.gd1.datasets_subset import data, off_stream
 
 data = data.astype(np.ndarray)
 

@@ -17,18 +17,16 @@ paths = user_paths()
 sys.path.append(paths.scripts.parent.as_posix())
 # isort: split
 
-from scripts.gd1.datasets import data, table, where
-from scripts.gd1.define_model import model
-from scripts.helper import (
-    manually_set_dropout,
-    recursive_iterate,
-)
+from scripts.gd1.datasets_fullset import data, table, where
+from scripts.gd1.model import make_model
+from scripts.helper import manually_set_dropout, recursive_iterate
 
 # =============================================================================
 # Load model
 
+model = make_model("fullset")
 model = pycopy.deepcopy(model)
-model.load_state_dict(xp.load(paths.data / "gd1" / "model" / "model_12499.pt"))
+model.load_state_dict(xp.load(paths.data / "gd1" / "fullset" / "model.pt"))
 model = model.eval()
 
 

@@ -26,8 +26,8 @@ paths = user_paths()
 sys.path.append(paths.scripts.parent.as_posix())
 # isort: split
 
-from scripts.gd1.datasets import data
-from scripts.gd1.define_model import model
+from scripts.gd1.datasets_fullset import data
+from scripts.gd1.model import make_model
 from scripts.helper import (
     color_by_probable_member,
     manually_set_dropout,
@@ -49,7 +49,8 @@ with asdf.open(
     isochrone_data = Data(**af["isochrone_data"])
 
 # Load model
-model.load_state_dict(xp.load(paths.data / "gd1" / "model" / "model_12499.pt"))
+model = make_model("fullset")
+model.load_state_dict(xp.load(paths.data / "gd1" / "fullset" / "model.pt"))
 model = model.eval()
 
 # Load results from 4-likelihoods.py

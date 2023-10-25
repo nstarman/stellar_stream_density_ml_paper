@@ -1,4 +1,4 @@
-"""Train photometry background flow."""
+"""Train parallax background flow."""
 
 import sys
 from dataclasses import replace
@@ -20,13 +20,13 @@ paths = user_paths()
 sys.path.append(paths.scripts.parent.as_posix())
 # isort: split
 
-from scripts.gd1.datasets import data, off_stream, where
-from scripts.gd1.define_model import (
-    background_photometric_model as model_without_grad,
-)
+from scripts.gd1.datasets_fullset import data, off_stream, where
+from scripts.gd1.model import make_model
 
 # =============================================================================
 # Load Data
+
+model_without_grad = make_model("fullset")["background"]["astrometric"]["plx"]
 
 snkmk: dict[str, Any]
 try:
@@ -35,22 +35,28 @@ except NameError:
     snkmk = {
         "load_from_static": False,
         "save_to_static": False,
-        "epochs": 2_000,
+        "epochs": 1_000,
         "diagnostic_plots": True,
     }
 
+save_path = paths.data / "gd1" / "fullset"
+save_path.mkdir(parents=True, exist_ok=True)
+
+static_path = paths.static / "gd1" / "fullset"
+static_path.mkdir(parents=True, exist_ok=True)
+
 if snkmk["load_from_static"]:
     model_without_grad.load_state_dict(
-        xp.load(paths.static / "gd1" / "background_photometry_model.pt")
+        xp.load(static_path / "background_parallax_model.pt")
     )
     xp.save(
         model_without_grad.state_dict(),
-        paths.data / "gd1" / "background_photometry_model.pt",
+        save_path / "background_parallax_model.pt",
     )
     sys.exit(0)
 
 
-figure_path = paths.scripts / "gd1" / "_diagnostics" / "phot_flow"
+figure_path = paths.scripts / "gd1" / "_diagnostics" / "fullset" / "plx_flow"
 figure_path.mkdir(parents=True, exist_ok=True)
 
 # =============================================================================
@@ -67,7 +73,11 @@ dataset = td.TensorDataset(
     where[coord_names].array[off_stream],
 )
 loader = td.DataLoader(
-    dataset=dataset, batch_size=500, shuffle=True, num_workers=0, drop_last=True
+    dataset=dataset,
+    batch_size=int(len(data) * 0.075),
+    shuffle=True,
+    num_workers=0,
+    drop_last=True,
 )
 optimizer = optim.AdamW(model.parameters(), lr=1e-3)
 
@@ -85,38 +95,31 @@ for epoch in tqdm(range(snkmk["epochs"])):
         loss.backward()
         optimizer.step()
 
-    xp.save(model.state_dict(), paths.data / "gd1" / "background_photometry_model.pt")
+        # Diagnostic plots (not in the paper)
+        if snkmk["diagnostic_plots"] and (
+            (epoch % 100 == 0) or (epoch == snkmk["epochs"] - 1)
+        ):
+            with xp.no_grad():
+                mpars = model.unpack_params(model(data))
+                prob = model.posterior(mpars, data, where=where).flatten()
 
-    # -----------------------------------------------------------
+            psort = np.argsort(prob[off_stream])
 
-    # Diagnostic plots (not in the paper)
-    if snkmk["diagnostic_plots"] and (
-        (epoch % 100 == 0) or (epoch == snkmk["epochs"] - 1)
-    ):
-        with xp.no_grad():
-            mpars = model.unpack_params(model(data))
-            prob = model.posterior(mpars, data, where=where)
-        psort = np.argsort(prob[off_stream])
+            fig = plt.figure()
+            ax = fig.add_subplot(
+                ylim=(data["plx"].min(), data["plx"].max()), rasterization_zorder=0
+            )
+            im = ax.hexbin(
+                data["phi1"][off_stream][psort],
+                data["plx"][off_stream][psort],
+                C=prob[off_stream][psort],
+                zorder=-10,
+            )
+            plt.colorbar(im, ax=ax)
+            fig.savefig(figure_path / f"epoch_{epoch:05}.png")
+            plt.close(fig)
 
-        fig, ax = plt.subplots()
-        ax.scatter(
-            (data["g"] - data["r"])[~off_stream],
-            data["g"][~off_stream],
-            s=0.2,
-            c="black",
-        )
-        im = ax.scatter(
-            (data["g"] - data["r"])[off_stream][psort],
-            data["g"][off_stream][psort],
-            s=0.2,
-            c=prob[off_stream][psort],
-        )
-        plt.colorbar(im, ax=ax)
-        ax.set(xlim=(0, 0.8), ylim=(22, 13.5))
-        fig.savefig(figure_path / f"epoch_{epoch:05}.png")
-        plt.close(fig)
-
-xp.save(model.state_dict(), paths.data / "gd1" / "background_photometry_model.pt")
+xp.save(model.state_dict(), save_path / "background_parallax_model.pt")
 
 if snkmk["save_to_static"]:
-    xp.save(model.state_dict(), paths.static / "gd1" / "background_photometry_model.pt")
+    xp.save(model.state_dict(), static_path / "background_parallax_model.pt")

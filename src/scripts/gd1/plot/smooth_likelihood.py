@@ -13,8 +13,8 @@ paths = user_paths()
 # Add the parent directory to the path
 sys.path.append(paths.scripts.parent.as_posix())
 # isort: split
-from scripts.gd1.datasets import data, where
-from scripts.gd1.define_model import model
+from scripts.gd1.datasets_fullset import data, where
+from scripts.gd1.model import make_model
 
 # =============================================================================
 
@@ -22,7 +22,8 @@ from scripts.gd1.define_model import model
 plt.style.use(paths.scripts / "paper.mplstyle")
 
 # Load model
-model.load_state_dict(xp.load(paths.data / "gd1" / "model.pt"))
+model = make_model("fullset")
+model.load_state_dict(xp.load(paths.data / "gd1" / "fullset" / "model.pt"))
 model = model.eval()
 
 with xp.no_grad():

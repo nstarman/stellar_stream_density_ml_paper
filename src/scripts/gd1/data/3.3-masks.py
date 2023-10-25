@@ -68,6 +68,11 @@ masks_table["pm_medium"] = (
 
 masks_table["neg_parallax"] = table["parallax"] > 0 * u.mas
 
+# =============================================================================
+# Parallax
+
+masks_table["low_phi2"] = table["phi2"] > -5 * u.deg
+
 
 # =============================================================================
 # Photometry

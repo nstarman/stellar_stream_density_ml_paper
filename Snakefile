@@ -303,17 +303,15 @@ rule gd1_masks:
 
 rule gd1_info:
     output:
-        "src/data/gd1/info.asdf"
+        "src/data/gd1/subset/info.asdf"
     input:
         "src/data/gd1/gaia_ps1_xm.asdf",
         "src/data/gd1/masks.asdf",
-    params:
-        phot_mask="phot_medium",
     conda:
         "environment.yml"
     cache: True
     script:
-        "src/scripts/gd1/model/0-info.py"
+        "src/scripts/gd1/model/subset/0-info.py"
 
 
 # NOTE: this is a hacky way to aggregate the dependencies of the data script
@@ -327,6 +325,19 @@ rule gd1_data_subset_script:
     cache: False
     script:
         "src/scripts/gd1/datasets_subset.py"
+
+
+rule gd1_info:
+    output:
+        "src/data/gd1/fullset/info.asdf"
+    input:
+        "src/data/gd1/gaia_ps1_xm.asdf",
+        "src/data/gd1/masks.asdf",
+    conda:
+        "environment.yml"
+    cache: True
+    script:
+        "src/scripts/gd1/model/fullset/0-info.py"
 
 
 # NOTE: this is a hacky way to aggregate the dependencies of the data script
