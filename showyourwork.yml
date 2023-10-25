@@ -62,11 +62,11 @@ dependencies:
     - src/data/mock/data.asdf
     - src/scripts/mock/model.py
     - src/data/mock/model.pt
-  src/scripts/mock/plot/variable_ncorrect.py:
+  src/scripts/mock/stats/variable_ncorrect.py:
     - src/data/mock/data.asdf
     - src/scripts/mock/model.py
     - src/data/mock/model.pt
-  src/scripts/mock/plot/variable_falseident.py:
+  src/scripts/mock/stats/variable_falseident.py:
     - src/data/mock/data.asdf
     - src/scripts/mock/model.py
     - src/data/mock/model.pt

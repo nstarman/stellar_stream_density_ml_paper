@@ -173,7 +173,7 @@ rule mock_ncorrect_variable:
         "environment.yml"
     cache: True
     script:
-        "src/scripts/mock/plot/variable_ncorrect.py"
+        "src/scripts/mock/stats/variable_ncorrect.py"
 
 
 rule mock_falseident_variable:
@@ -186,7 +186,7 @@ rule mock_falseident_variable:
         "environment.yml"
     cache: True
     script:
-        "src/scripts/mock/plot/variable_falseident.py"
+        "src/scripts/mock/stats/variable_falseident.py"
 
 
 
