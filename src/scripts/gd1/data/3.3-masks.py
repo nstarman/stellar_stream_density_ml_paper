@@ -4,6 +4,7 @@ import shutil
 import sys
 
 import asdf
+import astropy.units as u
 import matplotlib.path as mpath
 import numpy as np
 from astropy.table import QTable
@@ -62,17 +63,19 @@ masks_table["pm_medium"] = (
     & (table["pm_phi2"] < pm_medium["pm_phi2_max"])
 )
 
+# =============================================================================
+# Parallax
+
+masks_table["neg_parallax"] = table["parallax"] > 0 * u.mas
+
 
 # =============================================================================
 # Photometry
 
-
 with asdf.open(
     paths.data / "gd1" / "isochrone.asdf", lazy_load=False, copy_arrays=True
 ) as af:
-    iso_tight = af["isochrone_tight"]
     iso_medium = af["isochrone_medium"]
-    iso_loose = af["isochrone_loose"]
 
 mags = np.c_[table["g0"] - table["i0"], table["g0"]]
 
