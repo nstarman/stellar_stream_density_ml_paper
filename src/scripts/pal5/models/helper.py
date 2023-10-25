@@ -277,10 +277,15 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
     )
     ax04.add_artist(legend1)
 
-    gs1 = gs[1].subgridspec(4, 4, height_ratios=(1, 1, 1, 2), hspace=0)
+    gs1 = gs[1].subgridspec(4, 5, height_ratios=(1, 1, 1, 2), hspace=0)
 
     # Bin the data for plotting
-    bins = np.linspace(data["phi1"].min(), data["phi1"].max(), num=5, endpoint=True)
+    bins = np.concatenate(
+        (
+            np.linspace(data["phi1"].min(), -0.5, num=3, endpoint=True),
+            np.linspace(0.5, data["phi1"].max(), num=3, endpoint=True),
+        )
+    )
     which_bin = np.digitize(data["phi1"], bins[:-1])
 
     for i, b in enumerate(np.unique(which_bin)):
