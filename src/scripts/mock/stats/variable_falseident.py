@@ -15,8 +15,8 @@ paths = user_paths()
 sys.path.append(paths.scripts.parent.as_posix())
 # isort: split
 
-from scripts.mock.define_model import model
-from scripts.mock.model import helper
+from scripts.mock.model import model
+from scripts.mock.models import helper
 
 (paths.output / "mock").mkdir(parents=True, exist_ok=True)
 

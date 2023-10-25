@@ -21,7 +21,7 @@ sys.path.append(paths.scripts.parent.as_posix())
 # isort: split
 
 from scripts.helper import manually_set_dropout, p2alpha, recursive_iterate
-from scripts.mock.define_model import model
+from scripts.mock.model import model
 
 # =============================================================================
 
