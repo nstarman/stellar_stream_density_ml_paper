@@ -38,9 +38,9 @@ mags_data = sml.Data(abs_mags, names=[n.removeprefix("PS_") for n in filters])
 
 app_mags = abs_mags + Distance(7.8 * u.kpc).distmod.value
 isochrone = shapely.LineString(np.c_[app_mags[:, 0] - app_mags[:, 2], app_mags[:, 0]])
-iso_tight = isochrone.buffer(0.1)
+# iso_tight = isochrone.buffer(0.1)
 iso_medium = isochrone.buffer(0.3)
-iso_loose = isochrone.buffer(0.5)
+# iso_loose = isochrone.buffer(0.5)
 
 
 af = asdf.AsdfFile()
@@ -48,9 +48,7 @@ af["isochrone_data"] = asdict(mags_data)
 af["isochrone_data"].pop("_n2k")
 # Masks
 af["isochrone_"] = np.c_[isochrone.xy]
-af["isochrone_tight"] = np.c_[iso_tight.exterior.xy]
 af["isochrone_medium"] = np.c_[iso_medium.exterior.xy]
-af["isochrone_loose"] = np.c_[iso_loose.exterior.xy]
 
 af.write_to(paths.data / "gd1" / "isochrone.asdf")
 af.close()
