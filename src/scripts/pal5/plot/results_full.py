@@ -15,6 +15,7 @@ from matplotlib.gridspec import GridSpec
 from matplotlib.legend_handler import HandlerTuple
 from matplotlib.lines import Line2D
 from showyourwork.paths import user as user_paths
+from tqdm import tqdm
 
 import stream_ml.pytorch as sml
 from stream_ml.core import WEIGHT_NAME
@@ -26,10 +27,10 @@ sys.path.append(paths.scripts.parent.as_posix())
 # isort: split
 
 from scripts.helper import manually_set_dropout, p2alpha, recursive_iterate
-from scripts.mpl_colormaps import stream_cmap1 as cmap1
+from scripts.mpl_colormaps import stream_cmap1 as cmap_stream
 from scripts.pal5.datasets import data, masks
-from scripts.pal5.define_model import model
 from scripts.pal5.frames import pal5_frame as frame
+from scripts.pal5.model import model
 
 # =============================================================================
 # Load data
@@ -42,7 +43,7 @@ stream_cp = QTable.read(paths.data / "pal5" / "control_points_stream.ecsv")
 
 # Load model
 model = pycopy.deepcopy(model)
-model.load_state_dict(xp.load(paths.data / "pal5" / "model.pt"))
+model.load_state_dict(xp.load(paths.data / "pal5" / "models" / "model_12000.pt"))
 model = model.eval()
 
 # Load results from 4-likelihoods.py
@@ -68,7 +69,7 @@ psort = np.argsort(stream_prob)
 # Foreground
 is_strm_ = stream_prob > 0.6
 is_strm = is_strm_[psort]
-strm_range = (data["phi1"][is_strm_].min() <= data["phi1"]) & (
+stream_range = (data["phi1"][is_strm_].min() <= data["phi1"]) & (
     data["phi1"] <= data["phi1"][is_strm_].max()
 )
 is_progenitor = ~((data["phi1"] < -0.3) | (data["phi1"] > 0.3))[psort].numpy()
@@ -79,12 +80,16 @@ with xp.no_grad():
     model = model.train()
     manually_set_dropout(model, 0.15)
     # evaluate the model
-    ldmpars = [model.unpack_params(model(data)) for i in range(100)]
+    ldmpars = [model.unpack_params(model(data)) for i in tqdm(range(100))]
     # mpars
     dmpars = sml.params.Params(
         recursive_iterate(ldmpars, ldmpars[0], reduction=lambda x: x)
     )
-    mpars = sml.params.Params(recursive_iterate(ldmpars, ldmpars[0]))
+    mpars = sml.params.Params(
+        recursive_iterate(
+            ldmpars, ldmpars[0], reduction=lambda x: np.percentile(x, 50, axis=1)
+        )
+    )
 
     # turn dropout back off
     manually_set_dropout(model, 0)
@@ -108,12 +113,12 @@ gs = GridSpec(
 )
 
 # Settings
-colors = cmap1(stream_prob[psort])
+colors = cmap_stream(stream_prob[psort])
 alphas = p2alpha(stream_prob[psort])
 sizes = 1 + stream_prob[psort]  # range [1, 2]
 xlims = (data["phi1"].min(), data["phi1"].max())
 
-_stream_kw = {"ls": "none", "marker": ",", "color": cmap1(0.75), "alpha": 0.25}
+_stream_kw = {"ls": "none", "marker": ",", "color": cmap_stream(0.75), "alpha": 0.1}
 _bounds_kw = {"c": "gray", "ls": "-", "lw": 2, "alpha": 0.8}
 _lit1_kw = {"c": "k", "ls": "--", "alpha": 0.6}
 _lit2_kw = {"c": "k", "ls": ":", "alpha": 0.6}
@@ -123,7 +128,9 @@ _lit2_kw = {"c": "k", "ls": ":", "alpha": 0.6}
 
 # Stream
 ax00 = fig.add_subplot(gs[0, :])
-cbar = fig.colorbar(ScalarMappable(cmap=cmap1), cax=ax00, orientation="horizontal")
+cbar = fig.colorbar(
+    ScalarMappable(cmap=cmap_stream), cax=ax00, orientation="horizontal"
+)
 cbar.ax.xaxis.set_ticks_position("top")
 cbar.ax.xaxis.set_label_position("top")
 cbar.ax.text(0.5, 0.5, "Stream Probability", ha="center", va="center", fontsize=14)
@@ -151,14 +158,15 @@ f1 = ax01.fill_between(
     data["phi1"],
     np.percentile(stream_lnwgt, 5, axis=1),
     np.percentile(stream_lnwgt, 95, axis=1),
-    color=cmap1(0.99),
+    color=cmap_stream(0.99),
     alpha=0.25,
+    where=stream_range,
     zorder=-10,
 )
 (l1,) = ax01.plot(
-    data["phi1"],
-    np.percentile(stream_lnwgt, 50, axis=1),
-    c=cmap1(0.99),
+    data["phi1"][stream_range],
+    np.percentile(stream_lnwgt, 50, axis=1)[stream_range],
+    c=cmap_stream(0.99),
     ls="--",
     lw=2,
     label="Mean",
@@ -172,7 +180,7 @@ ax01.legend([(f1, l1)], [r"Model"], numpoints=1, loc="upper left")
 # ---------------------------------------------------------------------------
 # Phi2 - variance
 
-gs2 = gs[2].subgridspec(2, 1, height_ratios=(1, 3), wspace=0.0, hspace=0.0)
+gs2 = gs[2].subgridspec(2, 1, height_ratios=(1, 4), wspace=0.0, hspace=0.0)
 ax02 = fig.add_subplot(
     gs2[0, :],
     xlim=xlims,
@@ -182,34 +190,30 @@ ax02 = fig.add_subplot(
     rasterization_zorder=0,
 )
 
-ln_sigma = dmpars["stream.astrometric.phi2", "ln-sigma"]
-
 # Model
+ln_sigma = dmpars["stream.astrometric.phi2", "ln-sigma"]
 ax02.fill_between(
     data["phi1"],
     np.percentile(ln_sigma, 5, axis=1),
     np.percentile(ln_sigma, 95, axis=1),
-    color=cmap1(0.99),
+    color=cmap_stream(0.99),
     alpha=0.25,
-    where=strm_range,
+    where=stream_range,
     zorder=-10,
 )
 ax02.scatter(
-    data["phi1"][strm_range],
-    np.percentile(ln_sigma, 50, axis=1)[strm_range],
+    data["phi1"][stream_range],
+    np.percentile(ln_sigma, 50, axis=1)[stream_range],
     s=1,
-    color=cmap1(0.99),
+    color=cmap_stream(0.99),
     zorder=-5,
 )
 
 for tick in ax02.get_yticklabels():
     tick.set_verticalalignment("bottom")
-ax02.set_ylim(-3.1, -2)
 
 # ---------------------------------------------------------------------------
 # Phi2
-
-mpa = mpars.get_prefixed("stream.astrometric")
 
 ax03 = fig.add_subplot(
     gs2[1, :],
@@ -217,7 +221,7 @@ ax03 = fig.add_subplot(
     xlim=xlims,
     xticklabels=[],
     ylabel=r"$\phi_2$ [deg]",
-    ylim=(data["phi2"].min(), 6),
+    ylim=(-3, 6),
     rasterization_zorder=0,
     aspect="auto",
 )
@@ -231,6 +235,7 @@ p1 = ax03.errorbar(
     color="k",
     capthick=3,
     elinewidth=3,
+    alpha=0.4,
     capsize=3,
     zorder=-21,
 )
@@ -239,8 +244,9 @@ p2 = ax03.errorbar(
     stream_cp["phi2"],
     yerr=stream_cp["w_phi2"],
     fmt=".",
-    c=cmap1(0.99),
+    c=cmap_stream(0.99),
     capsize=2,
+    alpha=0.4,
     zorder=-20,
     label="Stream Control Points",
 )
@@ -262,32 +268,27 @@ ax03.scatter(
 (l2,) = ax03.plot(pal5PW19.phi1.degree, pal5PW19.phi2.degree, **_lit2_kw, label="PW+19")
 
 # Model
+mpstrm = mpars.get_prefixed("stream.astrometric")
 f10 = ax03.fill_between(
     data["phi1"],
     np.percentile(dmpars["stream.astrometric.phi2", "mu"], 5, axis=1),
     np.percentile(dmpars["stream.astrometric.phi2", "mu"], 95, axis=1),
-    color=cmap1(0.99),
+    color=cmap_stream(0.99),
     alpha=0.1,
-    where=strm_range,
+    where=stream_range,
+    zorder=-9.5,
 )
 f11 = ax03.fill_between(
     data["phi1"],
-    (mpa["phi2", "mu"] - xp.exp(mpa["phi2", "ln-sigma"])),
-    (mpa["phi2", "mu"] + xp.exp(mpa["phi2", "ln-sigma"])),
-    color=cmap1(0.99),
+    (mpstrm["phi2", "mu"] - np.exp(mpstrm["phi2", "ln-sigma"])),
+    (mpstrm["phi2", "mu"] + np.exp(mpstrm["phi2", "ln-sigma"])),
+    color=cmap_stream(0.99),
     alpha=0.25,
-    where=strm_range,
+    where=stream_range,
+    zorder=-9,
 )
 
 # Data: stream errors then stream data
-d1 = ax03.errorbar(
-    data["phi1"][psort][is_strm & ~is_progenitor],
-    data["phi2"][psort][is_strm & ~is_progenitor],
-    xerr=data["phi1_err"][psort][is_strm & ~is_progenitor],
-    yerr=data["phi2_err"][psort][is_strm & ~is_progenitor],
-    **_stream_kw,
-    zorder=-9,
-)
 ax03.errorbar(
     data["phi1"][psort][is_strm & is_progenitor],
     data["phi2"][psort][is_strm & is_progenitor],
@@ -296,13 +297,21 @@ ax03.errorbar(
     **(_stream_kw | {"alpha": 0.05}),
     zorder=-9,
 )
+d1 = ax03.errorbar(
+    data["phi1"][psort][is_strm & ~is_progenitor],
+    data["phi2"][psort][is_strm & ~is_progenitor],
+    xerr=data["phi1_err"][psort][is_strm & ~is_progenitor],
+    yerr=data["phi2_err"][psort][is_strm & ~is_progenitor],
+    **_stream_kw,
+    zorder=-8,
+)
 ax03.scatter(
     data["phi1"][psort][is_strm],
     data["phi2"][psort][is_strm],
     c=colors[is_strm],
     alpha=alphas[is_strm],
     s=sizes[psort][is_strm],
-    zorder=-8,
+    zorder=-7,
 )
 
 # Legend
@@ -313,7 +322,7 @@ legend_elements_data = [
         marker="o",
         markeredgecolor="none",
         linestyle="none",
-        markerfacecolor=cmap1(0.01),
+        markerfacecolor=cmap_stream(0.01),
         markersize=7,
     ),
     (
@@ -324,7 +333,7 @@ legend_elements_data = [
             marker="o",
             markeredgecolor="none",
             linestyle="none",
-            markerfacecolor=cmap1(0.99),
+            markerfacecolor=cmap_stream(0.99),
             markersize=7,
         ),
     ),
@@ -401,7 +410,7 @@ ax05.plot(pal5PW19.phi1.degree, pal5PW19.distance.parallax, **_lit2_kw, label="P
 # ---------------------------------------------------------------------------
 # PM-Phi1 - variance
 
-gs6 = gs[4].subgridspec(2, 1, height_ratios=(1, 3), wspace=0.0, hspace=0.0)
+gs6 = gs[4].subgridspec(2, 1, height_ratios=(1, 4), wspace=0.0, hspace=0.0)
 ax06 = fig.add_subplot(
     gs6[0, :],
     xlim=xlims,
@@ -411,23 +420,22 @@ ax06 = fig.add_subplot(
     rasterization_zorder=0,
 )
 
-ln_sigma = dmpars["stream.astrometric.pmphi1", "ln-sigma"]
-
 # Model
+ln_sigma = dmpars["stream.astrometric.pmphi1", "ln-sigma"]
 ax06.fill_between(
     data["phi1"],
     (np.percentile(ln_sigma, 5, axis=1)),
     (np.percentile(ln_sigma, 95, axis=1)),
-    color=cmap1(0.99),
+    color=cmap_stream(0.99),
     alpha=0.25,
-    where=strm_range,
+    where=stream_range,
     zorder=-10,
 )
 ax06.scatter(
-    data["phi1"][strm_range],
-    (np.percentile(ln_sigma, 50, axis=1)[strm_range]),
+    data["phi1"][stream_range],
+    (np.percentile(ln_sigma, 50, axis=1)[stream_range]),
     s=1,
-    color=cmap1(0.99),
+    color=cmap_stream(0.99),
     zorder=-5,
 )
 
@@ -500,18 +508,18 @@ ax07.plot(
 # Model
 ax07.fill_between(
     data["phi1"],
-    (mpa["pmphi1", "mu"] - xp.exp(mpa["pmphi1", "ln-sigma"])),
-    (mpa["pmphi1", "mu"] + xp.exp(mpa["pmphi1", "ln-sigma"])),
-    color=cmap1(0.99),
+    (mpstrm["pmphi1", "mu"] - np.exp(mpstrm["pmphi1", "ln-sigma"])),
+    (mpstrm["pmphi1", "mu"] + np.exp(mpstrm["pmphi1", "ln-sigma"])),
+    color=cmap_stream(0.99),
     alpha=0.25,
-    where=strm_range,
+    where=stream_range,
     zorder=-5,
 )
 
 # ---------------------------------------------------------------------------
 # PM-Phi2 - variance
 
-gs8 = gs[5].subgridspec(2, 1, height_ratios=(1, 3), wspace=0.0, hspace=0.0)
+gs8 = gs[5].subgridspec(2, 1, height_ratios=(1, 4), wspace=0.0, hspace=0.0)
 ax08 = fig.add_subplot(
     gs8[0, :],
     xlim=xlims,
@@ -521,23 +529,22 @@ ax08 = fig.add_subplot(
     rasterization_zorder=0,
 )
 
-ln_sigma = dmpars["stream.astrometric.pmphi2", "ln-sigma"]
-
 # Model
+ln_sigma = dmpars["stream.astrometric.pmphi2", "ln-sigma"]
 ax08.fill_between(
     data["phi1"],
     np.percentile(ln_sigma, 5, axis=1),
     np.percentile(ln_sigma, 95, axis=1),
-    color=cmap1(0.99),
+    color=cmap_stream(0.99),
     alpha=0.25,
-    where=strm_range,
+    where=stream_range,
     zorder=-10,
 )
 ax08.scatter(
-    data["phi1"][strm_range],
-    (np.percentile(ln_sigma, 50, axis=1))[strm_range],
+    data["phi1"][stream_range],
+    (np.percentile(ln_sigma, 50, axis=1))[stream_range],
     s=1,
-    color=cmap1(0.99),
+    color=cmap_stream(0.99),
     zorder=-5,
 )
 
@@ -577,18 +584,18 @@ ax09.fill_between(
     data["phi1"],
     np.percentile(dmpars["stream.astrometric.pmphi2", "mu"], 5, axis=1),
     np.percentile(dmpars["stream.astrometric.pmphi2", "mu"], 95, axis=1),
-    color=cmap1(0.99),
+    color=cmap_stream(0.99),
     alpha=0.1,
-    where=strm_range,
+    where=stream_range,
     zorder=-5,
 )
 ax09.fill_between(
     data["phi1"],
-    (mpa["pmphi2", "mu"] - xp.exp(mpa["pmphi2", "ln-sigma"])),
-    (mpa["pmphi2", "mu"] + xp.exp(mpa["pmphi2", "ln-sigma"])),
-    color=cmap1(0.99),
+    (mpstrm["pmphi2", "mu"] - np.exp(mpstrm["pmphi2", "ln-sigma"])),
+    (mpstrm["pmphi2", "mu"] + np.exp(mpstrm["pmphi2", "ln-sigma"])),
+    color=cmap_stream(0.99),
     alpha=0.25,
-    where=strm_range,
+    where=stream_range,
     zorder=-5,
 )
 

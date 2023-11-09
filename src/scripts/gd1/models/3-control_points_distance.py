@@ -36,5 +36,15 @@ table["w_parallax"] = (
     * 1.1
 )
 
+# Convert to distance
+table["distance"] = Distance(distmod=table["distmod"])
+table["w_distance"] = (
+    np.abs(
+        (Distance(distmod=table["distmod"] + table["w_distmod"]))
+        - (Distance(distmod=table["distmod"] - table["w_distmod"]))
+    )
+    / 2
+)
+
 # Save
 table.write(paths.data / "gd1" / "control_points_distance.ecsv", overwrite=True)

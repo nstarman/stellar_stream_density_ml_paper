@@ -76,15 +76,13 @@ dependencies:
     - src/data/gd1/gaia_ps1_xm_polygons.asdf
   src/scripts/gd1/data/2.5-variable_ndata.py:
     - src/data/gd1/gaia_ps1_xm.asdf
-  src/scripts/gd1/data/3.3-masks.py:
+  src/scripts/gd1/data/4-masks.py:
     - src/data/gd1/gaia_ps1_xm.asdf
+  # ------
   src/scripts/gd1/models/0-info.py:
     - src/data/gd1/gaia_ps1_xm.asdf
     - src/data/gd1/masks.asdf
-  src/scripts/gd1/datasets_subset.py:
-    - src/data/gd1/gaia_ps1_xm.asdf
-    - src/data/gd1/info.asdf
-  src/scripts/gd1/datasets_fullset.py:
+  src/scripts/gd1/datasets.py:
     - src/data/gd1/gaia_ps1_xm.asdf
     - src/data/gd1/info.asdf
   src/scripts/gd1/model.py:
@@ -92,32 +90,19 @@ dependencies:
     - src/data/gd1/control_points_stream.ecsv
     - src/data/gd1/control_points_spur.ecsv
     - src/data/gd1/control_points_distance.ecsv
-  # --- subset ---
-  src/scripts/gd1/models/subset/2-train_background_photometry_flow.py:
-    - src/data/gd1/subset/data.done
+  src/scripts/gd1/models/2-train_background_photometry_flow.py:
+    - src/data/gd1/data.done
     - src/data/gd1/model.done
-  src/scripts/gd1/models/subset/2-train_parallax_photometry_flow.py:
-    - src/data/gd1/subset/data.done
+  src/scripts/gd1/models/2-train_parallax_photometry_flow.py:
+    - src/data/gd1/data.done
     - src/data/gd1/model.done
-  src/scripts/gd1/models/subset/3-train_model.py:
-    - src/data/gd1/subset/data.done
-    - src/data/gd1/model.done
-    - src/data/gd1/background_photometry_model.pt
-    - src/data/gd1/background_parallax_model.pt
-  # --- fullset ---
-  src/scripts/gd1/models/fullset/2-train_background_photometry_flow.py:
-    - src/data/gd1/fullset/data.done
-    - src/data/gd1/model.done
-  src/scripts/gd1/models/fullset/2-train_parallax_photometry_flow.py:
-    - src/data/gd1/fullset/data.done
-    - src/data/gd1/model.done
-  src/scripts/gd1/models/fullset/3-train_model.py:
-    - src/data/gd1/fullset/data.done
+  src/scripts/gd1/models/3-train_model.py:
+    - src/data/gd1/data.done
     - src/data/gd1/model.done
     - src/data/gd1/background_photometry_model.pt
     - src/data/gd1/background_parallax_model.pt
   src/scripts/gd1/models/4-likelihoods.py:
-    - src/data/gd1/fullset/data.done
+    - src/data/gd1/data.done
     - src/data/gd1/model.pt
   src/scripts/gd1/models/5-variable_nstream.py:
     - src/data/gd1/membership_likelhoods.ecsv
@@ -131,13 +116,13 @@ dependencies:
   src/scripts/gd1/plot/photometric_background_selection.py:
     - src/data/gd1/subset/data.done
   src/scripts/gd1/plot/results_full.py:
-    - src/data/gd1/fullset/data.done
+    - src/data/gd1/data.done
     - src/data/gd1/model.pt
   src/scripts/gd1/plot/results_panels.py:
-    - src/data/gd1/fullset/data.done
+    - src/data/gd1/data.done
     - src/data/gd1/model.pt
   src/scripts/gd1/plot/smooth_likelihood.py:
-    - src/data/gd1/fullset/data.done
+    - src/data/gd1/data.done
     - src/data/gd1/model.pt
   # ==============================
   # Pal5
@@ -195,7 +180,7 @@ optimize_caching: false
 # Overleaf sync settings
 overleaf:
   # Overleaf project ID (blank = disabled)
-  id: 6362a1ee8c23472edb13aa5d
+  id: # 6362a1ee8c23472edb13aa5d
   # Perform sync on GitHub Actions?
   gh_actions_sync: true
   # List of files to push to Overleaf

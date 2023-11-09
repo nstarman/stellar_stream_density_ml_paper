@@ -219,12 +219,15 @@ rule panstarrs1_corrections:
 ###############################################################################
 # GD-1
 
+# ---------------------------------------------------------
+# Data
+
 rule gd1_query_data:
     output:
-        protected("src/data/gd1/gaia_ps1_xm_polygons.asdf")
+        temp("src/data/gd1/gaia_ps1_xm_polygons.asdf")
     params:
         load_from_static=True,  # set to False to redownload
-        save_to_static=False,
+        save_to_static=True,
     conda:
         "environment.yml"
     cache: True
@@ -268,7 +271,7 @@ rule gd1_masks_pm:
         "environment.yml"
     cache: True
     script:
-        "src/scripts/gd1/data/3.1-pm_edges.py"
+        "src/scripts/gd1/data/3-pm_edges.py"
 
 
 rule gd1_masks_iso:
@@ -281,7 +284,7 @@ rule gd1_masks_iso:
         "environment.yml"
     cache: True
     script:
-        "src/scripts/gd1/data/3.2-phot_edges.py"
+        "src/scripts/gd1/data/3-phot_edges.py"
 
 
 rule gd1_masks:
@@ -298,12 +301,15 @@ rule gd1_masks:
         "environment.yml"
     cache: True
     script:
-        "src/scripts/gd1/data/3.3-masks.py"
+        "src/scripts/gd1/data/4-masks.py"
 
+
+# ---------------------------------------------------------
+# Model
 
 rule gd1_info:
     output:
-        "src/data/gd1/subset/info.asdf"
+        "src/data/gd1/info.asdf"
     input:
         "src/data/gd1/gaia_ps1_xm.asdf",
         "src/data/gd1/masks.asdf",
@@ -311,11 +317,11 @@ rule gd1_info:
         "environment.yml"
     cache: True
     script:
-        "src/scripts/gd1/model/subset/0-info.py"
+        "src/scripts/gd1/models/0-info.py"
 
 
 # NOTE: this is a hacky way to aggregate the dependencies of the data script
-rule gd1_data_subset_script:
+rule gd1_dataset_script:
     output: touch("src/data/gd1/subset/data.done")
     input:
         "src/data/gd1/gaia_ps1_xm.asdf",
@@ -324,47 +330,7 @@ rule gd1_data_subset_script:
         "environment.yml"
     cache: False
     script:
-        "src/scripts/gd1/datasets_subset.py"
-
-
-rule gd1_info:
-    output:
-        "src/data/gd1/fullset/info.asdf"
-    input:
-        "src/data/gd1/gaia_ps1_xm.asdf",
-        "src/data/gd1/masks.asdf",
-    conda:
-        "environment.yml"
-    cache: True
-    script:
-        "src/scripts/gd1/model/fullset/0-info.py"
-
-
-# NOTE: this is a hacky way to aggregate the dependencies of the data script
-rule gd1_data_fullset_script:
-    output: touch("src/data/gd1/fullset/data.done")
-    input:
-        "src/data/gd1/gaia_ps1_xm.asdf",
-        "src/data/gd1/info.asdf",
-    conda:
-        "environment.yml"
-    cache: False
-    script:
-        "src/scripts/gd1/datasets_fullset.py"
-
-
-rule gd1_model_script:
-    output: touch("src/data/gd1/model.done")
-    input:
-        "src/data/gd1/info.asdf",
-        "src/data/gd1/control_points_stream.ecsv",
-        "src/data/gd1/control_points_spur.ecsv",
-        "src/data/gd1/control_points_distance.ecsv",
-    conda:
-        "environment.yml"
-    cache: False
-    script:
-        "src/scripts/gd1/model.py"
+        "src/scripts/gd1/datasets.py"
 
 
 rule gd1_control_points_distance:
@@ -397,24 +363,21 @@ rule gd1_control_points_spur:
         "src/scripts/gd1/model/1-control_points_spur.py"
 
 
-rule gd1_control_points:
-    output:
-        "src/tex/output/gd1/control_points.tex"
+rule gd1_model_script:
+    output: touch("src/data/gd1/model.done")
     input:
+        "src/data/gd1/info.asdf",
         "src/data/gd1/control_points_stream.ecsv",
         "src/data/gd1/control_points_spur.ecsv",
         "src/data/gd1/control_points_distance.ecsv",
     conda:
         "environment.yml"
-    cache: True
+    cache: False
     script:
-        "src/scripts/gd1/table/control_points.py"
+        "src/scripts/gd1/model.py"
 
 
-# =========================================================
-# Subset
-
-rule gd1_subset_train_background_parallax_flow:
+rule gd1_train_background_parallax_flow:
     output:
         "src/data/gd1/subset/background_parallax_model.pt"
     input:
@@ -432,7 +395,7 @@ rule gd1_subset_train_background_parallax_flow:
         "src/scripts/gd1/model/subset/1-train_background_parallax_flow.py"
 
 
-rule gd1_subset_train_background_photometry_flow:
+rule gd1_train_background_photometry_flow:
     output:
         "src/data/gd1/subset/background_photometry_model.pt"
     input:
@@ -450,7 +413,7 @@ rule gd1_subset_train_background_photometry_flow:
         "src/scripts/gd1/model/subset/2-train_background_photometry_flow.py"
 
 
-rule gd1_subset_train_model:
+rule gd1_train_model:
     output:
         "src/data/gd1/subset/model.pt"
     input:
@@ -459,7 +422,7 @@ rule gd1_subset_train_model:
         "src/data/gd1/subset/background_photometry_model.pt",
         "src/data/gd1/subset/background_parallax_model.pt",
     params:
-        load_from_static=False,  # set to False to recompute
+        load_from_static=True,  # set to False to recompute
         save_to_static=False,
         diagnostic_plots=True,
         # epoch milestones
@@ -473,75 +436,13 @@ rule gd1_subset_train_model:
         "src/scripts/gd1/model/subset/3-train_model.py"
 
 
-# =========================================================
-# Full-set
-
-rule gd1_full_train_background_parallax_flow:
-    output:
-        "src/data/gd1/fullset/background_parallax_model.pt"
-    input:
-        "src/data/gd1/fullset/data.done",
-        "src/data/gd1/model.done",
-    params:
-        load_from_static=True,  # set to False to recompute
-        save_to_static=False,
-        diagnostic_plots=True,
-        epochs=1_000,
-    conda:
-        "environment.yml"
-    cache: True
-    script:
-        "src/scripts/gd1/model/fullset/1-train_background_parallax_flow.py"
-
-
-rule gd1_full_train_background_photometry_flow:
-    output:
-        "src/data/gd1/fullset/background_photometry_model.pt"
-    input:
-        "src/data/gd1/fullset/data.done",
-        "src/data/gd1/model.done",
-    params:
-        load_from_static=True,  # set to False to recompute
-        save_to_static=False,
-        diagnostic_plots=True,
-        epochs=2_000,
-    conda:
-        "environment.yml"
-    cache: True
-    script:
-        "src/scripts/gd1/model/fullset/2-train_background_photometry_flow.py"
-
-
-rule gd1_full_train_model:
-    output:
-        "src/data/gd1/model.pt"
-    input:
-        "src/data/gd1/fullset/data.done",
-        "src/data/gd1/model.done",
-        "src/data/gd1/fullset/background_photometry_model.pt",
-        "src/data/gd1/fullset/background_parallax_model.pt",
-    params:
-        load_from_static=False,  # set to False to recompute
-        save_to_static=False,
-        diagnostic_plots=True,
-        # epoch milestones
-        epochs=1_250 * 10,
-        lr=1e-3,
-        weight_decay=1e-8,
-    conda:
-        "environment.yml"
-    cache: True
-    script:
-        "src/scripts/gd1/model/fullset/3-train_model.py"
-
-
 rule gd1_member_likelihoods:
     output:
         "src/data/gd1/membership_likelhoods.ecsv"
     input:
-        "src/data/gd1/fullset/data.done",
+        "src/data/gd1/data.done",
         "src/data/gd1/model.done",
-        "src/data/gd1/fullset/model.pt",
+        "src/data/gd1/model.pt",
     conda:
         "environment.yml"
     cache: True
@@ -567,7 +468,7 @@ rule gd1_member_table_full:
     output:
         "src/tex/output/gd1/member_table_full.tex"
     input:
-        "src/data/gd1/fullset/data.done",
+        "src/data/gd1/data.done",
         "src/data/gd1/model.done",
         "src/data/gd1/membership_likelhoods.ecsv",
     conda:
@@ -599,6 +500,24 @@ rule gd1_variable_nspur:
     cache: True
     script:
         "src/scripts/gd1/model/5-variable_nspur.py"
+
+
+# ---------------------------------------------------------
+# Table
+
+rule gd1_control_points_table:
+    output:
+        "src/tex/output/gd1/control_points.tex"
+    input:
+        "src/data/gd1/control_points_stream.ecsv",
+        "src/data/gd1/control_points_spur.ecsv",
+        "src/data/gd1/control_points_distance.ecsv",
+    conda:
+        "environment.yml"
+    cache: True
+    script:
+        "src/scripts/gd1/table/control_points.py"
+
 
 
 # ==============================================================================

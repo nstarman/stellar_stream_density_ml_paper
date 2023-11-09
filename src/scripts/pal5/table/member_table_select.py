@@ -165,6 +165,7 @@ write_kwargs = {
     "caption": caption,
     "latexdict": {
         "tabletype": "table*",
+        "tablealign": "htp",
         "preamble": preamble[1:],
         "col_align": (
             r"@{}"

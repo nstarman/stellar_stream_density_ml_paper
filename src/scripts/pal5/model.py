@@ -75,7 +75,7 @@ pm_coords = ("pmphi1", "pmphi2")
 pm_flow_scaler = scaler[("phi1", *pm_coords)]
 
 background_pm_model = sml.builtin.compat.ZukoFlowModel(
-    net=zuko.flows.MAF(2, 1, hidden_features=[8, 8, 8]),
+    net=zuko.flows.MAF(2, 1, hidden_features=[8] * 3),
     jacobian_logdet=float(-xp.log(xp.prod(pm_flow_scaler.scale[1:]))),
     data_scaler=pm_flow_scaler,
     indep_coord_names=("phi1",),

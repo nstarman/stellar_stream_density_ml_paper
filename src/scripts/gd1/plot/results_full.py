@@ -16,7 +16,9 @@ from matplotlib.cm import ScalarMappable
 from matplotlib.gridspec import GridSpec
 from matplotlib.legend_handler import HandlerTuple
 from matplotlib.lines import Line2D
+from scipy.interpolate import InterpolatedUnivariateSpline
 from showyourwork.paths import user as user_paths
+from tqdm import tqdm
 
 from stream_ml.core import WEIGHT_NAME, Params
 
@@ -26,7 +28,7 @@ paths = user_paths()
 sys.path.append(paths.scripts.parent.as_posix())
 # isort: split
 
-from scripts.gd1.datasets_fullset import data
+from scripts.gd1.datasets import data
 from scripts.gd1.frames import gd1_frame as frame
 from scripts.gd1.model import make_model
 from scripts.helper import (
@@ -50,9 +52,9 @@ spur_cp = QTable.read(paths.data / "gd1" / "control_points_spur.ecsv")
 distance_cp = QTable.read(paths.data / "gd1" / "control_points_distance.ecsv")
 
 # Load model
-model = make_model("fullset")
+model = make_model()
 model = pycopy.deepcopy(model)
-model.load_state_dict(xp.load(paths.data / "gd1" / "fullset" / "model.pt"))
+model.load_state_dict(xp.load(paths.data / "gd1" / "models" / "model_11700.pt"))
 model = model.eval()
 
 # Load results from 4-likelihoods.py
@@ -71,6 +73,14 @@ gd1I21 = allstreams["GD-1-I21"].track.transform_to(frame)
 gd1PB18 = allstreams["GD-1-PB18"].track.transform_to(frame)
 
 
+spline_pmphi1 = InterpolatedUnivariateSpline(
+    gd1I21[::100].phi1.value, gd1I21[::100].pm_phi1_cosphi2.value
+)
+spline_pmphi2 = InterpolatedUnivariateSpline(
+    gd1I21[::100].phi1.value, gd1I21[::100].pm_phi2.value
+)
+
+
 # =============================================================================
 # Likelihood
 
@@ -78,7 +88,9 @@ gd1PB18 = allstreams["GD-1-PB18"].track.transform_to(frame)
 psort = np.argsort(allstream_prob)
 
 # Foreground
-is_strm = (allstream_prob > 0.6)[psort]
+is_gd1 = (allstream_prob > 0.75)[psort]
+is_strm = (stream_prob > 0.75)[psort]
+is_spur = (spur_prob > 0.75)[psort]
 
 # Also evaluate the model with dropout on
 with xp.no_grad():
@@ -87,13 +99,14 @@ with xp.no_grad():
     manually_set_dropout(model, 0.15)
 
     # evaluate the model
-    ldmpars = [model.unpack_params(model(data)) for i in range(100)]
+    ldmpars = [model.unpack_params(model(data)) for i in tqdm(range(100))]
 
     # mpars
     dmpars = Params(recursive_iterate(ldmpars, ldmpars[0], reduction=lambda x: x))
     mpars = Params(
-        recursive_iterate(ldmpars, ldmpars[0]),
-        reduction=lambda x: np.percentile(x, 50, axis=1),
+        recursive_iterate(
+            ldmpars, ldmpars[0], reduction=lambda x: np.percentile(x, 50, axis=1)
+        ),
     )
 
     # turn dropout back off
@@ -101,13 +114,13 @@ with xp.no_grad():
     model = model.eval()
 
 
-_is_strm = (stream_prob > 0.6) & (mpars[(f"stream.{WEIGHT_NAME}",)].numpy() > -5)
+_is_strm = (stream_prob > 0.75) & (mpars[(f"stream.{WEIGHT_NAME}",)] > -5)
 stream_range = (np.min(data["phi1"][_is_strm].numpy()) <= data["phi1"]) & (
     data["phi1"] <= np.max(data["phi1"][_is_strm].numpy())
 )
-_is_spur = (spur_prob > 0.6) & (mpars[(f"spur.{WEIGHT_NAME}",)].numpy() > -5)
+_is_spur = (spur_prob > 0.75) & (mpars[(f"spur.{WEIGHT_NAME}",)] > -5)
 spur_range = (np.min(data["phi1"][_is_spur].numpy()) <= data["phi1"]) & (
-    data["phi1"] <= np.max(data["phi1"][_is_spur].numpy())
+    data["phi1"] <= -25
 )
 
 
@@ -136,7 +149,8 @@ alphas = p2alpha(allstream_prob[psort])
 sizes = 1 + stream_prob[psort]  # range [1, 2]
 xlims = (data["phi1"].min(), 10)
 
-_stream_kw = {"ls": "none", "marker": ",", "color": cmap_stream(0.75), "alpha": 0.1}
+_stream_kw = {"ls": "none", "marker": ",", "color": cmap_stream(0.75), "alpha": 0.05}
+_spur_kw = {"ls": "none", "marker": ",", "color": cmap_spur(0.75), "alpha": 0.05}
 _bounds_kw = {"c": "gray", "ls": "-", "lw": 2, "alpha": 0.8}
 _lit1_kw = {"c": "k", "ls": "--", "alpha": 0.6}
 _lit2_kw = {"c": "k", "ls": ":", "alpha": 0.6}
@@ -301,6 +315,7 @@ ax21.errorbar(
     capthick=3,
     elinewidth=3,
     capsize=3,
+    alpha=0.4,
     zorder=-21,
 )
 p1 = ax21.errorbar(
@@ -310,6 +325,7 @@ p1 = ax21.errorbar(
     fmt=".",
     c=cmap_stream(0.99),
     capsize=2,
+    alpha=0.4,
     zorder=-20,
     label="Stream Control Points",
 )
@@ -323,6 +339,7 @@ ax21.errorbar(
     capthick=3,
     elinewidth=3,
     capsize=3,
+    alpha=0.4,
     zorder=-21,
 )
 p2 = ax21.errorbar(
@@ -332,17 +349,18 @@ p2 = ax21.errorbar(
     fmt=".",
     c=cmap_spur(0.99),
     capsize=2,
+    alpha=0.4,
     zorder=-20,
     label="Spur Control Points",
 )
 
 # Background Data
 ax21.scatter(
-    data["phi1"][psort][~is_strm],
-    data["phi2"][psort][~is_strm],
-    c=colors[~is_strm],
-    alpha=alphas[~is_strm],
-    s=sizes[psort][~is_strm],
+    data["phi1"][psort][~is_gd1],
+    data["phi2"][psort][~is_gd1],
+    c=colors[~is_gd1],
+    alpha=alphas[~is_gd1],
+    s=sizes[psort][~is_gd1],
     zorder=-10,
 )
 
@@ -363,8 +381,8 @@ f10 = ax21.fill_between(
 )
 f11 = ax21.fill_between(
     data["phi1"],
-    (mpstrm["phi2", "mu"] - xp.exp(mpstrm["phi2", "ln-sigma"])),
-    (mpstrm["phi2", "mu"] + xp.exp(mpstrm["phi2", "ln-sigma"])),
+    (mpstrm["phi2", "mu"] - np.exp(mpstrm["phi2", "ln-sigma"])),
+    (mpstrm["phi2", "mu"] + np.exp(mpstrm["phi2", "ln-sigma"])),
     color=cmap_stream(0.99),
     alpha=0.25,
     where=stream_range,
@@ -384,8 +402,8 @@ f20 = ax21.fill_between(
 )
 f21 = ax21.fill_between(
     data["phi1"],
-    (mpspur["phi2", "mu"] - xp.exp(mpspur["phi2", "ln-sigma"])),
-    (mpspur["phi2", "mu"] + xp.exp(mpspur["phi2", "ln-sigma"])),
+    (mpspur["phi2", "mu"] - np.exp(mpspur["phi2", "ln-sigma"])),
+    (mpspur["phi2", "mu"] + np.exp(mpspur["phi2", "ln-sigma"])),
     color=cmap_spur(0.99),
     alpha=0.25,
     where=spur_range,
@@ -401,12 +419,20 @@ d1 = ax21.errorbar(
     **_stream_kw,
     zorder=-8,
 )
+ax21.errorbar(
+    data["phi1"][psort][is_spur],
+    data["phi2"][psort][is_spur],
+    xerr=data["phi1_err"][psort][is_spur],
+    yerr=data["phi2_err"][psort][is_spur],
+    **_spur_kw,
+    zorder=-8,
+)
 ax21.scatter(
-    data["phi1"][psort][is_strm],
-    data["phi2"][psort][is_strm],
-    c=colors[is_strm],
-    alpha=alphas[is_strm],
-    s=sizes[psort][is_strm],
+    data["phi1"][psort][is_gd1],
+    data["phi2"][psort][is_gd1],
+    c=colors[is_gd1],
+    alpha=alphas[is_gd1],
+    s=sizes[psort][is_gd1],
     zorder=-7,
 )
 
@@ -528,6 +554,7 @@ ax31.errorbar(
     capthick=3,
     elinewidth=3,
     capsize=3,
+    alpha=0.4,
     zorder=-21,
 )
 p1 = ax31.errorbar(
@@ -537,17 +564,18 @@ p1 = ax31.errorbar(
     fmt=".",
     c=cmap_stream(0.99),
     capsize=2,
+    alpha=0.4,
     zorder=-20,
     label="Stream Control Points",
 )
 
 # Data background
 ax31.scatter(
-    data["phi1"][psort][~is_strm],
-    data["plx"][psort][~is_strm],
-    c=colors[~is_strm],
-    alpha=alphas[~is_strm],
-    s=sizes[psort][~is_strm],
+    data["phi1"][psort][~is_gd1],
+    data["plx"][psort][~is_gd1],
+    c=colors[~is_gd1],
+    alpha=alphas[~is_gd1],
+    s=sizes[psort][~is_gd1],
     zorder=-15,
 )
 
@@ -572,8 +600,8 @@ ax31.fill_between(
 )
 ax31.fill_between(
     data["phi1"],
-    (mpstrm["plx", "mu"] - xp.exp(mpstrm["plx", "ln-sigma"])),
-    (mpstrm["plx", "mu"] + xp.exp(mpstrm["plx", "ln-sigma"])),
+    (mpstrm["plx", "mu"] - np.exp(mpstrm["plx", "ln-sigma"])),
+    (mpstrm["plx", "mu"] + np.exp(mpstrm["plx", "ln-sigma"])),
     color=cmap_stream(0.99),
     alpha=0.25,
     where=stream_range,
@@ -592,8 +620,8 @@ ax31.fill_between(
 )
 ax31.fill_between(
     data["phi1"],
-    (mpspur["plx", "mu"] - xp.exp(mpspur["plx", "ln-sigma"])),
-    (mpspur["plx", "mu"] + xp.exp(mpspur["plx", "ln-sigma"])),
+    (mpspur["plx", "mu"] - np.exp(mpspur["plx", "ln-sigma"])),
+    (mpspur["plx", "mu"] + np.exp(mpspur["plx", "ln-sigma"])),
     color=cmap_spur(0.99),
     alpha=0.25,
     where=spur_range,
@@ -609,12 +637,20 @@ d1 = ax31.errorbar(
     **_stream_kw,
     zorder=-14,
 )
+ax31.errorbar(
+    data["phi1"][psort][is_spur],
+    data["plx"][psort][is_spur],
+    xerr=data["phi1_err"][psort][is_spur],
+    yerr=data["plx_err"][psort][is_spur],
+    **_spur_kw,
+    zorder=-14,
+)
 ax31.scatter(
-    data["phi1"][psort][is_strm],
-    data["plx"][psort][is_strm],
-    c=colors[is_strm],
-    alpha=alphas[is_strm],
-    s=sizes[psort][is_strm],
+    data["phi1"][psort][is_gd1],
+    data["plx"][psort][is_gd1],
+    c=colors[is_gd1],
+    alpha=alphas[is_gd1],
+    s=sizes[psort][is_gd1],
     zorder=-5,
 )
 
@@ -678,85 +714,97 @@ for tick in ax40.get_yticklabels():
 # ---------------------------------------------------------------------------
 # PM-Phi1
 
+track_pmphi1 = spline_pmphi1(data["phi1"])
+
 ax41 = fig.add_subplot(
     gs4[1, :],
     xlabel="",
-    ylabel=r"$\mu_{\phi_1}^*$ [mas yr$^{-1}$]",
+    ylabel=r"$\Delta\mu_{\phi_1}^*$ [mas yr$^{-1}$]",
     xlim=xlims,
-    ylim=(data["pmphi1"].min(), data["pmphi1"].max()),
+    ylim=((data["pmphi1"] - track_pmphi1).min(), (data["pmphi1"] - track_pmphi1).max()),
     xticklabels=[],
     rasterization_zorder=0,
 )
 
 # Stream control points
 ax41.errorbar(
-    stream_cp["phi1"],
-    stream_cp["pm_phi1"],
-    yerr=stream_cp["w_pm_phi1"],
+    stream_cp["phi1"].value,
+    stream_cp["pm_phi1"].value - spline_pmphi1(stream_cp["phi1"].value),
+    yerr=stream_cp["w_pm_phi1"].value,
     fmt="o",
     color="k",
     capthick=3,
     elinewidth=3,
     capsize=3,
+    alpha=0.4,
     zorder=-21,
 )
 p1 = ax41.errorbar(
-    stream_cp["phi1"],
-    stream_cp["pm_phi1"],
-    yerr=stream_cp["w_pm_phi1"],
+    stream_cp["phi1"].value,
+    stream_cp["pm_phi1"].value - spline_pmphi1(stream_cp["phi1"].value),
+    yerr=stream_cp["w_pm_phi1"].value,
     fmt=".",
     c=cmap_stream(0.99),
     capsize=2,
+    alpha=0.4,
     zorder=-20,
     label="Stream Control Points",
 )
 
 # Spur control points
 ax41.errorbar(
-    spur_cp["phi1"],
-    spur_cp["pm_phi1"],
-    yerr=spur_cp["w_pm_phi1"],
+    spur_cp["phi1"].value,
+    spur_cp["pm_phi1"].value - spline_pmphi1(spur_cp["phi1"].value),
+    yerr=spur_cp["w_pm_phi1"].value,
     fmt="o",
     color="k",
     capthick=3,
     elinewidth=3,
     capsize=3,
+    alpha=0.4,
     zorder=-21,
 )
 p2 = ax41.errorbar(
     spur_cp["phi1"],
-    spur_cp["pm_phi1"],
-    yerr=spur_cp["w_pm_phi1"],
+    spur_cp["pm_phi1"].value - spline_pmphi1(spur_cp["phi1"].value),
+    yerr=spur_cp["w_pm_phi1"].value,
     fmt=".",
     c=cmap_spur(0.99),
     capsize=2,
+    alpha=0.4,
     zorder=-19,
     label="Spur Control Points",
 )
 
 # Data: background
 ax41.scatter(
-    data["phi1"][psort][~is_strm],
-    data["pmphi1"][psort][~is_strm],
-    c=colors[~is_strm],
-    alpha=alphas[~is_strm],
-    s=sizes[psort][~is_strm],
+    data["phi1"][psort][~is_gd1],
+    data["pmphi1"][psort][~is_gd1] - track_pmphi1[psort][~is_gd1],
+    c=colors[~is_gd1],
+    alpha=alphas[~is_gd1],
+    s=sizes[psort][~is_gd1],
     zorder=-15,
 )
 
 # Literature
 (l1,) = ax41.plot(
-    gd1I21.phi1.degree, gd1I21.pm_phi1_cosphi2.value, **_lit1_kw, label="Ibata+21"
+    gd1I21.phi1.degree,
+    gd1I21.pm_phi1_cosphi2.value - spline_pmphi1(gd1I21.phi1.degree),
+    **_lit1_kw,
+    label="Ibata+21",
 )
 (l2,) = ax41.plot(
-    gd1PB18.phi1.degree, gd1PB18.pm_phi1_cosphi2.value, **_lit2_kw, label="PW+19"
+    gd1PB18.phi1.degree,
+    gd1PB18.pm_phi1_cosphi2.value - spline_pmphi1(gd1PB18.phi1.degree),
+    **_lit2_kw,
+    label="PW+19",
 )
 
 # Model (stream)
 ax41.fill_between(
     data["phi1"],
-    np.percentile(dmpars["stream.astrometric.pmphi1", "mu"], 5, axis=1),
-    np.percentile(dmpars["stream.astrometric.pmphi1", "mu"], 95, axis=1),
+    np.percentile(dmpars["stream.astrometric.pmphi1", "mu"], 5, axis=1) - track_pmphi1,
+    np.percentile(dmpars["stream.astrometric.pmphi1", "mu"], 95, axis=1) - track_pmphi1,
     color=cmap_stream(0.99),
     alpha=0.1,
     where=stream_range,
@@ -764,8 +812,8 @@ ax41.fill_between(
 )
 ax41.fill_between(
     data["phi1"],
-    (mpstrm["pmphi1", "mu"] - xp.exp(mpstrm["pmphi1", "ln-sigma"])),
-    (mpstrm["pmphi1", "mu"] + xp.exp(mpstrm["pmphi1", "ln-sigma"])),
+    (mpstrm["pmphi1", "mu"] - np.exp(mpstrm["pmphi1", "ln-sigma"])) - track_pmphi1,
+    (mpstrm["pmphi1", "mu"] + np.exp(mpstrm["pmphi1", "ln-sigma"])) - track_pmphi1,
     color=cmap_stream(0.99),
     alpha=0.25,
     where=stream_range,
@@ -775,8 +823,8 @@ ax41.fill_between(
 # Model (spur)
 ax41.fill_between(
     data["phi1"],
-    np.percentile(dmpars["spur.astrometric.pmphi1", "mu"], 5, axis=1),
-    np.percentile(dmpars["spur.astrometric.pmphi1", "mu"], 95, axis=1),
+    np.percentile(dmpars["spur.astrometric.pmphi1", "mu"], 5, axis=1) - track_pmphi1,
+    np.percentile(dmpars["spur.astrometric.pmphi1", "mu"], 95, axis=1) - track_pmphi1,
     color=cmap_spur(0.99),
     alpha=0.1,
     where=spur_range,
@@ -784,8 +832,8 @@ ax41.fill_between(
 )
 ax41.fill_between(
     data["phi1"],
-    (mpspur["pmphi1", "mu"] - xp.exp(mpspur["pmphi1", "ln-sigma"])),
-    (mpspur["pmphi1", "mu"] + xp.exp(mpspur["pmphi1", "ln-sigma"])),
+    (mpspur["pmphi1", "mu"] - np.exp(mpspur["pmphi1", "ln-sigma"])) - track_pmphi1,
+    (mpspur["pmphi1", "mu"] + np.exp(mpspur["pmphi1", "ln-sigma"])) - track_pmphi1,
     color=cmap_spur(0.99),
     alpha=0.25,
     where=spur_range,
@@ -795,18 +843,26 @@ ax41.fill_between(
 # Data: allstream errors, then allstream data
 ax41.errorbar(
     data["phi1"][psort][is_strm],
-    data["pmphi1"][psort][is_strm],
+    data["pmphi1"][psort][is_strm] - track_pmphi1[psort][is_strm],
     xerr=data["phi1_err"][psort][is_strm],
     yerr=data["pmphi1_err"][psort][is_strm],
     **_stream_kw,
     zorder=-14,
 )
+ax41.errorbar(
+    data["phi1"][psort][is_spur],
+    data["pmphi1"][psort][is_spur] - track_pmphi1[psort][is_spur],
+    xerr=data["phi1_err"][psort][is_spur],
+    yerr=data["pmphi1_err"][psort][is_spur],
+    **_spur_kw,
+    zorder=-14,
+)
 ax41.scatter(
-    data["phi1"][psort][is_strm],
-    data["pmphi1"][psort][is_strm],
-    c=colors[is_strm],
-    alpha=alphas[is_strm],
-    s=sizes[psort][is_strm],
+    data["phi1"][psort][is_gd1],
+    data["pmphi1"][psort][is_gd1] - track_pmphi1[psort][is_gd1],
+    c=colors[is_gd1],
+    alpha=alphas[is_gd1],
+    s=sizes[psort][is_gd1],
     zorder=-5,
 )
 
@@ -870,33 +926,43 @@ for tick in ax50.get_yticklabels():
 
 ax51 = fig.add_subplot(
     gs5[1, :],
-    ylabel=r"$\mu_{\phi_2}$ [mas yr$^{-1}$]",
+    ylabel=r"$\Delta\mu_{\phi_2}$ [mas yr$^{-1}$]",
     xlim=xlims,
     rasterization_zorder=0,
     xticklabels=[],
 )
 
+track_pmphi2 = spline_pmphi2(data["phi1"])
+
 # Data: background
 ax51.scatter(
-    data["phi1"][psort][~is_strm],
-    data["pmphi2"][psort][~is_strm],
-    c=colors[~is_strm],
-    alpha=alphas[~is_strm],
-    s=sizes[psort][~is_strm],
+    data["phi1"][psort][~is_gd1],
+    data["pmphi2"][psort][~is_gd1] - track_pmphi2[psort][~is_gd1],
+    c=colors[~is_gd1],
+    alpha=alphas[~is_gd1],
+    s=sizes[psort][~is_gd1],
     zorder=-11,
 )
 
 # Literature
 (l1,) = ax51.plot(
-    gd1I21.phi1.degree, gd1I21.pm_phi2.value, **_lit1_kw, label="Ibata+21"
+    gd1I21.phi1.degree,
+    gd1I21.pm_phi2.value - spline_pmphi2(gd1I21.phi1.degree),
+    **_lit1_kw,
+    label="Ibata+21",
 )
-(l2,) = ax51.plot(gd1PB18.phi1.degree, gd1PB18.pm_phi2.value, **_lit2_kw, label="PW+19")
+(l2,) = ax51.plot(
+    gd1PB18.phi1.degree,
+    gd1PB18.pm_phi2.value - spline_pmphi2(gd1PB18.phi1.degree),
+    **_lit2_kw,
+    label="PW+19",
+)
 
 # Model (stream)
 ax51.fill_between(
     data["phi1"],
-    np.percentile(dmpars["stream.astrometric.pmphi2", "mu"], 5, axis=1),
-    np.percentile(dmpars["stream.astrometric.pmphi2", "mu"], 95, axis=1),
+    np.percentile(dmpars["stream.astrometric.pmphi2", "mu"], 5, axis=1) - track_pmphi2,
+    np.percentile(dmpars["stream.astrometric.pmphi2", "mu"], 95, axis=1) - track_pmphi2,
     color=cmap_stream(0.99),
     alpha=0.1,
     where=stream_range,
@@ -904,8 +970,8 @@ ax51.fill_between(
 )
 ax51.fill_between(
     data["phi1"],
-    (mpstrm["pmphi2", "mu"] - xp.exp(mpstrm["pmphi2", "ln-sigma"])),
-    (mpstrm["pmphi2", "mu"] + xp.exp(mpstrm["pmphi2", "ln-sigma"])),
+    (mpstrm["pmphi2", "mu"] - np.exp(mpstrm["pmphi2", "ln-sigma"])) - track_pmphi2,
+    (mpstrm["pmphi2", "mu"] + np.exp(mpstrm["pmphi2", "ln-sigma"])) - track_pmphi2,
     color=cmap_stream(0.99),
     alpha=0.25,
     where=stream_range,
@@ -915,8 +981,8 @@ ax51.fill_between(
 # Model (stream)
 ax51.fill_between(
     data["phi1"],
-    np.percentile(dmpars["spur.astrometric.pmphi2", "mu"], 5, axis=1),
-    np.percentile(dmpars["spur.astrometric.pmphi2", "mu"], 95, axis=1),
+    np.percentile(dmpars["spur.astrometric.pmphi2", "mu"], 5, axis=1) - track_pmphi2,
+    np.percentile(dmpars["spur.astrometric.pmphi2", "mu"], 95, axis=1) - track_pmphi2,
     color=cmap_spur(0.99),
     alpha=0.1,
     where=spur_range,
@@ -924,8 +990,8 @@ ax51.fill_between(
 )
 ax51.fill_between(
     data["phi1"],
-    (mpspur["pmphi2", "mu"] - xp.exp(mpspur["pmphi2", "ln-sigma"])),
-    (mpspur["pmphi2", "mu"] + xp.exp(mpspur["pmphi2", "ln-sigma"])),
+    (mpspur["pmphi2", "mu"] - np.exp(mpspur["pmphi2", "ln-sigma"])) - track_pmphi2,
+    (mpspur["pmphi2", "mu"] + np.exp(mpspur["pmphi2", "ln-sigma"])) - track_pmphi2,
     color=cmap_spur(0.99),
     alpha=0.25,
     where=spur_range,
@@ -935,22 +1001,32 @@ ax51.fill_between(
 # Data: allstream errors, then allstream data
 d1 = ax51.errorbar(
     data["phi1"][psort][is_strm],
-    data["pmphi2"][psort][is_strm],
+    data["pmphi2"][psort][is_strm] - track_pmphi2[psort][is_strm],
     xerr=data["phi1_err"][psort][is_strm],
     yerr=data["pmphi2_err"][psort][is_strm],
     **_stream_kw,
     zorder=-10,
 )
+ax51.errorbar(
+    data["phi1"][psort][is_spur],
+    data["pmphi2"][psort][is_spur] - track_pmphi2[psort][is_spur],
+    xerr=data["phi1_err"][psort][is_spur],
+    yerr=data["pmphi2_err"][psort][is_spur],
+    **_spur_kw,
+    zorder=-10,
+)
 ax51.scatter(
-    data["phi1"][psort][is_strm],
-    data["pmphi2"][psort][is_strm],
-    c=colors[is_strm],
-    alpha=alphas[is_strm],
-    s=sizes[psort][is_strm],
+    data["phi1"][psort][is_gd1],
+    data["pmphi2"][psort][is_gd1] - track_pmphi2[psort][is_gd1],
+    c=colors[is_gd1],
+    alpha=alphas[is_gd1],
+    s=sizes[psort][is_gd1],
     zorder=-4,
 )
 
-ax51.set_ylim(data["pmphi2"].min(), data["pmphi2"].max())
+ax51.set_ylim(
+    (data["pmphi2"] - track_pmphi2).min(), (data["pmphi2"] - track_pmphi2).max()
+)
 
 
 # ---------------------------------------------------------------------------
@@ -1058,6 +1134,7 @@ ax61.errorbar(
     capthick=3,
     elinewidth=3,
     capsize=3,
+    alpha=0.4,
     zorder=-21,
 )
 p1 = ax61.errorbar(
@@ -1067,6 +1144,7 @@ p1 = ax61.errorbar(
     fmt=".",
     c=cmap_stream(0.99),
     capsize=2,
+    alpha=0.4,
     zorder=-20,
     label="Stream Control Points",
 )
@@ -1081,8 +1159,8 @@ p1 = ax61.errorbar(
 
 # Model (stream)
 mpstrm = mpars["stream.photometric.distmod"]
-d1sm = Distance(distmod=(mpstrm["mu"] - xp.exp(mpstrm["ln-sigma"])) * u.mag)
-d1sp = Distance(distmod=(mpstrm["mu"] + xp.exp(mpstrm["ln-sigma"])) * u.mag)
+d1sm = Distance(distmod=(mpstrm["mu"] - np.exp(mpstrm["ln-sigma"])) * u.mag)
+d1sp = Distance(distmod=(mpstrm["mu"] + np.exp(mpstrm["ln-sigma"])) * u.mag)
 
 ax61.fill_between(
     data["phi1"],
@@ -1109,8 +1187,8 @@ ax61.fill_between(
 
 # Model (spur)
 mpspur = mpars["spur.photometric.distmod"]
-d1sm = Distance(distmod=(mpspur["mu"] - xp.exp(mpspur["ln-sigma"])) * u.mag)
-d1sp = Distance(distmod=(mpspur["mu"] + xp.exp(mpspur["ln-sigma"])) * u.mag)
+d1sm = Distance(distmod=(mpspur["mu"] - np.exp(mpspur["ln-sigma"])) * u.mag)
+d1sp = Distance(distmod=(mpspur["mu"] + np.exp(mpspur["ln-sigma"])) * u.mag)
 
 ax61.fill_between(
     data["phi1"],

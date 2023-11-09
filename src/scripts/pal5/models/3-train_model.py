@@ -46,7 +46,7 @@ save_path.mkdir(parents=True, exist_ok=True)
 (save_path / "models").mkdir(parents=True, exist_ok=True)
 
 if snkmk["load_from_static"]:
-    model.load_state_dict(xp.load(paths.static / "pal5" / "model.pt"))
+    model.load_state_dict(xp.load(paths.static / "pal5" / "models" / "model_12000.pt"))
     xp.save(model.state_dict(), save_path / "model.pt")
 
     sys.exit(0)
@@ -61,7 +61,7 @@ diagnostic_path.mkdir(parents=True, exist_ok=True)
 model["background"]["astrometric"]["pm"].load_state_dict(
     xp.load(save_path / "background_pm_model.pt")
 )
-
+# model.load_state_dict(xp.load(save_path / "model.pt"))  # start from most recent save
 
 # =============================================================================
 # Training Parameters
@@ -93,11 +93,12 @@ scheduler = optim.lr_scheduler.ConstantLR(optimizer, factor=0.1)  # constant 1e-
 num_steps = len(loader.dataset) // loader.batch_size
 epoch: int = 0
 epoch_iterator = tqdm(
-    range(snkmk["epochs"]),
+    range(epoch, snkmk["epochs"]),
     dynamic_ncols=True,
     postfix={"lr": f"{scheduler.get_last_lr()[0]:.2e}", "loss": f"{0:.2e}"},
 )
 for epoch in epoch_iterator:
+    # Step through batches
     for step_arr, step_where_ in loader:
         # Prepare
         step_data = sml.Data(step_arr, names=data.names)
@@ -122,6 +123,7 @@ for epoch in epoch_iterator:
         optimizer.step()
         model.zero_grad()
 
+    # step the scheduler
     scheduler.step()
     epoch_iterator.set_postfix(
         {"lr": f"{scheduler.get_last_lr()[0]:.2e}", "loss": f"{loss_val:.2e}"}
@@ -130,16 +132,21 @@ for epoch in epoch_iterator:
     if snkmk["diagnostic_plots"] and (
         (epoch % 100 == 0) or (epoch == snkmk["epochs"] - 1)
     ):
+        # turn dropout off
         model.eval()
         manually_set_dropout(model, 0)
 
+        # Plot diagnostics
         fig = diagnostic_plot(model, data, where=where)
         fig.savefig(diagnostic_path / f"epoch_{epoch:05}.png")
         plt.close(fig)
 
+        # turn dropout back on
         manually_set_dropout(model, 0.15)
         model.train()
 
+        # Save state of the model
+        xp.save(model.state_dict(), save_path / "model.pt")
         xp.save(model.state_dict(), save_path / "models" / f"model_{epoch:04d}.pt")
 
 

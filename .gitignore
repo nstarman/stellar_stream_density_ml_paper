@@ -14,3 +14,6 @@ src/tex/figures/*
 __pycache__
 *.synctex.gz
 .DS_Store
+/src/static/gd13
+/src/static/gd13/joined-GD-1.fits
+/src/scripts/_gd1

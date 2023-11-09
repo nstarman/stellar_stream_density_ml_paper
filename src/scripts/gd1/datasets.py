@@ -16,7 +16,7 @@ paths = user_paths()
 with asdf.open(
     paths.data / "gd1" / "info.asdf", lazy_load=False, copy_arrays=True
 ) as af:
-    sel = af["subset"]["mask"]
+    sel = af["mask"]
     names = tuple(af["names"])
     renamer = af["renamer"]
 

@@ -9,6 +9,7 @@ import numpy as np
 import torch as xp
 from matplotlib.gridspec import GridSpec
 from showyourwork.paths import user as user_paths
+from tqdm import tqdm
 
 import stream_ml.pytorch as sml
 import stream_ml.visualization as smlvis
@@ -49,7 +50,7 @@ with xp.no_grad():
     model = model.train()
     manually_set_dropout(model, 0.15)
     # evaluate the model
-    ldmpars = [model.unpack_params(model(data)) for i in range(100)]
+    ldmpars = [model.unpack_params(model(data)) for i in tqdm(range(100))]
     # Mpars
     dmpars = sml.params.Params(
         recursive_iterate(ldmpars, ldmpars[0], reduction=lambda x: x)
@@ -492,17 +493,6 @@ for i, b in enumerate(np.unique(which_bin)):
         sharey=ax120 if ax120 is not None else None,
     )
 
-    prob = stream_prob[sel]
-    sorter = np.argsort(prob)
-    ax12i.scatter(
-        data["g"][sel][sorter],
-        data["r"][sel][sorter],
-        c=prob[sorter],
-        cmap="seismic",
-        s=1,
-        zorder=-11,
-    )
-
     prob = bkg_prob[sel]
     sorter = np.argsort(prob)
     ax12i.scatter(
@@ -513,6 +503,17 @@ for i, b in enumerate(np.unique(which_bin)):
         alpha=0.25,
         s=1,
         zorder=-10,
+    )
+
+    prob = stream_prob[sel]
+    sorter = np.argsort(prob)
+    ax12i.scatter(
+        data["g"][sel][sorter],
+        data["r"][sel][sorter],
+        c=prob[sorter],
+        cmap="seismic",
+        s=1,
+        zorder=-9,
     )
 
     if i == 0:

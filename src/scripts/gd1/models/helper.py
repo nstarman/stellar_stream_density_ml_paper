@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 
 import asdf
 import astropy.units as u
+import galstreams
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
@@ -16,14 +17,11 @@ from astropy.table import QTable
 from matplotlib.cm import ScalarMappable
 from matplotlib.gridspec import GridSpec
 from matplotlib.legend_handler import HandlerTuple
-from scipy import stats
+from scipy.interpolate import InterpolatedUnivariateSpline
 from showyourwork.paths import user as user_paths
 
 import stream_ml.visualization as smlvis
 from stream_ml.core import WEIGHT_NAME, Data
-from stream_ml.visualization.background import (
-    exponential_like_distribution as exp_distr,
-)
 
 paths = user_paths()
 
@@ -31,6 +29,7 @@ paths = user_paths()
 sys.path.append(paths.scripts.parent.as_posix())
 # isort: split
 
+from scripts.gd1.frames import gd1_frame
 from scripts.helper import (
     color_by_probable_member,
     manually_set_dropout,
@@ -55,9 +54,17 @@ with asdf.open(
     isochrone_data = Data(**af["isochrone_data"])
 
 # Control points
-stream_cp = QTable.read(paths.data / "gd1" / "control_points_stream.ecsv")
-spur_cp = QTable.read(paths.data / "gd1" / "control_points_spur.ecsv")
 distance_cp = QTable.read(paths.data / "gd1" / "control_points_distance.ecsv")
+
+mws = galstreams.MWStreams()
+gd1 = mws["GD-1-I21"]
+gd1_sc = gd1.track.transform_to(gd1_frame)[::100]
+
+spline_pmphi1 = InterpolatedUnivariateSpline(
+    gd1_sc.phi1.value, gd1_sc.pm_phi1_cosphi2.value
+)
+spline_pmphi2 = InterpolatedUnivariateSpline(gd1_sc.phi1.value, gd1_sc.pm_phi2.value)
+
 
 # =============================================================================
 
@@ -179,19 +186,23 @@ def diagnostic_plot(  # noqa: C901, PLR0912
         zorder=-10,
     )
 
+    stream_cp = model["stream"]["astrometric"].priors[0].center
+    stream_cp_w = model["stream"]["astrometric"].priors[0].width
     ax03.errorbar(
         stream_cp["phi1"],
         stream_cp["phi2"],
-        yerr=stream_cp["w_phi2"],
+        yerr=stream_cp_w["phi2"],
         fmt=".",
         c=cmap_stream(0.99),
         capsize=2,
         zorder=-5,
     )
+    spur_cp = model["spur"]["astrometric"].priors[0].center
+    spur_cp_w = model["spur"]["astrometric"].priors[0].width
     ax03.errorbar(
         spur_cp["phi1"],
         spur_cp["phi2"],
-        yerr=spur_cp["w_phi2"],
+        yerr=spur_cp_w["phi2"],
         fmt=".",
         c=cmap_spur(0.99),
         capsize=2,
@@ -271,14 +282,14 @@ def diagnostic_plot(  # noqa: C901, PLR0912
 
     ax05 = fig.add_subplot(
         gs0[5, :],
-        ylabel=r"$\mu_{\phi_1}^*$ [mas yr$^{-1}$]",
+        ylabel=r"$\mu_{\phi_1}^*$ - GD1 [mas yr$^{-1}$]",
         rasterization_zorder=0,
         xticklabels=[],
     )
 
     p1 = ax05.scatter(
         data["phi1"][psort],
-        data["pmphi1"][psort],
+        data["pmphi1"][psort] - spline_pmphi1(data["phi1"][psort]),
         c=colors,
         alpha=alphas,
         s=2,
@@ -288,8 +299,8 @@ def diagnostic_plot(  # noqa: C901, PLR0912
     # Control points
     ax05.errorbar(
         stream_cp["phi1"],
-        stream_cp["pm_phi1"],
-        yerr=stream_cp["w_pm_phi1"],
+        stream_cp["pmphi1"] - spline_pmphi1(stream_cp["phi1"]),
+        yerr=stream_cp_w["pmphi1"],
         fmt=".",
         c=cmap_stream(0.99),
         capsize=2,
@@ -297,8 +308,8 @@ def diagnostic_plot(  # noqa: C901, PLR0912
     )
     ax05.errorbar(
         spur_cp["phi1"],
-        spur_cp["pm_phi1"],
-        yerr=spur_cp["w_pm_phi1"],
+        spur_cp["pmphi1"] - spline_pmphi1(spur_cp["phi1"]),
+        yerr=spur_cp_w["pmphi1"],
         fmt=".",
         c=cmap_spur(0.99),
         capsize=2,
@@ -312,27 +323,35 @@ def diagnostic_plot(  # noqa: C901, PLR0912
         mp = mpars.get_prefixed(f"{k}.astrometric")
         ax05.fill_between(
             data["phi1"],
-            (mp["pmphi1", "mu"] - xp.exp(mp["pmphi1", "ln-sigma"])),
-            (mp["pmphi1", "mu"] + xp.exp(mp["pmphi1", "ln-sigma"])),
+            (
+                mp["pmphi1", "mu"]
+                - spline_pmphi1(data["phi1"])
+                - xp.exp(mp["pmphi1", "ln-sigma"])
+            ),
+            (
+                mp["pmphi1", "mu"]
+                - spline_pmphi1(data["phi1"])
+                + xp.exp(mp["pmphi1", "ln-sigma"])
+            ),
             color=cmap(0.99),
             alpha=0.25,
             zorder=-2,
             where=cutoff,
         )
 
-    ax05.set_ylim(data["pmphi1"].min().numpy(), data["pmphi1"].max().numpy())
-
     # ---------------------------------------------------------------------------
     # PM-Phi2
 
-    ax06 = fig.add_subplot(gs0[6, :])
-    ax06.set_xticklabels([])
-    ax06.set(ylabel=r"$\mu_{\phi_2}$ [mas yr$^{-1}$]")
-    ax06.set_rasterization_zorder(0)
+    ax06 = fig.add_subplot(
+        gs0[6, :],
+        xticklabels=[],
+        ylabel=r"$\mu_{\phi_2}$ - GD1 [mas yr$^{-1}$]",
+        rasterization_zorder=0,
+    )
 
     p1 = ax06.scatter(
         data["phi1"][psort],
-        data["pmphi2"][psort],
+        data["pmphi2"][psort] - spline_pmphi2(data["phi1"][psort]),
         c=colors,
         alpha=alphas,
         s=2,
@@ -346,8 +365,16 @@ def diagnostic_plot(  # noqa: C901, PLR0912
         mp = mpars.get_prefixed(f"{k}.astrometric")
         ax06.fill_between(
             data["phi1"],
-            (mp["pmphi2", "mu"] - xp.exp(mp["pmphi2", "ln-sigma"])),
-            (mp["pmphi2", "mu"] + xp.exp(mp["pmphi2", "ln-sigma"])),
+            (
+                mp["pmphi2", "mu"]
+                - spline_pmphi2(data["phi1"])
+                - xp.exp(mp["pmphi2", "ln-sigma"])
+            ),
+            (
+                mp["pmphi2", "mu"]
+                - spline_pmphi2(data["phi1"])
+                + xp.exp(mp["pmphi2", "ln-sigma"])
+            ),
             color=cmap(0.99),
             alpha=0.25,
             where=cutoff,
@@ -411,9 +438,6 @@ def diagnostic_plot(  # noqa: C901, PLR0912
     legend1 = plt.legend(
         handles=[
             mpl.patches.Patch(color=cmap_stream(0.01), label="Background"),
-            mpl.lines.Line2D(
-                [0], [0], color="k", lw=3, ls="-", label="Background Distribution"
-            ),
             mpl.patches.Patch(color=cmap_stream(0.99), label="Stream"),
             mpl.patches.Patch(color=cmap_spur(0.99), label="Spur"),
         ],
@@ -437,6 +461,7 @@ def diagnostic_plot(  # noqa: C901, PLR0912
         bkg_prob_ = bkg_prob[sel]
         stream_prob_ = stream_prob[sel]
         spur_prob_ = spur_prob[sel]
+        allstream_prob_ = allstream_prob[sel]
 
         # ---------------------------------------------------------------------------
         # Phi2
@@ -463,12 +488,6 @@ def diagnostic_plot(  # noqa: C901, PLR0912
             stacked=True,
             label=["", "Stream Model", "Spur Model"],
         )
-
-        xmin, xmax = data["phi2"].min().numpy(), data["phi2"].max().numpy()
-        x = np.linspace(xmin, xmax)
-        bkg_wgt = xp.exp(mpars[f"background.{WEIGHT_NAME}",][sel].mean())
-        m = mpars["background.astrometric.phi2pmphi1.phi2", "slope"][sel].mean()
-        ax10i.plot(x, bkg_wgt * exp_distr(m, xmin, xmax).pdf(x), c="k")
 
         if i == 0:
             ax10i.set_ylabel("frequency")
@@ -513,11 +532,6 @@ def diagnostic_plot(  # noqa: C901, PLR0912
             label=["", "Stream Model", "Spur Model"],
         )
 
-        xmin, xmax = data["pmphi1"].min().numpy(), data["pmphi1"].max().numpy()
-        x = np.linspace(xmin, xmax)
-        m = mpars["background.astrometric.phi2pmphi1.pmphi1", "slope"][sel].mean()
-        ax12i.plot(x, bkg_wgt * exp_distr(m, xmin, xmax).pdf(x), c="k")
-
         if i == 0:
             ax12i.set_ylabel("frequency")
 
@@ -536,14 +550,6 @@ def diagnostic_plot(  # noqa: C901, PLR0912
             label=["", "Stream Model", "Spur Model"],
         )
 
-        xmin, xmax = data["pmphi2"].min().numpy(), data["pmphi2"].max().numpy()
-        x = np.linspace(xmin, xmax)
-        mu = mpars["background.astrometric.pmphi2.pmphi2", "mu"][sel].mean()
-        lnsigma = mpars["background.astrometric.pmphi2.pmphi2", "ln-sigma"][sel].mean()
-        bounds = model["background"]["astrometric"]["pmphi2"].coord_bounds["pmphi2"]
-        d = stats.norm(loc=mu, scale=xp.exp(lnsigma))
-        ax13i.plot(x, bkg_wgt * d.pdf(x) / (d.cdf(bounds[1]) - d.cdf(bounds[0])), c="k")
-
         if i == 0:
             ax13i.set_ylabel("frequency")
 
@@ -559,11 +565,13 @@ def diagnostic_plot(  # noqa: C901, PLR0912
             rasterization_zorder=20,
         )
 
-        sorter = np.argsort(allstream_prob[sel])
+        sorter = np.argsort(allstream_prob_)
         ax14i.scatter(
             data_["g"][sorter] - data_["r"][sorter],
             data_["g"][sorter],
-            c=colors[sel][sorter],
+            c=color_by_probable_member(
+                (stream_prob_, cmap_stream), (spur_prob_, cmap_spur)
+            )[sorter],
             s=1,
         )
         # isochrone

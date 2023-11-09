@@ -8,6 +8,7 @@ import astropy.units as u
 import matplotlib.path as mpath
 import numpy as np
 from astropy.table import QTable
+from astropy.units import Quantity
 from showyourwork.paths import user as user_paths
 
 paths = user_paths()
@@ -21,7 +22,7 @@ snkmk: dict[str, bool]
 try:
     snkmk = snakemake.params
 except NameError:
-    snkmk = {"load_from_static": False, "save_to_static": False}
+    snkmk = {"load_from_static": True, "save_to_static": False}
 
 
 if snkmk["load_from_static"]:
@@ -43,25 +44,36 @@ masks_table = QTable()
 
 # Mask edges
 pm_edges = QTable.read(paths.data / "gd1" / "pm_edges.ecsv")
-pm_edges.add_index("label", unique=True)
+
+
+def make_path(x: Quantity, y: Quantity) -> mpath.Path:
+    """Make a path."""
+    return mpath.Path(
+        np.c_[x.value, y.value],
+        codes=[
+            mpath.Path.MOVETO,
+            *[mpath.Path.LINETO] * (len(x) - 2),
+            mpath.Path.CLOSEPOLY,
+        ],
+    )
+
 
 # Tight
-pm_tight = pm_edges.loc["tight"]
-masks_table["pm_tight"] = (
-    (table["pm_phi1"] > pm_tight["pm_phi1_min"])
-    & (table["pm_phi1"] < pm_tight["pm_phi1_max"])
-    & (table["pm_phi2"] > pm_tight["pm_phi2_min"])
-    & (table["pm_phi2"] < pm_tight["pm_phi2_max"])
-)
+path_pmphi1 = make_path(pm_edges["phi1"], pm_edges["pm_phi1_cosphi2_tight"])
+path_pmphi2 = make_path(pm_edges["phi1"], pm_edges["pm_phi2_tight"])
+
+masks_table["pm_tight"] = path_pmphi1.contains_points(
+    np.c_[table["phi1"].value, table["pm_phi1"].value]
+) & path_pmphi2.contains_points(np.c_[table["phi1"].value, table["pm_phi2"].value])
 
 # Medium
-pm_medium = pm_edges.loc["medium"]
-masks_table["pm_medium"] = (
-    (table["pm_phi1"] > pm_medium["pm_phi1_min"])
-    & (table["pm_phi1"] < pm_medium["pm_phi1_max"])
-    & (table["pm_phi2"] > pm_medium["pm_phi2_min"])
-    & (table["pm_phi2"] < pm_medium["pm_phi2_max"])
-)
+path_pmphi1 = make_path(pm_edges["phi1"], pm_edges["pm_phi1_cosphi2_medium"])
+path_pmphi2 = make_path(pm_edges["phi1"], pm_edges["pm_phi2_medium"])
+
+masks_table["pm_medium"] = path_pmphi1.contains_points(
+    np.c_[table["phi1"].value, table["pm_phi1"].value]
+) & path_pmphi2.contains_points(np.c_[table["phi1"].value, table["pm_phi2"].value])
+
 
 # =============================================================================
 # Parallax

@@ -33,7 +33,7 @@ snkmk: dict[str, Any]
 try:
     snkmk = dict(snakemake.params)
 except NameError:
-    snkmk = {"load_from_static": True, "save_to_static": False}
+    snkmk = {"load_from_static": True, "save_to_static": True}
 
 
 if snkmk["load_from_static"]:

@@ -23,7 +23,7 @@ masks = QTable.read(paths.data / "gd1" / "masks.asdf")
 af = asdf.AsdfFile()
 
 # -----------------------------------------------------------------------------
-# Mask - subset
+# Mask
 
 sel = (
     masks["pm_tight"] & masks["phot_medium"] & masks["neg_parallax"] & masks["low_phi2"]
@@ -125,5 +125,6 @@ af["scaler"] = asdict(scaler)
 
 # -----------------------------------------------------------------------------
 
-af.write_to(paths.data / "gd1" / "subset" / "info.asdf")
+(paths.data / "gd1").mkdir(exist_ok=True, parents=True)
+af.write_to(paths.data / "gd1" / "info.asdf")
 af.close()

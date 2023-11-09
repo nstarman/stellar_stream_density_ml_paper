@@ -13,7 +13,7 @@ paths = user_paths()
 # Add the parent directory to the path
 sys.path.append(paths.scripts.parent.as_posix())
 # isort: split
-from scripts.gd1.datasets_fullset import data, where
+from scripts.gd1.datasets import data, where
 from scripts.gd1.model import make_model
 
 # =============================================================================
@@ -22,8 +22,10 @@ from scripts.gd1.model import make_model
 plt.style.use(paths.scripts / "paper.mplstyle")
 
 # Load model
-model = make_model("fullset")
-model.load_state_dict(xp.load(paths.data / "gd1" / "fullset" / "model.pt"))
+model = make_model("subset")
+model.load_state_dict(
+    xp.load(paths.data / "gd1" / "subset" / "models" / "model_11700.pt")
+)
 model = model.eval()
 
 with xp.no_grad():
@@ -56,7 +58,6 @@ axs[0].pcolormesh(
     X,
     Y,
     kernel(kernal_eval).reshape(X.shape),
-    # cmap="twilight",
     rasterized=True,
     shading="gouraud",
 )
@@ -76,7 +77,6 @@ axs[1].pcolormesh(
     X,
     Y,
     kernel(kernal_eval).reshape(X.shape),
-    # cmap="twilight",
     rasterized=True,
     shading="gouraud",
 )
@@ -96,7 +96,6 @@ axs[2].pcolormesh(
     X,
     Y,
     kernel(kernal_eval).reshape(X.shape),
-    # cmap="twilight",
     rasterized=True,
     shading="gouraud",
 )

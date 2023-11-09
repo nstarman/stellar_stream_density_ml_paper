@@ -2,9 +2,9 @@
 
 import sys
 from dataclasses import replace
-from typing import Literal
 
 import asdf
+import astropy.units as u
 import numpy as np
 import torch as xp
 import zuko
@@ -31,17 +31,12 @@ from scripts.helper import isochrone_spline
 
 # Load data
 distance_cp = QTable.read(paths.data / "gd1" / "control_points_distance.ecsv")
-gd1_cp = QTable.read(paths.data / "gd1" / "control_points_stream.ecsv")
+gd1_cp_ = QTable.read(paths.data / "gd1" / "control_points_stream.ecsv")
 spur_cp = QTable.read(paths.data / "gd1" / "control_points_spur.ecsv")
 
 
-def make_model(xset: Literal["subset", "fullset"] = "subset", /) -> sml.MixtureModel:
+def make_model() -> sml.MixtureModel:
     """Define the model.
-
-    Parameters
-    ----------
-    xset : Literal["subset", "fullset"]
-        The set of data to use.
 
     Returns
     -------
@@ -49,14 +44,11 @@ def make_model(xset: Literal["subset", "fullset"] = "subset", /) -> sml.MixtureM
         The model.
     """
     scaler: StandardScaler
-    with asdf.open(paths.data / "gd12" / "info.asdf", mode="r") as af:
+    with asdf.open(paths.data / "gd1" / "info.asdf", mode="r") as af:
         renamer = af["renamer"]
-        scaler = StandardScaler(**af[xset]["scaler"]).astype(
-            xp.Tensor, dtype=xp.float32
-        )
-
+        scaler = StandardScaler(**af["scaler"]).astype(xp.Tensor, dtype=xp.float32)
         all_coord_bounds = {
-            k: (v[0] - 1e-10, v[1] + 1e-10) for k, v in af[xset]["coord_bounds"].items()
+            k: (v[0] - 1e-10, v[1] + 1e-10) for k, v in af["coord_bounds"].items()
         }
 
     # -----------------------------------------------------------------------------
@@ -82,14 +74,14 @@ def make_model(xset: Literal["subset", "fullset"] = "subset", /) -> sml.MixtureM
     # -----------------------------------------------------------------------------
     # Astrometry
 
-    bkg1_coord_names = ("phi2", "pmphi1")
-    background_astrometric_phi2pmphi1_model = sml.builtin.Exponential(
+    bkg1_coord_names = ("phi2",)
+    background_astrometric_phi2_model = sml.builtin.Exponential(
         net=sml.nn.sequential(
             data=1, hidden_features=64, layers=4, features=2, dropout=0.15
         ),
         data_scaler=scaler,
         coord_names=bkg1_coord_names,
-        coord_err_names=("phi2_err", "pmphi1_err"),
+        coord_err_names=("phi2_err",),
         coord_bounds={
             k: v for k, v in astro_coord_bounds.items() if k in bkg1_coord_names
         },
@@ -100,63 +92,29 @@ def make_model(xset: Literal["subset", "fullset"] = "subset", /) -> sml.MixtureM
                         bounds=SigmoidBounds(-0.03, 0.03), scaler=None
                     )
                 },
-                "pmphi1": {
-                    "slope": ModelParameter(
-                        bounds=SigmoidBounds(-0.5, 0.0), scaler=None
-                    )
-                },
             }
         ),
-        name="background_astrometric_phi2pmphi1_model",
+        name="background_astrometric_phi2_model",
     )
 
-    background_astrometric_pmphi2_model = sml.builtin.TruncatedNormal(
-        net=sml.nn.sequential(
-            data=1, hidden_features=32, layers=4, features=2, dropout=0.15
-        ),
-        data_scaler=scaler,
-        coord_names=("pmphi2",),
-        coord_err_names=("pmphi2_err",),
-        coord_bounds={k: v for k, v in astro_coord_bounds.items() if k in ("pmphi2",)},
-        params=ModelParameters(
-            {
-                "pmphi2": {
-                    "mu": ModelParameter(
-                        bounds=SigmoidBounds(*astro_coord_bounds["pmphi2"]),
-                        scaler=StandardLocation.from_data_scaler(
-                            scaler, "pmphi2", xp=xp
-                        ),
-                    ),
-                    "ln-sigma": ModelParameter(
-                        bounds=SigmoidBounds(0, 1.5),
-                        scaler=StandardLnWidth.from_data_scaler(
-                            scaler, "pmphi2", xp=xp
-                        ),
-                    ),
-                },
-            }
-        ),
-        name="background_astrometric_pmphi2_model",
-    )
-
-    flow_plx_scaler = scaler["phi1", "plx"]
-    background_astrometric_plx_model = sml.builtin.compat.ZukoFlowModel(
-        net=zuko.flows.NSF(1, 1, hidden_features=[10, 10, 10], bins=8),
+    bkg2_coord_names = ("plx", "pmphi1", "pmphi2")
+    flow_plx_scaler = scaler[("phi1", *bkg2_coord_names)]
+    background_astrometric_else_model = sml.builtin.compat.ZukoFlowModel(
+        net=zuko.flows.NSF(3, 1, bins=20, hidden_features=[32] * 5),
         jacobian_logdet=float(-xp.log(xp.prod(flow_plx_scaler.scale[1:]))),
         data_scaler=flow_plx_scaler,
         indep_coord_names=("phi1",),
-        coord_names=("plx",),
-        coord_bounds={"plx": coord_bounds["plx"]},
+        coord_names=bkg2_coord_names,
+        coord_bounds={k: coord_bounds[k] for k in bkg2_coord_names},
         params=ModelParameters[xp.Tensor](),
         with_grad=False,
-        name="background_astrometric_plx_model",
+        name="background_astrometric_else_model",
     )
 
     background_astrometric_model = sml.IndependentModels(
         {
-            "phi2pmphi1": background_astrometric_phi2pmphi1_model,
-            "pmphi2": background_astrometric_pmphi2_model,
-            "plx": background_astrometric_plx_model,
+            "phi2": background_astrometric_phi2_model,
+            "else": background_astrometric_else_model,
         }
     )
 
@@ -192,8 +150,10 @@ def make_model(xset: Literal["subset", "fullset"] = "subset", /) -> sml.MixtureM
     # -----------------------------------------------------------------------------
     # Astrometry
 
+    gd1_cp = gd1_cp_[(-70 * u.deg <= gd1_cp_["phi1"]) & (gd1_cp_["phi1"] <= 10 * u.deg)]
+
     # Control points
-    stream_strometric_prior = sml.prior.ControlRegions(
+    stream_astrometric_prior = sml.prior.ControlRegions(
         center=sml.Data.from_format(
             gd1_cp,
             fmt="astropy.table",
@@ -291,7 +251,7 @@ def make_model(xset: Literal["subset", "fullset"] = "subset", /) -> sml.MixtureM
             }
         ),
         priors=(
-            stream_strometric_prior,
+            stream_astrometric_prior,
             stream_distance_prior,
         ),
         name="stream_astrometric_model",
@@ -319,31 +279,8 @@ def make_model(xset: Literal["subset", "fullset"] = "subset", /) -> sml.MixtureM
         log_probs=(-1, 0, -1),
     )
 
-    # # Control points
-    # stream_photometric_prior = sml.prior.ControlRegions(
-    #     center=sml.Data.from_format(
-    #         distance_cp,
-    #         fmt="astropy.table",
-    #         names=("phi1", "distmod"),
-    #         renamer=renamer,
-    #     ).astype(xp.Tensor, dtype=xp.float32),
-    #     width=sml.Data.from_format(
-    #         distance_cp,
-    #         fmt="astropy.table",
-    #         names=("w_distmod",),
-    #         renamer={"w_distmod": "distmod"},
-    #     ).astype(xp.Tensor, dtype=xp.float32),
-    #     lamda=1_000,
-    # )
-
     stream_isochrone_model = sml.builtin.IsochroneMVNorm(
-        # net=sml.nn.sequential(
-        #     data=1, hidden_features=32, layers=4, features=2, dropout=0.15
-        # ),
         data_scaler=phot_flow_scaler,
-        # # coordinates
-        # coord_names=("distmod",),
-        # coord_bounds={"distmod": (13.0, 18.0)},
         coord_names=(),
         coord_bounds={},
         # photometry
@@ -357,20 +294,7 @@ def make_model(xset: Literal["subset", "fullset"] = "subset", /) -> sml.MixtureM
         isochrone_err_spl=None,
         stream_mass_function=stream_mass_function,
         # params
-        params=ModelParameters[xp.Tensor](
-            # {
-            #     "distmod": {
-            #         "mu": ModelParameter(
-            #             bounds=SigmoidBounds(13.0, 18.0),
-            #             scaler=None,
-            #         ),
-            #         "ln-sigma": ModelParameter(
-            #             bounds=SigmoidBounds(-7.6, -2.8), scaler=None
-            #         ),
-            #     },
-            # }
-        ),
-        # priors=(stream_photometric_prior,),
+        params=ModelParameters[xp.Tensor](),
         name="stream_isochrone_model",
     )
 
@@ -473,30 +397,9 @@ def make_model(xset: Literal["subset", "fullset"] = "subset", /) -> sml.MixtureM
         priors=(spur_cp_prior,),
     )
 
-    # spur_isochrone_model = sml.builtin.IsochroneMVNorm(
-    #     net=None,
-    #     data_scaler=flow_scaler,
-    #     # coordinates
-    #     coord_names=(),
-    #     coord_bounds={},
-    #     # photometry
-    #     phot_names=phot_coords,
-    #     phot_apply_dm=(True, True),  # g, r
-    #     phot_err_names=phot_coord_errs,
-    #     phot_bounds=phot_coord_bounds,
-    #     # isochrone
-    #     gamma_edges=gamma_edges,
-    #     isochrone_spl=stream_isochrone_spl,
-    #     isochrone_err_spl=None,
-    #     stream_mass_function=stream_mass_function,
-    #     # params
-    #     params=ModelParameters(),
-    # )
-
     spur_model = sml.IndependentModels(
         {
             "astrometric": spur_astrometric_model,
-            # "photometric": spur_isochrone_model,
             "photometric": stream_isochrone_model,
         }
     )
