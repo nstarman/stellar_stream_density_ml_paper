@@ -115,18 +115,16 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
 
     ax01 = fig.add_subplot(
         gs0[1, :],
-        ylabel="Stream fraction",
+        ylabel=r"$\ln f_{\rm stream}$",
         ylim=(1e-4, 1),
         xticklabels=[],
         yscale="log",
     )
     _bounds_kw = {"c": "gray", "ls": "-", "lw": 2, "alpha": 0.8}
     _bounds = model.params[(f"stream.{WEIGHT_NAME}",)].bounds
-    ax01.axhline(np.exp(_bounds.lower[0]), **_bounds_kw)
-    ax01.axhline(np.exp(_bounds.upper[0]), **_bounds_kw)
-    ax01.plot(
-        data["phi1"], np.exp(stream_weight), c="k", ls=":", lw=2, label="Model (MLE)"
-    )
+    ax01.axhline(_bounds.lower[0], **_bounds_kw)
+    ax01.axhline(_bounds.upper[0], **_bounds_kw)
+    ax01.plot(data["phi1"], stream_weight, c="k", ls=":", lw=2, label="Model (MLE)")
     ax01.legend(loc="upper left")
 
     # ---------------------------------------------------------------------------

@@ -572,7 +572,7 @@ rule pal5_masks_pm:
         "environment.yml"
     cache: True
     script:
-        "src/scripts/pal5/data/3.1-pm_edges.py"
+        "src/scripts/pal5/data/3-pm_edges.py"
 
 
 rule pal5_masks_iso:
@@ -584,7 +584,7 @@ rule pal5_masks_iso:
         "environment.yml"
     cache: True
     script:
-        "src/scripts/pal5/data/3.2-phot_edges.py"
+        "src/scripts/pal5/data/3-phot_edges.py"
 
 
 rule pal5_masks_off_field:
@@ -594,7 +594,7 @@ rule pal5_masks_off_field:
         "environment.yml"
     cache: True
     script:
-        "src/scripts/pal5/data/3.3-off_field.py"
+        "src/scripts/pal5/data/4-off_field.py"
 
 
 rule pal5_masks:
@@ -612,20 +612,7 @@ rule pal5_masks:
         "environment.yml"
     cache: True
     script:
-        "src/scripts/pal5/data/4-masks.py"
-
-
-rule pal5_control_points_stream:
-    output:
-        "src/data/pal5/control_points_stream.ecsv"
-    conda:
-        "environment.yml"
-    params:
-        diagnostic_plots=True,
-    cache: True
-    script:
-        "src/scripts/pal5/model/1-control_points_stream.py"
-
+        "src/scripts/pal5/data/5-masks.py"
 
 rule pal5_info:
     output:
@@ -640,7 +627,20 @@ rule pal5_info:
         "environment.yml"
     cache: True
     script:
-        "src/scripts/pal5/model/0-info.py"
+        "src/scripts/pal5/models/0-info.py"
+
+
+rule pal5_control_points_stream:
+    output:
+        "src/data/pal5/control_points_stream.ecsv"
+    conda:
+        "environment.yml"
+    params:
+        diagnostic_plots=True,
+    cache: True
+    script:
+        "src/scripts/pal5/models/1-control_points_stream.py"
+
 
 
 # NOTE: this is a hacky way to aggregate the dependencies of the data script
@@ -669,24 +669,6 @@ rule pal5_model_script:
         "src/scripts/pal5/model.py"
 
 
-# rule pal5_train_background_photometry_flow:
-#     output:
-#         "src/data/pal5/background_photometry_model.pt"
-#     input:
-#         "src/data/pal5/data.done",
-#         "src/data/pal5/model.done",
-#     params:
-#         load_from_static=True,  # set to False to recompute
-#         save_to_static=False,
-#         diagnostic_plots=True,
-#         epochs=2_000,
-#     conda:
-#         "environment.yml"
-#     cache: True
-#     script:
-#         "src/scripts/pal5/model/2-train_background_photometry_flow.py"
-
-
 rule pal5_train_model:
     output:
         "src/data/pal5/model.pt"
@@ -699,7 +681,7 @@ rule pal5_train_model:
         diagnostic_plots=True,
         # epoch milestones
         epochs=1_250 * 10,
-        lr=1e-3,
+        lr=1e-4,
         weight_decay=1e-8,
         # end point
         early_stopping = -1,
@@ -707,7 +689,7 @@ rule pal5_train_model:
         "environment.yml"
     cache: True
     script:
-        "src/scripts/pal5/model/3-train_model.py"
+        "src/scripts/pal5/models/3-train_model.py"
 
 
 rule pal5_member_likelihoods:
@@ -721,7 +703,7 @@ rule pal5_member_likelihoods:
         "environment.yml"
     cache: True
     script:
-        "src/scripts/pal5/model/4-likelihoods.py"
+        "src/scripts/pal5/models/4-likelihoods.py"
 
 
 rule pal5_member_table_select:

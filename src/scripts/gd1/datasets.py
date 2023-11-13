@@ -1,6 +1,5 @@
 """Import data."""
 
-
 import asdf
 import astropy.units as u
 import numpy as np
@@ -11,6 +10,8 @@ from showyourwork.paths import user as user_paths
 import stream_ml.pytorch as sml
 
 paths = user_paths()
+
+###############################################################################
 
 # Info
 with asdf.open(
@@ -25,7 +26,6 @@ table = QTable.read(paths.data / "gd1" / "gaia_ps1_xm.asdf")[sel]
 masks = QTable.read(paths.data / "gd1" / "masks.asdf")[sel]
 
 # =============================================================================
-# Subset
 
 completeness_mask = table["gaia_g"] > 20 * u.mag
 table["g0"][completeness_mask] = np.nan
@@ -49,4 +49,4 @@ data.array[~where.array] = xp.asarray(
 
 # Off-stream selection
 # This will select the off-stream region (it's the opposite of the mask).
-off_stream = (data["phi2"] < -1.7) | (data["phi2"] > 2)
+off_stream = ~masks["offstream"]

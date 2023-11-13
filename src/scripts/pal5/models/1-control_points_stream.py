@@ -20,6 +20,9 @@ sys.path.append(paths.scripts.parent.as_posix())
 from scripts.pal5.datasets import data, masks
 from scripts.pal5.frames import pal5_frame as frame
 
+###############################################################################
+# Parameters
+
 try:
     snkmk = snakemake.params
 except NameError:
@@ -27,6 +30,8 @@ except NameError:
         "diagnostic_plots": True,
     }
 
+
+###############################################################################
 
 table = QTable(
     np.empty((11, 7)),

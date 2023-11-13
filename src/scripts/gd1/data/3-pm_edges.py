@@ -1,11 +1,9 @@
 """Define the proper motion data mask boundaries for GD-1."""
 
 import sys
-from typing import Any
 
 import astropy.units as u
 import galstreams
-import numpy as np
 from astropy.table import QTable
 from showyourwork.paths import user as user_paths
 
@@ -16,20 +14,13 @@ sys.path.append(paths.scripts.parent.as_posix())
 # isort: split
 
 from scripts.gd1.frames import gd1_frame
+from scripts.helper import make_vertices
 
 ##############################################################################
 
 mws = galstreams.MWStreams()
 gd1 = mws["GD-1-I21"]
 gd1_sc = gd1.track.transform_to(gd1_frame)[::100]
-
-
-def make_vertices(x: Any, y: Any, dy: Any) -> Any:
-    """Make vertices for a path."""
-    return np.c_[
-        np.concatenate((x, x[::-1], [x[0]])),
-        np.concatenate((y - dy, y[::-1] + dy, [y[0] - dy])),
-    ]
 
 
 path_pmphi1_tight = make_vertices(gd1_sc.phi1.degree, gd1_sc.pm_phi1_cosphi2.value, 4)

@@ -1,23 +1,20 @@
 """Train photometry background flow."""
 
-import sys
 from typing import Any
 
 import asdf
 import astropy.units as u
+import galstreams
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 from astropy.table import QTable, Row
+from matplotlib.colors import LogNorm
 from showyourwork.paths import user as user_paths
 
 import stream_ml.pytorch as sml
 
 paths = user_paths()
-
-# Add the parent directory to the path
-sys.path.append(paths.scripts.parent.as_posix())
-# isort: split
 
 ###############################################################################
 # Load stuff
@@ -56,10 +53,16 @@ p1max = table["phi1"].max().value
 p2min = table["phi2"].min().value
 p2max = table["phi2"].max().value
 
+# Lit tracks
+_lit1_kw = {"c": "k", "ls": "--", "alpha": 0.6}
+_lit2_kw = {"c": "k", "ls": ":", "alpha": 0.6}
+
+# galstreams
+allstreams = galstreams.MWStreams(implement_Off=True)
+pal5I21 = allstreams["Pal5-I21"].track
+pal5PW19 = allstreams["Pal5-PW19"].track
 
 ###############################################################################
-
-_mask = (table["phi2"] > -4 * u.deg) & (table["phi2"] < 10 * u.deg)
 
 
 def _sel_patch(row: Row, k1: str, k2: str, **kwargs: Any) -> mpl.patches.Rectangle:
@@ -87,23 +90,32 @@ gs1 = outer_grid[1, :].subgridspec(2, 2)
 
 ax00 = fig.add_subplot(
     gs0[0, 1],
-    xlabel=r"$\mu_{\phi_1}$ [mas yr$^{-1}$]",
-    ylabel=r"$\mu_{\phi_2}$ [mas yr$^{-1}$]",
+    xlabel=r"$\mu_{\alpha}^*$ [mas yr$^{-1}$]",
+    ylabel=r"$\mu_{\delta}$ [mas yr$^{-1}$]",
     rasterization_zorder=100,
 )
+
+mask_ = (table["phi2"] > -4 * u.deg) & (table["phi2"] < 10 * u.deg)
+
+pm_phi1 = table["pmra"].value[mask_]
+pm_phi2 = table["pmdec"].value[mask_]
 ax00.hist2d(
-    table["pm_phi1"].value[_mask],
-    table["pm_phi2"].value[_mask],
-    bins=(np.linspace(-22, 2, 128), np.linspace(-9, 4, 128)),
+    pm_phi1,
+    pm_phi2,
+    bins=(np.linspace(-5, 0, 128), np.linspace(-6, 0, 128)),
     cmap="Greys",
-    norm=mpl.colors.LogNorm(),
+    norm=LogNorm(),
     zorder=-10,
 )
 ax00.add_patch(
-    _sel_patch(pm_edges.loc["med_icrs"], "pm_phi1", "pm_phi2", color="tab:blue")
+    _sel_patch(pm_edges.loc["med_icrs"], "pm_ra", "pm_dec", color="tab:blue")
 )
+ax00.plot(
+    pal5I21.pm_ra_cosdec.value, pal5I21.pm_dec.value, **_lit1_kw, label="Ibata+21"
+)
+ax00.plot(pal5PW19.pm_ra_cosdec.value, pal5PW19.pm_dec.value, **_lit2_kw, label="PW+19")
 
-ax00.set_xlim(-10, None)
+ax00.legend(loc="lower left", fontsize=8)
 
 # -----------------------------------------------------------------------------
 # Phot space
@@ -112,11 +124,10 @@ ax10 = fig.add_subplot(
     gs0[0, 2],
     xlabel=r"$g_0 - i_0$ [mag]",
     ylabel=r"$g_0$ [mag]",
-    xlim=(-1, 3),
     rasterization_zorder=0,
 )
-_mask = (
-    _mask
+mask_ = (
+    mask_
     & (
         ((table["g0"] > 0) & (table["i0"] > 0))
         & ((table["phi2"] > -2.5 * u.deg) & (table["phi2"] < 1 * u.deg))
@@ -125,13 +136,14 @@ _mask = (
     & masks_table["things"]
 )
 ax10.hist2d(
-    (table["g0"] - table["i0"]).value[_mask & masks_table["pm_med_icrs"]],
-    table["g0"].value[_mask & masks_table["pm_med_icrs"]],
+    (table["g0"] - table["i0"]).value[mask_ & masks_table["pm_med_icrs"]],
+    table["g0"].value[mask_ & masks_table["pm_med_icrs"]],
     bins=100,
     label="GD-1",
-    norm=mpl.colors.LogNorm(),
+    norm=LogNorm(),
     cmap="Greys",
     zorder=-10,
+    range=((-0.25, 1.5), (12, 23)),
 )
 
 ax10.plot(
@@ -141,9 +153,7 @@ ax10.plot(
     label="isochrone",
     zorder=-5,
 )
-
-ax10.set_ylim(23, 12)
-ax10.legend(loc="upper left")
+ax10.invert_yaxis()
 
 # -----------------------------------------------------------------------------
 # Combined Selection
@@ -160,18 +170,19 @@ ax30 = fig.add_subplot(
     xlabel=r"$\phi_1$ [deg]",
     ylabel=r"$\phi_2$ [$\degree$]",
     rasterization_zorder=0,
+    axisbelow=False,
 )
 ax30.hist2d(
     table["phi1"].value[sel],
     table["phi2"].value[sel],
     cmap="Blues",
     density=True,
+    norm=LogNorm(),
     bins=100,
-    norm=mpl.colors.LogNorm(),
     zorder=-10,
 )
 # add text to the top left corner of the plot saying log-density
-ax30.text(
+t = ax30.text(
     0.05,
     0.95,
     "log-density",
@@ -179,8 +190,7 @@ ax30.text(
     fontsize=12,
     verticalalignment="top",
 )
-ax30.grid(True)
-ax30.set_axisbelow(False)
+t.set_bbox({"facecolor": "white", "alpha": 0.75, "edgecolor": "gray"})
 
 
 # Parallax
@@ -195,6 +205,7 @@ ax31.hist2d(
     table["parallax"].value[sel],
     cmap="Blues",
     density=True,
+    norm=LogNorm(),
     bins=100,
     zorder=-10,
 )
@@ -212,6 +223,7 @@ ax32.hist2d(
     table["pm_phi1"].value[sel],
     cmap="Blues",
     density=True,
+    norm=LogNorm(),
     bins=100,
     zorder=-10,
 )
@@ -229,6 +241,7 @@ ax33.hist2d(
     table["pm_phi2"].value[sel],
     cmap="Blues",
     density=True,
+    norm=LogNorm(),
     bins=100,
     zorder=-10,
 )

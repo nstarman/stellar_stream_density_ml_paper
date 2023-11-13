@@ -7,6 +7,8 @@ from collections.abc import Mapping
 from functools import partial
 from typing import TYPE_CHECKING, Any
 
+import astropy.units as u
+import matplotlib.path as mpath
 import more_itertools
 import numpy as np
 import torch as xp
@@ -130,3 +132,25 @@ def detect_significant_changes_in_width(
             groups.append(group[-1:])
 
     return np.concatenate(groups)
+
+
+def make_path(x: u.Quantity, y: u.Quantity) -> mpath.Path:
+    """Make a path."""
+    x = u.Quantity(x).value
+    y = u.Quantity(y).value
+    return mpath.Path(
+        np.c_[x, y],
+        codes=[
+            mpath.Path.MOVETO,
+            *[mpath.Path.LINETO] * (len(x) - 2),
+            mpath.Path.CLOSEPOLY,
+        ],
+    )
+
+
+def make_vertices(x: Any, y: Any, dy: Any) -> Any:
+    """Make vertices for a path."""
+    return np.c_[
+        np.concatenate((x, x[::-1], [x[0]])),
+        np.concatenate((y - dy, y[::-1] + dy, [y[0] - dy])),
+    ]

@@ -77,7 +77,8 @@ with xp.no_grad():
 
     for i, mpars in enumerate(ldmpars):
         # Postprocess
-        clean = postprocess(data, mpars)
+        # clean = postprocess(data, mpars)
+        clean = np.ones(len(data), dtype=bool)
 
         # Weights
         stream_weights[:, i] = mpars["stream.ln-weight",]
@@ -112,7 +113,8 @@ with xp.no_grad():
     # tot_lnlik = model.ln_posterior(mpars, data, where=where)  # TODO
     tot_lnlik = xp.logaddexp(stream_lnlik, bkg_lnlik)
 
-    clean = postprocess(data, mpars)
+    # clean = postprocess(data, mpars)
+    clean = np.ones(len(data), dtype=bool)
 
     # Probabilities
     bkg_prob = xp.exp(bkg_lnlik - tot_lnlik)

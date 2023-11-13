@@ -212,6 +212,7 @@ def make_model() -> sml.MixtureModel:
                 },
                 "plx": {
                     "mu": ModelParameter(
+                        # ensure parallax > 0, required for the distance modulus
                         bounds=SigmoidBounds(1e-10, coord_bounds["plx"][1]),
                         scaler=StandardLocation.from_data_scaler(scaler, "plx", xp=xp),
                     ),

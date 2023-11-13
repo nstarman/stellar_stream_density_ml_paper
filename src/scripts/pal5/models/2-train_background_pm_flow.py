@@ -40,9 +40,11 @@ except NameError:
     }
 
 if snkmk["load_from_static"]:
+    # Load the model from the static directory
     model_without_grad.load_state_dict(
         xp.load(paths.static / "pal5" / "background_pm_model.pt")
     )
+    # Save the model to the data directory
     xp.save(
         model_without_grad.state_dict(),
         paths.data / "pal5" / "background_pm_model.pt",
@@ -52,6 +54,9 @@ if snkmk["load_from_static"]:
 
 figure_path = paths.scripts / "pal5" / "_diagnostics" / "pm_flow"
 figure_path.mkdir(parents=True, exist_ok=True)
+
+# Training steps save directory
+(paths.data / "pal5" / "pm_flow").mkdir(parents=True, exist_ok=True)
 
 if snkmk["diagnostic_plots"]:
     allstreams = galstreams.MWStreams(implement_Off=True)
@@ -69,32 +74,43 @@ model = replace(model_without_grad, with_grad=True)
 coord_names = model.indep_coord_names + model.coord_names
 
 dataset = td.TensorDataset(
-    data[coord_names].array[off_stream],
-    where[coord_names].array[off_stream],
+    data[coord_names].array[off_stream], where[coord_names].array[off_stream]
 )
+batch_size = int(off_stream.sum() * 0.05)
 loader = td.DataLoader(
-    dataset=dataset, batch_size=500, shuffle=True, num_workers=0, drop_last=True
+    dataset=dataset, batch_size=batch_size, shuffle=True, num_workers=0, drop_last=True
 )
-optimizer = optim.AdamW(model.parameters(), lr=1e-3)
+optimizer = optim.AdamW(model.parameters(), lr=1e-4)
 
 # Train
 for epoch in tqdm(range(snkmk["epochs"])):
+    # Iterate over batches
     for data_step_, where_step_ in loader:
+        # Convert to sml.Data
         data_step = sml.Data(data_step_, names=coord_names)
         where_step = sml.Data(where_step_, names=coord_names)
 
+        # Reset gradients
         optimizer.zero_grad()
 
+        # Compute loss
         mpars = model.unpack_params(model(data_step))
         loss = -model.ln_posterior_tot(mpars, data_step, where=where_step)
 
+        # Back-propogate
         loss.backward()
         optimizer.step()
 
-    xp.save(model.state_dict(), paths.data / "pal5" / "background_pm_model.pt")
+    # Save
+    if epoch % 100 == 0:
+        xp.save(
+            model.state_dict(), paths.data / "pal5" / "pm_flow" / f"model_{epoch:04}.pt"
+        )
+        xp.save(model.state_dict(), paths.data / "pal5" / "background_pm_model.pt")
 
     # -----------------------------------------------------------
     # Diagnostic plots (not in the paper)
+
     if snkmk["diagnostic_plots"] and (
         (epoch % 100 == 0) or (epoch == snkmk["epochs"] - 1)
     ):
@@ -144,6 +160,9 @@ for epoch in tqdm(range(snkmk["epochs"])):
         ax.legend()
         fig.savefig(figure_path / f"epoch_{epoch:05}.png")
         plt.close(fig)
+
+# =============================================================================
+# Save
 
 xp.save(model.state_dict(), paths.data / "pal5" / "background_pm_model.pt")
 

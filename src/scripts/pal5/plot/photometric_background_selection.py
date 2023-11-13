@@ -96,7 +96,7 @@ axs[1].scatter(
 axs[1].invert_yaxis()
 axs[1].yaxis.set_major_formatter(FormatStrFormatter("%d"))
 leg = axs[1].legend(loc="upper left", fontsize=11, markerscale=5)
-for lh in leg.legendHandles:
+for lh in leg.legend_handles:
     lh.set_alpha(1)
 
 

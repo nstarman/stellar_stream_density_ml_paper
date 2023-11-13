@@ -31,12 +31,12 @@ try:
     snkmk = dict(snakemake.params)
 except NameError:
     snkmk = {
-        "load_from_static": False,
+        "load_from_static": True,
         "save_to_static": False,
         "diagnostic_plots": True,
         # epoch milestones
         "epochs": 1_250 * 10,
-        "lr": 1e-3,
+        "lr": 1e-4,
         "weight_decay": 1e-8,
         "early_stopping": -1,
     }
@@ -66,7 +66,7 @@ model["background"]["astrometric"]["pm"].load_state_dict(
 # =============================================================================
 # Training Parameters
 
-BATCH_SIZE = int(len(data) * 0.075)
+BATCH_SIZE = int(len(data) * 0.05)
 
 dataset = td.TensorDataset(
     data.array,  # data
@@ -85,7 +85,7 @@ optimizer = optim.AdamW(
     list(model.parameters()), lr=snkmk["lr"], weight_decay=snkmk["weight_decay"]
 )
 
-scheduler = optim.lr_scheduler.ConstantLR(optimizer, factor=0.1)  # constant 1e-4
+scheduler = optim.lr_scheduler.ConstantLR(optimizer, factor=1)  # constant 1e-4
 
 # =============================================================================
 # Train

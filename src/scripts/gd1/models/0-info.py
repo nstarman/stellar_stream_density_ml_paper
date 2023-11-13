@@ -1,6 +1,5 @@
 """GD-1 model info."""
 
-
 from dataclasses import asdict
 
 import asdf

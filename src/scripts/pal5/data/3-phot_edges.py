@@ -45,7 +45,7 @@ abs_mags, _, _ = brutus.seds.Isochrone(
     loga=np.log10(11.5e9),
 )
 abs_mags = abs_mags[np.all(np.isfinite(abs_mags), axis=1)]
-mags_data = sml.Data(abs_mags, names=[n.removeprefix("PS_") for n in filters])
+mags_data = sml.Data(abs_mags, names=tuple(n.removeprefix("PS_") for n in filters))
 
 af = asdf.AsdfFile()
 af["isochrone_data"] = asdict(mags_data)

@@ -5,13 +5,20 @@ import sys
 
 import asdf
 import astropy.units as u
+import galstreams
 import matplotlib.path as mpath
 import numpy as np
 from astropy.table import QTable
-from astropy.units import Quantity
 from showyourwork.paths import user as user_paths
 
 paths = user_paths()
+
+# Add the parent directory to the path
+sys.path.append(paths.scripts.parent.as_posix())
+# isort: split
+
+from scripts.gd1.frames import gd1_frame
+from scripts.helper import make_path, make_vertices
 
 ##############################################################################
 # PARAMETERS
@@ -44,19 +51,6 @@ masks_table = QTable()
 
 # Mask edges
 pm_edges = QTable.read(paths.data / "gd1" / "pm_edges.ecsv")
-
-
-def make_path(x: Quantity, y: Quantity) -> mpath.Path:
-    """Make a path."""
-    return mpath.Path(
-        np.c_[x.value, y.value],
-        codes=[
-            mpath.Path.MOVETO,
-            *[mpath.Path.LINETO] * (len(x) - 2),
-            mpath.Path.CLOSEPOLY,
-        ],
-    )
-
 
 # Tight
 path_pmphi1 = make_path(pm_edges["phi1"], pm_edges["pm_phi1_cosphi2_tight"])
@@ -98,6 +92,21 @@ mags = np.c_[table["g0"] - table["i0"], table["g0"]]
 
 masks_table["phot_medium"] = mpath.Path(iso_medium, readonly=True).contains_points(mags)
 
+# =============================================================================
+# Offstream
+
+# Get track from galstreams
+mws = galstreams.MWStreams()
+gd1 = mws["GD-1-I21"]
+gd1_sc = gd1.track.transform_to(gd1_frame)[::100]
+
+# Make path from track
+verts = make_vertices(gd1_sc.phi1, gd1_sc.phi2, 1 * u.deg)
+path_phi12 = make_path(verts[:, 0], verts[:, 1])
+
+# Offstream mask
+offstream = path_phi12.contains_points(np.c_[table["phi1"].value, table["phi2"].value])
+masks_table["offstream"] = offstream
 
 # =============================================================================
 

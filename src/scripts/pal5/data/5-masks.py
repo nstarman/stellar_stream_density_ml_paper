@@ -32,7 +32,7 @@ try:
     snkmk = snakemake.params
 except NameError:
     snkmk = {
-        "load_from_static": False,
+        "load_from_static": True,
         "save_to_static": False,
         "diagnostic_plots": True,
     }
@@ -88,9 +88,7 @@ masks_table["M5"] = ~(M5.separation(c_pal5_icrs) < 0.8 * u.deg)
 
 
 # =============================================================================
-# Other Thing
-# TODO: get the name
-# Applying this mask to the data table will remove the other thing.
+# Other Stuff
 
 masks_table["things"] = ~(
     (c_pal5.pm_phi1_cosphi2.value > -1)
@@ -98,11 +96,6 @@ masks_table["things"] = ~(
     & (c_pal5.pm_phi2.value > -1)
     & (c_pal5.pm_phi2.value < 1)
 )
-
-# =============================================================================
-# Other Other Thing
-# TODO: get the name
-# Applying this mask to the data table will remove the other thing.
 
 masks_table["things2"] = ~(
     (c_pal5.phi1.value > 12.7)
@@ -120,21 +113,12 @@ masks_table["things2"] = ~(
 pm_edges = QTable.read(paths.data / "pal5" / "pm_edges.ecsv")
 pm_edges.add_index("label", unique=True)
 
-
-# pm_tight = pm_edges.loc["tight_icrs"]
-# masks_table["pm_tight_icrs"] = (
-#     (table["pmra"] > pm_tight["pm_phi1_min"])
-#     & (table["pmra"] < pm_tight["pm_phi1_max"])
-#     & (table["pmdec"] > pm_tight["pm_phi2_min"])
-#     & (table["pmdec"] < pm_tight["pm_phi2_max"])
-# )
-
 pm_med = pm_edges.loc["med_icrs"]
 masks_table["pm_med_icrs"] = (
-    (table["pmra"] > pm_med["pm_phi1_min"])
-    & (table["pmra"] < pm_med["pm_phi1_max"])
-    & (table["pmdec"] > pm_med["pm_phi2_min"])
-    & (table["pmdec"] < pm_med["pm_phi2_max"])
+    (table["pmra"] > pm_med["pm_ra_min"])
+    & (table["pmra"] < pm_med["pm_ra_max"])
+    & (table["pmdec"] > pm_med["pm_dec_min"])
+    & (table["pmdec"] < pm_med["pm_dec_max"])
 )
 
 
@@ -223,9 +207,9 @@ ax00.plot(
 
 row = pm_edges.loc["med_icrs"]
 rec = mpl.patches.Rectangle(
-    (row["pm_phi1_min"].value, row["pm_phi2_min"].value),
-    row["pm_phi1_max"].value - row["pm_phi1_min"].value,
-    row["pm_phi2_max"].value - row["pm_phi2_min"].value,
+    (row["pm_ra_min"].value, row["pm_dec_min"].value),
+    row["pm_ra_max"].value - row["pm_ra_min"].value,
+    row["pm_dec_max"].value - row["pm_dec_min"].value,
     color="tab:red",
     label="Selection",
 )

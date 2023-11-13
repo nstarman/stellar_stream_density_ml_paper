@@ -33,14 +33,15 @@ try:
     snkmk = dict(snakemake.params)
 except NameError:
     snkmk = {
-        "load_from_static": True,
-        "save_to_static": False,
+        "load_from_static": False,
+        "save_to_static": True,
         "epochs": 2_000,
         "diagnostic_plots": True,
     }
 
 save_path = paths.data / "gd1"
 save_path.mkdir(parents=True, exist_ok=True)
+(save_path / "phot_flow").mkdir(parents=True, exist_ok=True)
 
 static_path = paths.static / "gd1"
 static_path.mkdir(parents=True, exist_ok=True)
@@ -100,38 +101,38 @@ for epoch in tqdm(range(snkmk["epochs"])):
         loss.backward()
         optimizer.step()
 
-    xp.save(model.state_dict(), save_path / "background_photometry_model.pt")
-
     # -----------------------------------------------------------
 
-    # Diagnostic plots (not in the paper)
-    if snkmk["diagnostic_plots"] and (
-        (epoch % 100 == 0) or (epoch == snkmk["epochs"] - 1)
-    ):
-        with xp.no_grad():
-            mpars = model.unpack_params(model(data))
-            prob = model.posterior(mpars, data, where=where)
-        psort = np.argsort(prob[off_stream])
+    if (epoch % 100 == 0) or (epoch == snkmk["epochs"] - 1):
+        xp.save(model.state_dict(), save_path / "phot_flow" / f"model_{epoch:05}.pt")
+        xp.save(model.state_dict(), save_path / "background_photometry_model.pt")
 
-        fig, ax = plt.subplots()
-        ax.scatter(
-            (data["g"] - data["r"])[~off_stream],
-            data["g"][~off_stream],
-            s=0.2,
-            c="black",
-        )
-        im = ax.scatter(
-            (data["g"] - data["r"])[off_stream][psort],
-            data["g"][off_stream][psort],
-            s=0.2,
-            c=prob[off_stream][psort],
-        )
-        plt.colorbar(im, ax=ax)
-        ax.set(xlim=(0, 0.8), ylim=(21, 13.5))
-        fig.savefig(figure_path / f"epoch_{epoch:05}.png")
-        plt.close(fig)
+        # Diagnostic plots (not in the paper)
+        if snkmk["diagnostic_plots"]:
+            with xp.no_grad():
+                mpars = model.unpack_params(model(data))
+                prob = model.posterior(mpars, data, where=where)
 
-    xp.save(model.state_dict(), save_path / "background_photometry_model.pt")
+            psort = np.argsort(prob[off_stream])
+
+            fig, ax = plt.subplots()
+            ax.scatter(
+                (data["g"] - data["r"])[~off_stream],
+                data["g"][~off_stream],
+                s=0.2,
+                c="black",
+            )
+            im = ax.scatter(
+                (data["g"] - data["r"])[off_stream][psort],
+                data["g"][off_stream][psort],
+                s=0.2,
+                c=prob[off_stream][psort],
+            )
+            plt.colorbar(im, ax=ax)
+            ax.set(xlim=(0, 0.8), ylim=(21, 13.5))
+            fig.savefig(figure_path / f"epoch_{epoch:05}.png")
+            plt.close(fig)
+
 
 # =============================================================================
 # Save

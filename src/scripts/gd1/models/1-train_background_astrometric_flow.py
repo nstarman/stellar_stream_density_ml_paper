@@ -40,7 +40,7 @@ try:
     snkmk = dict(snakemake.params)
 except NameError:
     snkmk = {
-        "load_from_static": True,
+        "load_from_static": False,
         "save_to_static": False,
         "epochs": 2_500,
         "diagnostic_plots": True,
@@ -48,6 +48,7 @@ except NameError:
 
 save_path = paths.data / "gd1"
 save_path.mkdir(parents=True, exist_ok=True)
+(save_path / "astro_flow").mkdir(parents=True, exist_ok=True)
 
 static_path = paths.static / "gd1"
 static_path.mkdir(parents=True, exist_ok=True)
@@ -213,10 +214,13 @@ for epoch in tqdm(range(snkmk["epochs"])):
         loss.backward()
         optimizer.step()
 
+    # Save
+    if (epoch % 100 == 0) or (epoch == snkmk["epochs"] - 1):
+        xp.save(model.state_dict(), save_path / "astro_flow" / f"model_{epoch:05}.pt")
+        xp.save(model.state_dict(), save_path / "background_astrometric_model.pt")
+
         # Diagnostic plots (not in the paper)
-        if snkmk["diagnostic_plots"] and (
-            (epoch % 100 == 0) or (epoch == snkmk["epochs"] - 1)
-        ):
+        if snkmk["diagnostic_plots"]:
             with xp.no_grad():
                 mpars = model.unpack_params(model(data))
                 prob = model.posterior(mpars, data, where=where).flatten()
@@ -224,9 +228,6 @@ for epoch in tqdm(range(snkmk["epochs"])):
             fig = diagnostic_plot(data, prob)
             fig.savefig(figure_path / f"epoch_{epoch:05}.png")
             plt.close(fig)
-
-    # Save
-    xp.save(model.state_dict(), save_path / "background_astrometric_model.pt")
 
 
 # ========================================================================

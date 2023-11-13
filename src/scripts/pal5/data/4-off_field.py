@@ -15,6 +15,8 @@ sys.path.append(paths.scripts.parent.as_posix())
 
 from scripts.pal5.frames import pal5_frame
 
+###############################################################################
+
 pal5 = galstreams.MWStreams()["Pal5-PW19"]
 track = pal5.track.transform_to(pal5_frame)
 footprint = sg.LineString(np.c_[track.phi1.degree, track.phi2.degree]).buffer(1.5)

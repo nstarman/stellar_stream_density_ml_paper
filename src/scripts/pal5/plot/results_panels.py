@@ -216,21 +216,16 @@ for i, b in enumerate(np.unique(which_bin)):
     )
     ax1i.set_xticks([0.1, 0.5, 0.9], ["0.1", "0.5", "0.9"])
 
-    ax1i.scatter(
-        (data_["g"] - data_["r"])[~is_strm_],
-        data_["g"][~is_strm_],
-        c=colors_[~is_strm_],
-        s=1,
-        zorder=-10,
-    )
+    ax1i.scatter((data_["g"] - data_["r"]), data_["g"], c=colors_, s=1, zorder=-10)
+
     if len(is_strm_) > 0:
         ax1i.errorbar(
             (data_["g"] - data_["r"])[is_strm_],
             data_["g"][is_strm_],
-            c=colors_[is_strm_],
-            s=1,
+            ls="none",
+            c=cmap1(0.99),
+            ms=1,
             zorder=-9,
-            ecolor=[(*c[:-1], 0.1) for c in colors_[is_strm_]],
         )
 
     for label in ax1i.get_xticklabels():

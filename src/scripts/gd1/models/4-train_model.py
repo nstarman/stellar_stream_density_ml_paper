@@ -4,6 +4,7 @@ import sys
 from typing import Any
 
 import matplotlib.pyplot as plt
+import numpy as np
 import torch as xp
 import torch.utils.data as td
 from showyourwork.paths import user as user_paths
@@ -31,14 +32,26 @@ try:
     snkmk = dict(snakemake.params)
 except NameError:
     snkmk = {
-        "load_from_static": True,
+        "load_from_static": False,
         "save_to_static": False,
         "diagnostic_plots": True,
-        # epoch milestones
-        "epochs": 1_250 * 10,
-        "lr": 5e-4,
         "weight_decay": 1e-8,
+        # # epoch milestones
+        # "epochs": 1_250 * 10,
+        "lr": 1e-3,
+        "T_high_init": 20,
+        "T_high": 10,
+        "lr_high": 1,
+        "T_low": 190,
+        "lr_low": 0.1,
+        "n_reps": 3,  # additional cycles past the first
+        "epochs": 1_000,
     }
+    snkmk["T_end"] = (
+        snkmk["epochs"]
+        - (snkmk["T_high_init"] + snkmk["T_low"])
+        - snkmk["n_reps"] * (snkmk["T_high"] + snkmk["T_low"])
+    )
 
 model = make_model()
 
@@ -90,7 +103,29 @@ optimizer = optim.AdamW(
     list(model.parameters()), lr=snkmk["lr"], weight_decay=snkmk["weight_decay"]
 )
 
-scheduler = optim.lr_scheduler.ConstantLR(optimizer, factor=0.1)  # constant 1e-4
+# Scheduler
+milestones_ = np.zeros(2 * (snkmk["n_reps"] + 1), dtype=int)
+milestones_[::2] = snkmk["T_high"]
+milestones_[0] = snkmk["T_high_init"]
+milestones_[1::2] = snkmk["T_low"]
+milestones_[1] = snkmk["T_low"] - (snkmk["T_high_init"] - snkmk["T_high"])
+milestones = np.cumsum(milestones_).tolist()
+
+# scheduler = optim.lr_scheduler.ConstantLR(optimizer, factor=0.1)  # 1e-4
+scheduler = optim.lr_scheduler.SequentialLR(
+    optimizer,
+    [
+        optim.lr_scheduler.ConstantLR(optimizer, 1, total_iters=snkmk["T_high"]),
+        optim.lr_scheduler.ConstantLR(optimizer, 0.1, total_iters=snkmk["T_low"]),
+    ]
+    + [
+        optim.lr_scheduler.ConstantLR(optimizer, 0.5, total_iters=snkmk["T_high"]),
+        optim.lr_scheduler.ConstantLR(optimizer, 0.1, total_iters=snkmk["T_low"]),
+    ]
+    * snkmk["n_reps"]
+    + [optim.lr_scheduler.ConstantLR(optimizer, 0.1, total_iters=snkmk["T_end"])],
+    milestones=milestones,
+)
 
 # =============================================================================
 # Train
@@ -134,34 +169,31 @@ for epoch in epoch_iterator:
         {"lr": f"{scheduler.get_last_lr()[0]:.2e}", "loss": f"{loss_val:.2e}"}
     )
 
-    if snkmk["diagnostic_plots"] and (
-        (epoch % 100 == 0) or (epoch == snkmk["epochs"] - 1)
-    ):
-        # Turn dropout off
-        model.eval()
-        manually_set_dropout(model, 0)
-
-        # Diagnostic plots (not in the paper)
-        fig = diagnostic_plot(model, data, where=where)
-        fig.savefig(diagnostic_path / f"epoch_{epoch:05}.png")
-        plt.close(fig)
-
-        # Turn dropout on
-        manually_set_dropout(model, 0.15)
-        model.train()
-
+    # Save
+    if (epoch % 100 == 0) or (epoch == snkmk["epochs"] - 1) or (epoch in milestones):
         # Save
         xp.save(model.state_dict(), save_path / "model.pt")
         xp.save(model.state_dict(), save_path / "models" / f"model_{epoch:04d}.pt")
 
+        if snkmk["diagnostic_plots"]:
+            # Turn dropout off
+            model.eval()
+            manually_set_dropout(model, 0)
 
-# Save final state of the model
-xp.save(model.state_dict(), save_path / "models" / f"model_{epoch:04d}.pt")
+            # Diagnostic plots (not in the paper)
+            fig = diagnostic_plot(model, data, where=where, cutoff=-10)
+            fig.savefig(diagnostic_path / f"epoch_{epoch:05}.png")
+            plt.close(fig)
 
+            # Turn dropout on
+            manually_set_dropout(model, 0.15)
+            model.train()
 
 # =============================================================================
 # Save
 
+# Save final state of the model
+xp.save(model.state_dict(), save_path / "models" / f"model_{epoch:04d}.pt")
 xp.save(model.state_dict(), save_path / "model.pt")
 
 if snkmk["save_to_static"]:
