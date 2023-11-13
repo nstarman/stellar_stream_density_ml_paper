@@ -153,14 +153,14 @@ def make_model() -> sml.MixtureModel:
     gd1_cp = gd1_cp_[(-70 * u.deg <= gd1_cp_["phi1"]) & (gd1_cp_["phi1"] <= 10 * u.deg)]
 
     # Control points
-    stream_astrometric_prior = sml.prior.ControlRegions(
-        center=sml.Data.from_format(
+    stream_astrometric_prior = sml.prior.ControlRegions(  # type: ignore[type-var]
+        center=sml.Data.from_format(  # type: ignore[type-var]
             gd1_cp,
             fmt="astropy.table",
             names=("phi1", "phi2", "pm_phi1"),
             renamer=renamer,
         ).astype(xp.Tensor, dtype=xp.float32),
-        width=sml.Data.from_format(
+        width=sml.Data.from_format(  # type: ignore[type-var]
             gd1_cp,
             fmt="astropy.table",
             names=("w_phi2", "w_pm_phi1"),
@@ -170,14 +170,14 @@ def make_model() -> sml.MixtureModel:
     )
 
     # TODO: put the parallax in the control points file
-    stream_distance_prior = sml.prior.ControlRegions(
-        center=sml.Data.from_format(
+    stream_distance_prior = sml.prior.ControlRegions(  # type: ignore[type-var]
+        center=sml.Data.from_format(  # type: ignore[type-var]
             distance_cp,
             fmt="astropy.table",
             names=("phi1", "parallax"),
             renamer=renamer,
         ).astype(xp.Tensor, dtype=xp.float32),
-        width=sml.Data.from_format(
+        width=sml.Data.from_format(  # type: ignore[type-var]
             distance_cp,
             fmt="astropy.table",
             names=("w_parallax",),
@@ -213,7 +213,7 @@ def make_model() -> sml.MixtureModel:
                 "plx": {
                     "mu": ModelParameter(
                         # ensure parallax > 0, required for the distance modulus
-                        bounds=SigmoidBounds(1e-10, coord_bounds["plx"][1]),
+                        bounds=SigmoidBounds(0.025, 0.2),  # force closer to answer
                         scaler=StandardLocation.from_data_scaler(scaler, "plx", xp=xp),
                     ),
                     "ln-sigma": ModelParameter(
