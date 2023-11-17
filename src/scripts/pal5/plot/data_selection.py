@@ -143,7 +143,7 @@ ax10.hist2d(
     norm=LogNorm(),
     cmap="Greys",
     zorder=-10,
-    range=((-0.25, 1.5), (12, 23)),
+    range=((-0.125, 1.25), (14, 22)),
 )
 
 ax10.plot(
