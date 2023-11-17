@@ -150,13 +150,13 @@ def diagnostic_plot(  # noqa: C901, PLR0912
 
     (l1,) = ax02.plot(
         data["phi1"],
-        np.exp(mpars["stream.ln-weight",]),
+        mpars["stream.ln-weight",],
         c=cmap_stream(0.99),
         ls="--",
         lw=2,
     )
     (l2,) = ax02.plot(
-        data["phi1"], np.exp(mpars["spur.ln-weight",]), c=cmap_spur(0.99), ls="--", lw=2
+        data["phi1"], mpars["spur.ln-weight",], c=cmap_spur(0.99), ls="--", lw=2
     )
 
     ax02.legend(

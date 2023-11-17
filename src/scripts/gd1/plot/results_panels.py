@@ -44,7 +44,7 @@ with asdf.open(
     isochrone_data = Data(**af["isochrone_data"])
 
 # Load model
-model = make_model("subset")
+model = make_model()
 model.load_state_dict(xp.load(paths.data / "gd1" / "models" / "model_11700.pt"))
 model = model.eval()
 

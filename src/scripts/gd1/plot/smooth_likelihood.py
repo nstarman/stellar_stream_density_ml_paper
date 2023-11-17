@@ -22,10 +22,8 @@ from scripts.gd1.model import make_model
 plt.style.use(paths.scripts / "paper.mplstyle")
 
 # Load model
-model = make_model("subset")
-model.load_state_dict(
-    xp.load(paths.data / "gd1" / "subset" / "models" / "model_11700.pt")
-)
+model = make_model()
+model.load_state_dict(xp.load(paths.data / "gd1" / "models" / "model_11700.pt"))
 model = model.eval()
 
 with xp.no_grad():
@@ -80,7 +78,7 @@ axs[1].pcolormesh(
     rasterized=True,
     shading="gouraud",
 )
-axs[1].set(ylabel=(r"$\mu_{\phi_1}^*$ [deg]"), xlim=(-90, 10))
+axs[1].set(ylabel=(r"$\mu_{\phi_1}^*$ [mas/yr]"), xlim=(-90, 10))
 
 # -------------------------------------------------
 # pmphi2(phi1)
@@ -99,7 +97,9 @@ axs[2].pcolormesh(
     rasterized=True,
     shading="gouraud",
 )
-axs[2].set(xlabel=(r"$\phi_1$ [deg]"), ylabel=(r"$\mu_{\phi_2}$ [deg]"), xlim=(-90, 10))
+axs[2].set(
+    xlabel=(r"$\phi_1$ [mas/yr]"), ylabel=(r"$\mu_{\phi_2}$ [mas/yr]"), xlim=(-90, 10)
+)
 
 # -------------------------------------------------
 

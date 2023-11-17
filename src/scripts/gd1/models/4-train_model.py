@@ -4,7 +4,6 @@ import sys
 from typing import Any
 
 import matplotlib.pyplot as plt
-import numpy as np
 import torch as xp
 import torch.utils.data as td
 from showyourwork.paths import user as user_paths
@@ -39,19 +38,20 @@ except NameError:
         # # epoch milestones
         # "epochs": 1_250 * 10,
         "lr": 1e-3,
-        "T_high_init": 20,
-        "T_high": 10,
+        "T_high_init": 25,
+        "T_high": 5,
         "lr_high": 1,
-        "T_low": 190,
+        "T_low": 195,
         "lr_low": 0.1,
         "n_reps": 3,  # additional cycles past the first
-        "epochs": 1_000,
+        "epochs": 12_000,
     }
-    snkmk["T_end"] = (
-        snkmk["epochs"]
-        - (snkmk["T_high_init"] + snkmk["T_low"])
-        - snkmk["n_reps"] * (snkmk["T_high"] + snkmk["T_low"])
-    )
+    snkmk["T_end"] = snkmk["epochs"] - snkmk["T_high_init"] + 1
+    # snkmk["T_end"] = (
+    #     snkmk["epochs"]
+    #     - (snkmk["T_high_init"] + snkmk["T_low"])
+    #     - snkmk["n_reps"] * (snkmk["T_high"] + snkmk["T_low"])
+    # ) + 1
 
 model = make_model()
 
@@ -104,26 +104,28 @@ optimizer = optim.AdamW(
 )
 
 # Scheduler
-milestones_ = np.zeros(2 * (snkmk["n_reps"] + 1), dtype=int)
-milestones_[::2] = snkmk["T_high"]
-milestones_[0] = snkmk["T_high_init"]
-milestones_[1::2] = snkmk["T_low"]
-milestones_[1] = snkmk["T_low"] - (snkmk["T_high_init"] - snkmk["T_high"])
-milestones = np.cumsum(milestones_).tolist()
+milestones = [25]
+# milestones_ = np.zeros(2 * (snkmk["n_reps"] + 1), dtype=int)
+# milestones_[::2] = snkmk["T_high"]
+# milestones_[0] = snkmk["T_high_init"]
+# milestones_[1::2] = snkmk["T_low"]
+# milestones_[1] = snkmk["T_low"] - (snkmk["T_high_init"] - snkmk["T_high"])
+# milestones = np.cumsum(milestones_).tolist()
+# print(milestones)
 
 # scheduler = optim.lr_scheduler.ConstantLR(optimizer, factor=0.1)  # 1e-4
 scheduler = optim.lr_scheduler.SequentialLR(
     optimizer,
     [
-        optim.lr_scheduler.ConstantLR(optimizer, 1, total_iters=snkmk["T_high"]),
-        optim.lr_scheduler.ConstantLR(optimizer, 0.1, total_iters=snkmk["T_low"]),
-    ]
-    + [
-        optim.lr_scheduler.ConstantLR(optimizer, 0.5, total_iters=snkmk["T_high"]),
-        optim.lr_scheduler.ConstantLR(optimizer, 0.1, total_iters=snkmk["T_low"]),
-    ]
-    * snkmk["n_reps"]
-    + [optim.lr_scheduler.ConstantLR(optimizer, 0.1, total_iters=snkmk["T_end"])],
+        optim.lr_scheduler.ConstantLR(optimizer, 1.0, total_iters=snkmk["T_high"]),
+        optim.lr_scheduler.ConstantLR(optimizer, 1.0, total_iters=snkmk["T_end"]),
+    ],
+    # + [
+    #     optim.lr_scheduler.ConstantLR(optimizer, 1.0, total_iters=snkmk["T_high"]),
+    #     optim.lr_scheduler.ConstantLR(optimizer, 0.5, total_iters=snkmk["T_low"]),
+    # ]
+    # * snkmk["n_reps"]
+    # + [optim.lr_scheduler.ConstantLR(optimizer, 0.5, total_iters=snkmk["T_end"])],
     milestones=milestones,
 )
 
@@ -170,7 +172,9 @@ for epoch in epoch_iterator:
     )
 
     # Save
-    if (epoch % 100 == 0) or (epoch == snkmk["epochs"] - 1) or (epoch in milestones):
+    if (epoch in milestones) or (epoch % 100 == 0) or (epoch == snkmk["epochs"] - 1):
+        print(epoch)  # noqa: T201
+
         # Save
         xp.save(model.state_dict(), save_path / "model.pt")
         xp.save(model.state_dict(), save_path / "models" / f"model_{epoch:04d}.pt")

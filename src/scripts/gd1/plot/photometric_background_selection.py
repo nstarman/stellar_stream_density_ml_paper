@@ -73,7 +73,7 @@ stream_kde = gaussian_kde(positions.T, bw_method=bw_method)
 
 plt.style.use(paths.scripts / "paper.mplstyle")
 
-fig, axs = plt.subplots(2, 1, figsize=(6, 6), height_ratios=[1, 3])
+fig, axs = plt.subplots(2, 1, figsize=(5, 5), height_ratios=[1, 3])
 
 # -------------------------------------------------
 # Phi1-phi2
@@ -105,8 +105,8 @@ axs[1].set(
     xlabel=(r"$g-r \ $ [mag]"),
     ylabel=(r"$g \ $ [mag]"),
     aspect="auto",
-    xlim=(0, 0.8),
-    ylim=(22, 12),
+    xlim=(0.1, 0.6),
+    ylim=(21, 13),
     rasterization_zorder=0,
 )
 

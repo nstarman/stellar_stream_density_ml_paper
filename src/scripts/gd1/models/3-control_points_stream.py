@@ -35,6 +35,9 @@ table.add_index("phi1")
 table["phi2"] = IUS(gd1.phi1.wrap_at("180d").degree, gd1.phi2.degree)(phi1s) * u.deg
 table["w_phi2"] = 1.75 * u.deg
 
+# bump down the central phi2
+# table["phi2"]
+
 # pm-phi1
 MAS_YR = u.mas / u.yr
 table["pm_phi1"] = np.NaN * MAS_YR
