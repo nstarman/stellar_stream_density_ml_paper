@@ -21,7 +21,7 @@ sys.path.append(paths.scripts.parent.as_posix())
 
 from scripts import helper
 from scripts.mock.model import model
-from scripts.mock.model.helper import diagnostic_plot
+from scripts.mock.models.helper import diagnostic_plot
 
 # =============================================================================
 # Parameters
@@ -85,29 +85,25 @@ loader = td.DataLoader(
     num_workers=0,
 )
 optimizer = optim.AdamW(list(model.parameters()), lr=snkmk["lr"])
-scheduler = optim.lr_scheduler.SequentialLR(
+scheduler = optim.lr_scheduler.ReduceLROnPlateau(
     optimizer,
-    [
-        optim.lr_scheduler.ConstantLR(optimizer, 0.2, total_iters=snkmk["init_T"] - 1),
-        optim.lr_scheduler.CosineAnnealingWarmRestarts(
-            optimizer, T_0=snkmk["T_0"], eta_min=snkmk["eta_min"]
-        ),
-        optim.lr_scheduler.ConstantLR(optimizer, 0.02, total_iters=snkmk["final_T"]),
-    ],
-    milestones=[
-        snkmk["init_T"],
-        snkmk["init_T"] + snkmk["n_T"] * snkmk["T_0"],
-    ],
+    factor=0.8,
+    patience=100,
+    threshold=5e-2,
+    mode="min",
+    cooldown=150,
 )
 
 epoch_iterator = tqdm(
     range(snkmk["epochs"]),
     dynamic_ncols=True,
-    postfix={"lr": f"{scheduler.get_last_lr()[0]:.2e}", "loss": f"{0:.2e}"},
+    postfix={"lr": f"{snkmk['lr']:.2e}", "loss": f"{0:.2e}"},
 )
 
 # =============================================================================
 # Train
+
+lrs = []
 
 model.train()
 model.zero_grad()
@@ -118,7 +114,7 @@ for epoch in epoch_iterator:
         where_step = sml.Data(where_step_, names=data.names)
 
         mpars = model.unpack_params(model(data_step))
-        loss = -model.ln_posterior_tot(mpars, data_step, where=where_step)
+        loss = -model.ln_posterior(mpars, data_step, where=where_step).mean()
 
         if loss.isnan().any():
             raise ValueError
@@ -129,10 +125,11 @@ for epoch in epoch_iterator:
         optimizer.step()
         model.zero_grad()
 
-    scheduler.step()
+    scheduler.step(loss)
     epoch_iterator.set_postfix(
-        {"lr": f"{scheduler.get_last_lr()[0]:.2e}", "loss": f"{loss:.2e}"}
+        {"lr": f"{scheduler._last_lr[0]:.2e}", "loss": f"{loss:.2e}"}  # noqa: SLF001
     )
+    lrs.append(scheduler._last_lr[0])  # noqa: SLF001
 
     # Diagnostic plots (not in the paper)
     if snkmk["diagnostic_plots"] and (
@@ -153,6 +150,12 @@ for epoch in epoch_iterator:
         plt.close(fig)
 
         helper.manually_set_dropout(model, 0.15)
+
+        # Plot the learning rate
+        fig, ax = plt.subplots()
+        ax.plot(lrs)
+        fig.savefig(diagnostic_path / "lr.png")
+
 
 # =============================================================================
 # Save

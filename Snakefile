@@ -56,7 +56,7 @@ rule mock_make_data:
         "environment.yml"
     cache: True
     script:
-        "src/scripts/mock/data/make.py"
+        "src/scripts/mock/data/1-make.py"
 
 
 rule mock_nstream_variable:
@@ -68,7 +68,7 @@ rule mock_nstream_variable:
         "environment.yml"
     cache: True
     script:
-        "src/scripts/mock/data/variable_nstream.py"
+        "src/scripts/mock/data/2-variable_nstream.py"
 
 
 rule mock_nbackround_variable:
@@ -80,7 +80,7 @@ rule mock_nbackround_variable:
         "environment.yml"
     cache: True
     script:
-        "src/scripts/mock/data/variable_nbackground.py"
+        "src/scripts/mock/data/2-variable_nbackground.py"
 
 
 rule mock_isochrone_age_variable:
@@ -92,7 +92,7 @@ rule mock_isochrone_age_variable:
         "environment.yml"
     cache: True
     script:
-        "src/scripts/mock/data/variable_isochrone_age.py"
+        "src/scripts/mock/data/2-variable_isochrone_age.py"
 
 
 rule mock_isochrone_feh_variable:
@@ -104,7 +104,7 @@ rule mock_isochrone_feh_variable:
         "environment.yml"
     cache: True
     script:
-        "src/scripts/mock/data/variable_isochrone_feh.py"
+        "src/scripts/mock/data/2-variable_isochrone_feh.py"
 
 
 rule gd1_model_script:

@@ -31,11 +31,10 @@ try:
     snkmk = dict(snakemake.params)
 except NameError:
     snkmk = {
-        "load_from_static": True,
-        "save_to_static": False,
+        "load_from_static": False,
+        "save_to_static": True,
         "diagnostic_plots": True,
         "epochs": 400,
-        "batch_size": 500,
         "lr": 1e-3,
     }
 
@@ -77,12 +76,15 @@ figure_path.mkdir(parents=True, exist_ok=True)
 # Turn on gradients for training
 model = replace(model_without_grad, with_grad=True)
 
+data_offstream: sml.Data = data[off_stream]
+where_offstream: sml.Data = where[off_stream]
+
 loader = td.DataLoader(
     dataset=td.TensorDataset(
-        data[flow_coords].array[off_stream],
-        where[flow_coords].array[off_stream],
+        data_offstream[flow_coords].array,
+        where_offstream[flow_coords].array,
     ),
-    batch_size=snkmk["batch_size"],
+    batch_size=int(len(data_offstream) * 0.05),
     shuffle=True,
     num_workers=0,
 )
@@ -112,11 +114,11 @@ for epoch in tqdm(range(snkmk["epochs"])):
             (epoch % 100 == 0) or (epoch == snkmk["epochs"] - 1)
         ):
             with xp.no_grad():
-                mpars = model.unpack_params(model(data))
-                prob = model.posterior(mpars, data, where=where)
+                mpars = model.unpack_params(model(data_offstream))
+                prob = model.posterior(mpars, data_offstream, where=where_offstream)
 
             fig, ax = plt.subplots()
-            im = ax.scatter(data["g-r"], data["g"], s=0.2, c=prob)
+            im = ax.scatter(data_offstream["g-r"], data_offstream["g"], s=0.2, c=prob)
             plt.colorbar(im, ax=ax)
             fig.savefig(figure_path / f"epoch_{epoch:05}.png")
             plt.close(fig)

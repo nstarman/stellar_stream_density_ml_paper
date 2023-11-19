@@ -201,7 +201,7 @@ ax02.scatter(
     data["phi1"][where],
     np.exp(mpa["phi2", "ln-sigma"][where]),
     s=1,
-    c=cmap(0.99),
+    color=cmap(0.99),
     zorder=-4,
 )
 
@@ -302,7 +302,7 @@ ax04.scatter(
     data["phi1"][where],
     np.exp(mpa["parallax", "ln-sigma"][where]),
     s=1,
-    c=cmap(0.99),
+    color=cmap(0.99),
     zorder=-4,
 )
 

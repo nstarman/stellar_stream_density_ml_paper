@@ -1,24 +1,29 @@
 """Simulate mock stream."""
 
+import sys
 from dataclasses import asdict
+from typing import Any
 
 import asdf
 import astropy.units as u
 import brutus.filters
 import brutus.seds
 import numpy as np
-import shapely
 from astropy.coordinates import Distance
 from astropy.table import QTable, vstack
 from scipy import stats
-from shapely.affinity import affine_transform
-from shapely.geometry import Point, Polygon
-from shapely.ops import triangulate
+from scipy.interpolate import CubicSpline
 from showyourwork.paths import user as user_paths
 
 import stream_ml.pytorch as sml
 
 paths = user_paths()
+
+# Add the parent directory to the path
+sys.path.append(paths.scripts.parent.as_posix())
+# isort: split
+
+from scripts.helper import isochrone_spline
 
 ##############################################################################
 # Parameters
@@ -26,7 +31,8 @@ paths = user_paths()
 try:
     snkmk = snakemake.params
 except NameError:
-    snkmk = {"seed": 10, "diagnostic_plots": True}
+    # snkmk = {"seed": 9, "diagnostic_plots": True}
+    snkmk = {"seed": 35, "diagnostic_plots": True}
 
 seed: int = snkmk["seed"]
 rng = np.random.default_rng(seed)
@@ -42,50 +48,42 @@ mistfile = (paths.static / "brutus" / "MIST_1.2_iso_vvcrit0.0.h5").resolve()
 ##############################################################################
 
 
-def _sample_mags_in_iso_polygon(
-    polygon: Polygon, n_pnts: int, *, rng: np.random.Generator
-) -> np.ndarray:
-    """Return list of k points chosen uniformly at random inside the polygon.
+class Pal5MF(stats.rv_continuous):
+    r"""Palomar 5 mass function.
 
-    From https://codereview.stackexchange.com/questions/69833/generate-sample-coordinates-inside-a-polygon
+    See https://iopscience.iop.org/article/10.1086/323916/pdf.
+
+    .. math::
+
+        \frac{dN}{dm} = m^{-1/2}
     """
-    triangles = triangulate(polygon)
-    areas = np.zeros(len(triangles))
-    transforms = np.zeros((len(triangles), 6))
-    for i, t in enumerate(triangles):
-        areas[i] = t.area
-        (x0, y0), (x1, y1), (x2, y2), _ = t.exterior.coords
-        transforms[i, :] = [x1 - x0, x2 - x0, y2 - y0, y1 - y0, x0, y0]
-    areas /= np.sum(areas)
-    points = []
 
-    # for transform in random.choices(transforms, weights=areas, k=n_pnts):
-    for transform in rng.choice(transforms, p=areas, size=n_pnts, replace=True, axis=0):
-        x, y = (rng.random() for _ in range(2))
-        p = Point(1 - x, 1 - y) if x + y > 1 else Point(x, y)
-        points.append(affine_transform(p, transform).xy)
-    return np.array(points)
+    def __init__(self, mmin: float, mmax: float, **kwargs: Any) -> None:
+        self.mmin = mmin
+        self.mmax = mmax
+        super().__init__(a=mmin, b=mmax, **kwargs)
 
+    @property
+    def _pdf_normalization(self) -> float:
+        """Normalization for the PDF."""
+        return 2 * (np.sqrt(self.mmax) - np.sqrt(self.mmin))
 
-def sample_magnitudes_from_isochrone(
-    abs_mags: u.Quantity,
-    distmod: u.Quantity,
-    n_pnts: int = 10_000,
-    *,
-    rng: np.random.Generator,
-) -> u.Quantity:
-    """Sample magnitudes from isochrone."""
-    # TODO! better generation by parameterizing the isochrone by gamma in [0, 1]
-    # then sample gamma to get the mean location on the isochrone
-    # then add random noise with some covariance.
-    iso_shape = shapely.LineString(np.c_[abs_mags[:, 0], abs_mags[:, 1]])  # g, r
-    iso = iso_shape.buffer(0.2)
-    mags = _sample_mags_in_iso_polygon(iso, n_pnts, rng=rng)[..., 0]
-    mags = mags[shapely.contains_xy(iso, mags[:, 0], mags[:, 1])][: len(distmod)]
-    return (mags * u.mag) + distmod
+    def _pdf(self, mass: float) -> float:
+        """Return the PDF."""
+        dNdm = 1 / np.sqrt(mass)
+        return dNdm / self._pdf_normalization
+
+    def _cdf(self, mass: float) -> float:
+        r"""Return the CDF(mass)."""
+        return 2 * (np.sqrt(mass) - np.sqrt(self.mmin)) / self._pdf_normalization
+
+    def _ppf(self, q: float) -> float:
+        """Return the inverse CDF(q)."""
+        return (q * self._pdf_normalization / 2 + np.sqrt(self.mmin)) ** 2
 
 
 ##############################################################################
+# Stream
 
 names = ("phi1", "phi2", "distance", "distmod", "parallax", "g", "r", "g_err", "r_err")
 stream_tbl = QTable(
@@ -114,20 +112,58 @@ stream_tbl["parallax"] = stream_tbl["distance"].to(u.mas, equivalencies=u.parall
 
 # ---- Photometrics ----
 
+# Define the isochrone
 isochrone = brutus.seds.Isochrone(filters=filters, nnfile=nnfile, mistfile=mistfile)
 isochrone_age = 12 * u.Gyr
 isochrone_feh = -1.35
-abs_mags_, *_ = isochrone.get_seds(
+
+# Sample the isochrone
+abs_mags_, info1, _ = isochrone.get_seds(
     eep=np.linspace(202, 600, 5000),  # EEP grid: MS to RGB
     apply_corr=True,
     feh=isochrone_feh,
     dist=10,
     loga=np.log10(isochrone_age.to_value(u.yr)),
 )
-stream_abs_mags = u.Quantity(abs_mags_[np.all(np.isfinite(abs_mags_), axis=1)], u.mag)
-stream_cmd = sample_magnitudes_from_isochrone(
-    stream_abs_mags[:stop_stream_phot, :], stream_tbl["distmod"][:, None], rng=rng
-)
+
+# Find the finite values
+select_finite = np.all(np.isfinite(abs_mags_), axis=1)
+
+# Get the mass
+mass = info1["mass"][select_finite]
+# And limit to the region of monotonicity
+select_monotonic = slice(None, np.argmax(mass) + 1)
+mass = mass[select_monotonic]
+
+# Get the absolute magnitudes within the select region
+stream_abs_mags = u.Quantity(abs_mags_[select_finite][select_monotonic][:, :2], u.mag)
+
+# Mass range
+mmin, mmax = mass.min(), mass.max()
+
+# Cubic spline the isochrone as a function of gamma
+mag_spline = isochrone_spline(stream_abs_mags.value, xp=np)
+# Get the gamma values
+gamma = mag_spline.x
+
+# mass(gamma) spline
+gamma_spline = CubicSpline(mass, gamma)
+
+# Mass function distribution
+p5mf = Pal5MF(mmin, mmax)
+
+# Sample the mass function
+mass_samples = p5mf.rvs(size=N_STREAM_MAX, random_state=rng)
+gamma_samples = gamma_spline(mass_samples)
+
+stream_cmd = (
+    mag_spline(gamma_samples)
+    + stats.norm.rvs(size=(len(mass_samples), 2), scale=0.2, random_state=rng)
+) * u.mag
+# Boost to the distance modulus
+stream_cmd += stream_tbl["distmod"][:, None]
+
+# Add to the table
 stream_tbl["g"] = stream_cmd[:, 0]
 stream_tbl["g_err"] = 0 * u.mag
 stream_tbl["r"] = stream_cmd[:, 1]
@@ -203,7 +239,8 @@ data = sml.Data.from_format(tot_table.as_array(names=names), fmt="numpy.structur
 # Fit scaling
 scaler = sml.utils.StandardScaler.fit(data, names=data.names)
 
-# -----------------------------------------------------------------------------
+##############################################################################
+# Save
 
 af = asdf.AsdfFile()
 af["table"] = tot_table
@@ -214,6 +251,7 @@ af["stream_table"] = tot_table[tot_table["label"] == "stream"]
 af["stream_abs_mags"] = stream_abs_mags
 af["isochrone_age"] = isochrone_age
 af["isochrone_feh"] = isochrone_feh
+af["gamma_mass"] = np.c_[gamma, mass]
 
 # background
 af["n_background"] = N_BACKGROUND
@@ -221,10 +259,10 @@ af["bkg_table"] = tot_table[tot_table["label"] == "background"]
 
 # off-stream selection
 af["off_stream"] = (
-    (data["phi2"] < -1)
-    | (data["phi2"] > 7)
-    | (data["phi1"] < -20)
-    | (data["phi1"] > 30)
+    (data["phi2"] < stream_tbl["phi2"].value.min())
+    | (data["phi2"] > stream_tbl["phi2"].value.max())
+    | (data["phi1"] < stream_tbl["phi1"].value.min())
+    | (data["phi1"] > stream_tbl["phi1"].value.max())
 )
 
 af["data"] = {"array": data.array, "names": data.names}

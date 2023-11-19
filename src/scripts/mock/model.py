@@ -1,5 +1,10 @@
 """Train photometry background flow."""
 
+from __future__ import annotations
+
+import sys
+from collections.abc import Callable  # noqa: TCH003
+from dataclasses import dataclass
 
 import asdf
 import numpy as np
@@ -10,7 +15,6 @@ from showyourwork.paths import user as user_paths
 
 import stream_ml.pytorch as sml
 from stream_ml.core import WEIGHT_NAME
-from stream_ml.core.utils import pairwise_distance
 from stream_ml.pytorch.builtin import Parallax2DistMod
 from stream_ml.pytorch.params import ModelParameter, ModelParameters
 from stream_ml.pytorch.params.bounds import ClippedBounds, SigmoidBounds
@@ -19,6 +23,12 @@ from stream_ml.pytorch.params.scaler import StandardLnWidth, StandardLocation
 paths = user_paths()
 
 
+# Add the parent directory to the path
+sys.path.append(paths.scripts.parent.as_posix())
+# isort: split
+
+from scripts.helper import isochrone_spline
+
 # =============================================================================
 # Load Data
 
@@ -26,6 +36,7 @@ with asdf.open(
     paths.data / "mock" / "data.asdf", lazy_load=False, copy_arrays=True
 ) as af:
     stream_abs_mags = af["stream_abs_mags"]
+    gamma_mass = af["gamma_mass"]
 
     data = sml.Data(**af["data"]).astype(xp.Tensor, dtype=xp.float32)
     where = sml.Data(**af["where"]).astype(xp.Tensor, dtype=xp.bool)
@@ -85,7 +96,7 @@ flow_coords = ("phi1", "g", "r")
 
 flow_scaler = scaler[flow_coords]  # slice the StandardScaler
 bkg_flow = sml.builtin.compat.ZukoFlowModel(
-    net=zuko.flows.MAF(features=2, context=1, transforms=4, hidden_features=[3] * 4),
+    net=zuko.flows.MAF(features=2, context=1, transforms=4, hidden_features=[4] * 4),
     jacobian_logdet=-xp.log(xp.prod(flow_scaler.scale[1:])),
     data_scaler=flow_scaler,
     coord_names=phot_names,
@@ -147,16 +158,34 @@ stream_astrometric_model = sml.builtin.Normal(
 )
 
 
-def isochrone_spline(mags: np.ndarray) -> CubicSpline:
-    """Make a spline of the isochrone."""
-    gamma = np.concatenate(
-        (np.array([0]), pairwise_distance(mags, axis=0, xp=np).cumsum())
-    )
-    gamma = gamma / gamma[-1]
-    return CubicSpline(gamma, mags)
+isochrone_spl = isochrone_spline(stream_abs_mags[:, :2].value, xp=np)
+mass_of_gamma = CubicSpline(gamma_mass[:, 0], gamma_mass[:, 1])
 
 
-isochrone_spl = isochrone_spline(stream_abs_mags[:, :2].value)
+@dataclass(frozen=True)
+class Pal5StreamMassFunction:
+    """Stream mass function."""
+
+    mass_of_gamma: Callable[[float | xp.Array], xp.Array]
+
+    def __post_init__(self) -> None:
+        """Post init."""
+        self._mmin: xp.Array
+        self._mmax: xp.Array
+        object.__setattr__(self, "_mmin", xp.asarray(self.mass_of_gamma([0])))
+        object.__setattr__(self, "_mmax", xp.asarray(self.mass_of_gamma([1])))
+
+    @property
+    def _ln_pdf_norm(self) -> xp.Array:
+        """Normalization for the PDF."""
+        return xp.log(xp.asarray(2)) + xp.log(xp.sqrt(self._mmax) - xp.sqrt(self._mmin))
+
+    def __call__(
+        self, gamma: xp.Array, _: sml.Data[xp.Array], *, xp: sml.ArrayNamespace
+    ) -> xp.Array:
+        """Return the PDF."""
+        return -0.5 * xp.log(xp.asarray(self.mass_of_gamma(gamma))) - self._ln_pdf_norm
+
 
 stream_isochrone_model = sml.builtin.IsochroneMVNorm(
     net=None,
@@ -173,9 +202,7 @@ stream_isochrone_model = sml.builtin.IsochroneMVNorm(
     gamma_edges=xp.linspace(isochrone_spl.x.min(), isochrone_spl.x.max(), 50),
     isochrone_spl=isochrone_spl,
     isochrone_err_spl=None,
-    stream_mass_function=sml.builtin.StepwiseMassFunction(
-        boundaries=(0, 0.8, 1), log_probs=(0, -3)
-    ),
+    stream_mass_function=Pal5StreamMassFunction(mass_of_gamma=mass_of_gamma),
     # params
     params=ModelParameters(),
 )
