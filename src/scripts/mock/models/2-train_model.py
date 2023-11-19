@@ -34,14 +34,9 @@ except NameError:
         "load_from_static": False,
         "save_to_static": False,
         "diagnostic_plots": True,
-        "init_T": 500,
-        "T_0": 500,
-        "n_T": 3,
-        "final_T": 600,
-        "eta_min": 1e-4,
         "lr": 5e-3,
+        "epochs": 3_000,
     }
-snkmk["epochs"] = snkmk["init_T"] + snkmk["T_0"] * snkmk["n_T"] + snkmk["final_T"]
 
 
 if snkmk["load_from_static"]:
@@ -68,6 +63,7 @@ with asdf.open(
 (paths.static / "mock").mkdir(exist_ok=True, parents=True)
 diagnostic_path = paths.scripts / "mock" / "_diagnostics" / "models"
 diagnostic_path.mkdir(parents=True, exist_ok=True)
+(paths.data / "mock" / "models").mkdir(exist_ok=True, parents=True)
 
 # =============================================================================
 # Training Parameters
@@ -131,30 +127,32 @@ for epoch in epoch_iterator:
     )
     lrs.append(scheduler._last_lr[0])  # noqa: SLF001
 
-    # Diagnostic plots (not in the paper)
-    if snkmk["diagnostic_plots"] and (
-        (epoch % 100 == 0)
-        or (epoch == snkmk["epochs"] - 1)
-        or (epoch == snkmk["init_T"])
-        or (epoch == snkmk["init_T"])
-        or (epoch == snkmk["init_T"] + snkmk["T_0"] * snkmk["n_T"])
-    ):
-        helper.manually_set_dropout(model, 0)
+    # Save
+    if (epoch % 100 == 0) or (epoch == snkmk["epochs"] - 1):
+        # up-to-date model
+        xp.save(
+            model.state_dict(), paths.data / "mock" / "models" / f"epoch_{epoch:05}.pt"
+        )
+        xp.save(model.state_dict(), paths.data / "mock" / "model.pt")
 
-        with xp.no_grad():
-            mpars = model.unpack_params(model(data))
-            prob = model.posterior(mpars, data, where=where)
+        # Diagnostic plots (not in the paper)
+        if snkmk["diagnostic_plots"]:
+            helper.manually_set_dropout(model, 0)
 
-        fig = diagnostic_plot(model, data, where, table)
-        fig.savefig(diagnostic_path / f"epoch_{epoch:05}.png")
-        plt.close(fig)
+            with xp.no_grad():
+                mpars = model.unpack_params(model(data))
+                prob = model.posterior(mpars, data, where=where)
 
-        helper.manually_set_dropout(model, 0.15)
+            fig = diagnostic_plot(model, data, where, table)
+            fig.savefig(diagnostic_path / f"epoch_{epoch:05}.png")
+            plt.close(fig)
 
-        # Plot the learning rate
-        fig, ax = plt.subplots()
-        ax.plot(lrs)
-        fig.savefig(diagnostic_path / "lr.png")
+            helper.manually_set_dropout(model, 0.15)
+
+            # Plot the learning rate
+            fig, ax = plt.subplots()
+            ax.plot(lrs)
+            fig.savefig(diagnostic_path / "lr.png")
 
 
 # =============================================================================

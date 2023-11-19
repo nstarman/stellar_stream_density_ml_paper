@@ -150,12 +150,8 @@ rule mock_train_model:
         save_to_static=False,
         diagnostic_plots=True,
         # epoch milestones
-        init_T=500,
-        T_0=500,
-        n_T=3,
-        final_T=600,
-        eta_min=1e-4,
         lr=5e-3,
+        epochs=3_000
     conda:
         "environment.yml"
     cache: True
