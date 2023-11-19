@@ -516,6 +516,32 @@ ax07.fill_between(
     zorder=-5,
 )
 
+# Stream control points
+p1 = ax07.errorbar(
+    stream_cp["phi1"],
+    stream_cp["pmphi1"],
+    yerr=stream_cp["w_pmphi1"],
+    fmt="o",
+    color="k",
+    capthick=3,
+    elinewidth=3,
+    alpha=0.75,
+    capsize=3,
+    zorder=-4,
+)
+p2 = ax07.errorbar(
+    stream_cp["phi1"],
+    stream_cp["pmphi1"],
+    yerr=stream_cp["w_pmphi1"],
+    fmt=".",
+    c=cmap_stream(0.99),
+    capsize=2,
+    alpha=0.4,
+    zorder=-3,
+    label="Stream Control Points",
+)
+
+
 # ---------------------------------------------------------------------------
 # PM-Phi2 - variance
 
@@ -623,6 +649,31 @@ ax09.scatter(
     alpha=alphas[is_strm],
     s=sizes[psort][is_strm],
     zorder=-8,
+)
+
+# Stream control points
+p1 = ax09.errorbar(
+    stream_cp["phi1"],
+    stream_cp["pmphi2"],
+    yerr=stream_cp["w_pmphi2"],
+    fmt="o",
+    color="k",
+    capthick=3,
+    elinewidth=3,
+    alpha=0.75,
+    capsize=3,
+    zorder=-4,
+)
+p2 = ax09.errorbar(
+    stream_cp["phi1"],
+    stream_cp["pmphi2"],
+    yerr=stream_cp["w_pmphi2"],
+    fmt=".",
+    c=cmap_stream(0.99),
+    capsize=2,
+    alpha=0.4,
+    zorder=-3,
+    label="Stream Control Points",
 )
 
 # ===========================================================================
