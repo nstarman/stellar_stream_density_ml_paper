@@ -61,10 +61,8 @@ model = model.eval()
 lik_tbl = QTable.read(paths.data / "gd1" / "membership_likelhoods.ecsv")
 stream_prob = np.array(lik_tbl["stream (50%)"])
 stream_wgts = np.array(lik_tbl["stream.ln-weight"])
-
 spur_prob = np.array(lik_tbl["spur (50%)"])
 spur_wgt = np.array(lik_tbl["spur.ln-weight"])
-
 allstream_prob = np.array(lik_tbl["allstream (50%)"])
 
 # galstreams
@@ -72,7 +70,7 @@ allstreams = galstreams.MWStreams(implement_Off=True)
 gd1I21 = allstreams["GD-1-I21"].track.transform_to(frame)
 gd1PB18 = allstreams["GD-1-PB18"].track.transform_to(frame)
 
-
+# I21 tracks
 spline_pmphi1 = InterpolatedUnivariateSpline(
     gd1I21[::100].phi1.value, gd1I21[::100].pm_phi1_cosphi2.value
 )
@@ -114,14 +112,21 @@ with xp.no_grad():
     model = model.eval()
 
 
-_is_strm = (stream_prob > 0.75) & (mpars[(f"stream.{WEIGHT_NAME}",)] > -5)
+_stream_weight_threshold = mpars[(f"stream.{WEIGHT_NAME}",)] > -5
+_is_strm = (stream_prob > 0.75) & _stream_weight_threshold
 stream_range = (np.min(data["phi1"][_is_strm].numpy()) <= data["phi1"]) & (
     data["phi1"] <= np.max(data["phi1"][_is_strm].numpy())
 )
-_is_spur = (spur_prob > 0.75) & (mpars[(f"spur.{WEIGHT_NAME}",)] > -5)
+_spur_weight_threshold = mpars[(f"spur.{WEIGHT_NAME}",)] > -5
+_is_spur = (spur_prob > 0.75) & _spur_weight_threshold
 spur_range = (np.min(data["phi1"][_is_spur].numpy()) <= data["phi1"]) & (
     data["phi1"] <= -25
 )
+
+# Post-process the lihelihood by thresholding on the weight
+stream_prob[~_stream_weight_threshold] = 0
+spur_prob[~_spur_weight_threshold] = 0
+allstream_prob[~(_stream_weight_threshold | _spur_weight_threshold)] = 0
 
 
 ##############################################################################
