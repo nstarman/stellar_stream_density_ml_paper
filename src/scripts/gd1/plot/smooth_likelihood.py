@@ -5,6 +5,8 @@ import sys
 import matplotlib.pyplot as plt
 import numpy as np
 import torch as xp
+from matplotlib.cm import ScalarMappable
+from matplotlib.gridspec import GridSpec
 from scipy import stats
 from showyourwork.paths import user as user_paths
 
@@ -35,15 +37,42 @@ with xp.no_grad():
 
 tot_stream_prob = np.exp(np.logaddexp(stream_lnlik, spur_lnlik) - tot_lnlik)
 
+nddata = data.astype(np.ndarray)
+
 # =============================================================================
 # Plot
 
-fig, axs = plt.subplots(3, 1, figsize=(8, 6), sharex=True)
+fig = plt.figure(figsize=(6, 4.5))
 
-nddata = data.astype(np.ndarray)
+gs = GridSpec(
+    4,
+    1,
+    figure=fig,
+    height_ratios=(1, 5, 5, 5),
+    hspace=0.15,
+    left=0.12,
+    right=0.98,
+    top=0.94,
+    bottom=0.1,
+)
+cmap = plt.get_cmap()
+
+# ---------------------------------------------------------------------------
+# Colormap
+
+ax0 = fig.add_subplot(gs[0, :])
+cbar = fig.colorbar(ScalarMappable(cmap=cmap), cax=ax0, orientation="horizontal")
+cbar.ax.xaxis.set_ticks_position("top")
+cbar.ax.xaxis.set_label_position("top")
+cbar.ax.text(0.5, 0.5, "Stream Probability", ha="center", va="center", fontsize=14)
 
 # -------------------------------------------------
 # Phi2(phi1)
+
+ax1 = fig.add_subplot(
+    gs[1, :], xlim=(-90, 10), ylabel=(r"$\phi_2$ [deg]"), ylim=(-5, 5)
+)
+ax1.tick_params(labelbottom=False)
 
 kernel_inp = np.vstack([nddata["phi1"], nddata["phi2"]])
 kernel = stats.gaussian_kde(kernel_inp, weights=tot_stream_prob, bw_method=0.2)
@@ -52,17 +81,20 @@ X, Y = np.mgrid[
     nddata["phi2"].min() : nddata["phi2"].max() : 100j,
 ]
 kernal_eval = np.vstack([X.flatten(), Y.flatten()])
-axs[0].pcolormesh(
+ax1.pcolormesh(
     X,
     Y,
     kernel(kernal_eval).reshape(X.shape),
     rasterized=True,
     shading="gouraud",
+    cmap=cmap,
 )
-axs[0].set(ylabel=(r"$\phi_2$ [deg]"), xlim=(-90, 10), ylim=(-5, 5))
 
 # -------------------------------------------------
 # pmphi1(phi1)
+
+ax2 = fig.add_subplot(gs[2, :], xlim=(-90, 10), ylabel=r"$\mu_{\phi_1}$ [mas/yr]")
+ax2.tick_params(labelbottom=False)
 
 kernel_inp = np.vstack([nddata["phi1"], nddata["pmphi1"]])
 kernel = stats.gaussian_kde(kernel_inp, weights=tot_stream_prob, bw_method=0.2)
@@ -71,17 +103,24 @@ X, Y = np.mgrid[
     nddata["pmphi1"].min() : nddata["pmphi1"].max() : 100j,
 ]
 kernal_eval = np.vstack([X.flatten(), Y.flatten()])
-axs[1].pcolormesh(
+ax2.pcolormesh(
     X,
     Y,
     kernel(kernal_eval).reshape(X.shape),
     rasterized=True,
     shading="gouraud",
+    cmap=cmap,
 )
-axs[1].set(ylabel=(r"$\mu_{\phi_1}^*$ [mas/yr]"), xlim=(-90, 10))
 
 # -------------------------------------------------
 # pmphi2(phi1)
+
+ax3 = fig.add_subplot(
+    gs[3, :],
+    xlabel=r"$\phi_1$ [mas/yr]",
+    xlim=(-90, 10),
+    ylabel=r"$\mu_{\phi_2}$ [mas/yr]",
+)
 
 kernel_inp = np.vstack([nddata["phi1"], nddata["pmphi2"]])
 kernel = stats.gaussian_kde(kernel_inp, weights=tot_stream_prob, bw_method=0.2)
@@ -90,14 +129,15 @@ X, Y = np.mgrid[
     nddata["pmphi2"].min() : nddata["pmphi2"].max() : 100j,
 ]
 kernal_eval = np.vstack([X.flatten(), Y.flatten()])
-axs[2].pcolormesh(
+ax3.pcolormesh(
     X,
     Y,
     kernel(kernal_eval).reshape(X.shape),
     rasterized=True,
     shading="gouraud",
+    cmap=cmap,
 )
-axs[2].set(
+ax3.set(
     xlabel=(r"$\phi_1$ [mas/yr]"), ylabel=(r"$\mu_{\phi_2}$ [mas/yr]"), xlim=(-90, 10)
 )
 
