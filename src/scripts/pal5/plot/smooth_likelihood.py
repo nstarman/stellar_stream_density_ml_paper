@@ -6,6 +6,8 @@ import sys
 import matplotlib.pyplot as plt
 import numpy as np
 import torch as xp
+from matplotlib.cm import ScalarMappable
+from matplotlib.gridspec import GridSpec
 from scipy import stats
 from showyourwork.paths import user as user_paths
 
@@ -36,11 +38,6 @@ with xp.no_grad():
 
 tot_stream_prob = np.exp(stream_lnlik - tot_lnlik)
 
-# =============================================================================
-# Plot
-
-fig, axs = plt.subplots(3, 1, figsize=(8, 6), sharex=True)
-
 nddata = data.astype(np.ndarray)
 
 # Cut out the progenitor
@@ -50,8 +47,38 @@ nddata = nddata[masks["Pal5"]]
 tot_stream_prob_prog = tot_stream_prob[~masks["Pal5"]]
 tot_stream_prob = tot_stream_prob[masks["Pal5"]]
 
+# =============================================================================
+# Plot
+
+fig = plt.figure(figsize=(6, 4.5))
+
+gs = GridSpec(
+    4,
+    1,
+    figure=fig,
+    height_ratios=(1, 5, 5, 5),
+    hspace=0.15,
+    left=0.085,
+    right=0.98,
+    top=0.94,
+    bottom=0.1,
+)
+cmap = plt.get_cmap()
+
+# ---------------------------------------------------------------------------
+# Colormap
+
+ax0 = fig.add_subplot(gs[0, :])
+cbar = fig.colorbar(ScalarMappable(cmap=cmap), cax=ax0, orientation="horizontal")
+cbar.ax.xaxis.set_ticks_position("top")
+cbar.ax.xaxis.set_label_position("top")
+cbar.ax.text(0.5, 0.5, "Stream Probability", ha="center", va="center", fontsize=14)
+
 # -------------------------------------------------
 # Phi2(phi1)
+
+ax1 = fig.add_subplot(gs[1, :], xlim=(-15, 12), ylabel=(r"$\phi_2$ [deg]"))
+ax1.tick_params(labelbottom=False)
 
 kernel_inp = np.vstack([nddata["phi1"], nddata["phi2"]])
 kernel = stats.gaussian_kde(kernel_inp, weights=tot_stream_prob, bw_method=0.1)
@@ -60,23 +87,23 @@ X, Y = np.mgrid[
     nddata["phi2"].min() : nddata["phi2"].max() : 100j,
 ]
 kernal_eval = np.vstack([X.flatten(), Y.flatten()])
-im = axs[0].pcolormesh(
+im = ax1.pcolormesh(
     X,
     Y,
     kernel(kernal_eval).reshape(X.shape),
     rasterized=True,
     shading="gouraud",
+    cmap=cmap,
 )
 
 # Show progenitor mask
-axs[0].axvspan(
-    nddata_prog["phi1"].min(), nddata_prog["phi1"].max(), color="black", zorder=100
-)
-
-axs[0].set(xlim=(None, 12), ylabel=(r"$\phi_2$ [deg]"))
+ax1.axvspan(nddata_prog["phi1"].min(), nddata_prog["phi1"].max(), color="black")
 
 # -------------------------------------------------
 # pmphi1(phi1)
+
+ax2 = fig.add_subplot(gs[2, :], sharex=ax1, ylabel=(r"$\mu_{\phi_1}^*$ [deg]"))
+ax2.tick_params(labelbottom=False)
 
 kernel_inp = np.vstack([nddata["phi1"], nddata["pmphi1"]])
 kernel = stats.gaussian_kde(kernel_inp, weights=tot_stream_prob, bw_method=0.1)
@@ -85,23 +112,27 @@ X, Y = np.mgrid[
     nddata["pmphi1"].min() : nddata["pmphi1"].max() : 100j,
 ]
 kernal_eval = np.vstack([X.flatten(), Y.flatten()])
-axs[1].pcolormesh(
+ax2.pcolormesh(
     X,
     Y,
     kernel(kernal_eval).reshape(X.shape),
     rasterized=True,
     shading="gouraud",
+    cmap=cmap,
 )
 
 # Show progenitor mask
-axs[1].axvspan(
-    nddata_prog["phi1"].min(), nddata_prog["phi1"].max(), color="black", zorder=100
-)
-
-axs[1].set(xlim=(None, 12), ylabel=(r"$\mu_{\phi_1}^*$ [deg]"))
+ax2.axvspan(nddata_prog["phi1"].min(), nddata_prog["phi1"].max(), color="black")
 
 # -------------------------------------------------
 # pmphi2(phi1)
+
+ax3 = fig.add_subplot(
+    gs[3, :],
+    sharex=ax1,
+    xlabel=(r"$\phi_1$ [deg]"),
+    ylabel=(r"$\mu_{\phi_2}$ [deg]"),
+)
 
 kernel_inp = np.vstack([nddata["phi1"], nddata["pmphi2"]])
 kernel = stats.gaussian_kde(kernel_inp, weights=tot_stream_prob, bw_method=0.1)
@@ -110,22 +141,17 @@ X, Y = np.mgrid[
     nddata["pmphi2"].min() : nddata["pmphi2"].max() : 100j,
 ]
 kernal_eval = np.vstack([X.flatten(), Y.flatten()])
-axs[2].pcolormesh(
+ax3.pcolormesh(
     X,
     Y,
     kernel(kernal_eval).reshape(X.shape),
     rasterized=True,
     shading="gouraud",
+    cmap=cmap,
 )
 
 # Show progenitor mask
-axs[2].axvspan(
-    nddata_prog["phi1"].min(), nddata_prog["phi1"].max(), color="black", zorder=100
-)
-
-axs[2].set(
-    xlim=(None, 12), xlabel=(r"$\phi_1$ [deg]"), ylabel=(r"$\mu_{\phi_2}$ [deg]")
-)
+ax3.axvspan(nddata_prog["phi1"].min(), nddata_prog["phi1"].max(), color="black")
 
 # -------------------------------------------------
 

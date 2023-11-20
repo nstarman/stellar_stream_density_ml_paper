@@ -126,7 +126,6 @@ _lit2_kw = {"c": "k", "ls": ":", "alpha": 0.6}
 # ---------------------------------------------------------------------------
 # Colormap
 
-# Stream
 ax00 = fig.add_subplot(gs[0, :])
 cbar = fig.colorbar(
     ScalarMappable(cmap=cmap_stream), cax=ax00, orientation="horizontal"
