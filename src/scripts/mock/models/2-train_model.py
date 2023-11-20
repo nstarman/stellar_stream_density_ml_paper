@@ -34,9 +34,14 @@ except NameError:
         "load_from_static": False,
         "save_to_static": False,
         "diagnostic_plots": True,
+        "init_T": 500,
+        "T_0": 500,
+        "n_T": 3,
+        "final_T": 1_000,
+        "eta_min": 1e-4,
         "lr": 5e-3,
-        "epochs": 3_000,
     }
+    snkmk["epochs"] = snkmk["init_T"] + snkmk["T_0"] * snkmk["n_T"] + snkmk["final_T"]
 
 
 if snkmk["load_from_static"]:
@@ -81,7 +86,20 @@ loader = td.DataLoader(
     num_workers=0,
 )
 optimizer = optim.AdamW(list(model.parameters()), lr=snkmk["lr"])
-scheduler = optim.lr_scheduler.ReduceLROnPlateau(
+scheduler = optim.lr_scheduler.SequentialLR(
+    optimizer,
+    [
+        optim.lr_scheduler.ConstantLR(optimizer, 0.2, total_iters=snkmk["init_T"] - 1),
+        optim.lr_scheduler.CosineAnnealingWarmRestarts(
+            optimizer, T_0=snkmk["T_0"], eta_min=snkmk["eta_min"]
+        ),
+    ],
+    milestones=[
+        snkmk["init_T"],
+        # snkmk["init_T"] + snkmk["n_T"] * snkmk["T_0"],
+    ],
+)
+scheduler2 = optim.lr_scheduler.ReduceLROnPlateau(
     optimizer,
     factor=0.8,
     patience=100,
@@ -93,7 +111,7 @@ scheduler = optim.lr_scheduler.ReduceLROnPlateau(
 epoch_iterator = tqdm(
     range(snkmk["epochs"]),
     dynamic_ncols=True,
-    postfix={"lr": f"{snkmk['lr']:.2e}", "loss": f"{0:.2e}"},
+    postfix={"lr": f"{scheduler.get_last_lr()[0]:.2e}", "loss": f"{0:.2e}"},
 )
 
 # =============================================================================
@@ -121,11 +139,15 @@ for epoch in epoch_iterator:
         optimizer.step()
         model.zero_grad()
 
-    scheduler.step(loss)
+    if epoch < snkmk["init_T"] + snkmk["n_T"] * snkmk["T_0"]:
+        scheduler.step()
+    else:
+        scheduler2.step(loss)
+
     epoch_iterator.set_postfix(
-        {"lr": f"{scheduler._last_lr[0]:.2e}", "loss": f"{loss:.2e}"}  # noqa: SLF001
+        {"lr": f"{scheduler.get_last_lr()[0]:.2e}", "loss": f"{loss:.2e}"}
     )
-    lrs.append(scheduler._last_lr[0])  # noqa: SLF001
+    lrs.append(scheduler.get_last_lr()[0])
 
     # Save
     if (epoch % 100 == 0) or (epoch == snkmk["epochs"] - 1):
@@ -149,10 +171,10 @@ for epoch in epoch_iterator:
 
             helper.manually_set_dropout(model, 0.15)
 
-            # Plot the learning rate
-            fig, ax = plt.subplots()
-            ax.plot(lrs)
-            fig.savefig(diagnostic_path / "lr.png")
+    # Plot the learning rate
+    fig, ax = plt.subplots()
+    ax.plot(lrs)
+    fig.savefig(diagnostic_path / "lr.png")
 
 
 # =============================================================================
