@@ -5,6 +5,11 @@ line-length = 88
 [tool.mypy]
     strict = true
 
+    [[tool.mypy.overrides]]
+    module = ["matplotlib.*"]
+    ignore_missing_imports = true
+
+
 [tool.ruff]
 line-length = 88
 select = ["ALL"]
