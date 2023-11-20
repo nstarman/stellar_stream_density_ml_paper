@@ -33,6 +33,7 @@ from scripts.mpl_colormaps import stream_cmap1 as cmap1
 from scripts.mpl_colormaps import stream_cmap2 as cmap2
 
 # =============================================================================
+# Load data
 
 # Matplotlib style
 plt.style.use(paths.scripts / "paper.mplstyle")
@@ -76,14 +77,25 @@ allstream_prob = allstream_prob[keep]
 psort = np.argsort(allstream_prob)
 
 # Foreground
-_is_strm = (stream_prob > 0.6) & (stream_wgt.mean(1) > -4)
+is_gd1 = (allstream_prob > 0.75)[psort]
+
+_stream_weight_threshold = stream_wgt.mean(1) > -5
+_is_strm = (stream_prob > 0.75) & _stream_weight_threshold
 strm_range = (np.min(data["phi1"][_is_strm].numpy()) <= data["phi1"]) & (
     data["phi1"] <= np.max(data["phi1"][_is_strm].numpy())
 )
-_is_spur = (spur_prob > 0.6) & (spur_wgt.mean(1) > -5)
+
+_spur_weight_threshold = spur_wgt.mean(1) > -5
+_is_spur = (spur_prob > 0.75) & _spur_weight_threshold
 spur_range = (np.min(data["phi1"][_is_spur].numpy()) <= data["phi1"]) & (
     data["phi1"] <= np.max(data["phi1"][_is_spur].numpy())
 )
+
+# Post-process the lihelihood by thresholding on the weight
+stream_prob[~_stream_weight_threshold] = 0
+spur_prob[~_spur_weight_threshold] = 0
+allstream_prob[~(_stream_weight_threshold | _spur_weight_threshold)] = 0
+
 
 # Also evaluate the model with dropout on
 with xp.no_grad():
@@ -95,7 +107,6 @@ with xp.no_grad():
     ldmpars = [model.unpack_params(model(data)) for i in tqdm(range(100))]
 
     # mpars
-    dmpars = Params(recursive_iterate(ldmpars, ldmpars[0], reduction=lambda x: x))
     mpars = Params(recursive_iterate(ldmpars, ldmpars[0]))
 
     # turn dropout back off
@@ -105,18 +116,18 @@ with xp.no_grad():
 # =============================================================================
 # Make Figure
 
-fig = plt.figure(figsize=(11, 4.2))
+fig = plt.figure(figsize=(10, 4))
 
 gs = GridSpec(
     2,
     1,
     figure=fig,
     height_ratios=(1, 2),
-    hspace=0.4,
+    hspace=0.5,
     left=0.07,
     right=0.98,
     top=0.965,
-    bottom=0.8,
+    bottom=0.1,
 )
 
 colors = color_by_probable_member(
@@ -158,15 +169,13 @@ legend1 = plt.legend(
     ],
     ncols=4,
     loc="upper right",
-    bbox_to_anchor=(1, -0.14),
+    bbox_to_anchor=(1.015, -0.14),
 )
 ax0.add_artist(legend1)
 
 # Bin the data for plotting
 bins = np.linspace(data["phi1"].min(), data["phi1"].max(), num=5, endpoint=True)
 which_bin = np.digitize(data["phi1"], bins[:-1])
-
-ax10 = None
 
 for i, b in enumerate(np.unique(which_bin)):
     sel = which_bin == b
@@ -215,7 +224,6 @@ for i, b in enumerate(np.unique(which_bin)):
     if i == 0:
         ax1i.set_ylabel("g [mag]")
         ax1i.legend(loc="upper left")
-        ax10 = ax1i
     else:
         ax1i.tick_params(labelleft=False)
 
