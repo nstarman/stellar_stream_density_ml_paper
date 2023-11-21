@@ -1,7 +1,11 @@
 """Plot results."""
 
+from __future__ import annotations
+
 import sys
-from dataclasses import replace
+from dataclasses import KW_ONLY, dataclass, replace
+from math import inf
+from typing import TYPE_CHECKING, Any
 
 import asdf
 import astropy.units as u
@@ -12,10 +16,14 @@ from astropy.table import QTable
 from showyourwork.paths import user as user_paths
 
 import stream_ml.pytorch as sml
+from stream_ml.core.prior import Prior
 from stream_ml.core.setup_package import WEIGHT_NAME
+from stream_ml.core.utils import within_bounds
+from stream_ml.pytorch import Data, Params
 from stream_ml.pytorch.params import ModelParameter, ModelParameters, set_param
 from stream_ml.pytorch.params.bounds import SigmoidBounds
 from stream_ml.pytorch.params.scaler import StandardLnWidth, StandardLocation
+from stream_ml.pytorch.typing import Array, NNModel
 from stream_ml.pytorch.utils import StandardScaler
 
 paths = user_paths()
@@ -26,6 +34,9 @@ sys.path.append(paths.scripts.parent.as_posix())
 
 from scripts.helper import isochrone_spline
 
+if TYPE_CHECKING:
+    from stream_ml.core import ModelAPI
+
 ##############################################################################
 # Setup
 
@@ -33,6 +44,52 @@ from scripts.helper import isochrone_spline
 distance_cp = QTable.read(paths.data / "gd1" / "control_points_distance.ecsv")
 gd1_cp_ = QTable.read(paths.data / "gd1" / "control_points_stream.ecsv")
 spur_cp = QTable.read(paths.data / "gd1" / "control_points_spur.ecsv")
+
+
+@dataclass(frozen=True, repr=False)
+class UpWeight(Prior[Array]):
+    """Force the weight to be larger than a threshold."""
+
+    threshold: float
+
+    _: KW_ONLY
+    component: str = "spur"
+    lower: float = -inf
+    upper: float = inf
+    lamda: float = 100_000
+
+    def __post_init__(self, *args: Any, **kwargs: Any) -> None:
+        wgt_name = f"{self.component}.ln-weight"
+        self._wgt_name: str
+        object.__setattr__(self, "_wgt_name", wgt_name)
+
+        super().__post_init__(*args, **kwargs)
+
+    def logpdf(
+        self,
+        mpars: Params[Array],
+        data: Data[Array],
+        model: ModelAPI[Array, NNModel],  # noqa: ARG002
+        current_lnpdf: Array | None = None,
+        /,
+    ) -> Array:
+        """Force the weight to be larger than a threshold."""
+        wgt_name = f"{self.component}.ln-weight"
+
+        # Get where the weight is below the threshold
+        where = (mpars[wgt_name] < self.threshold) & within_bounds(
+            data["phi1"], self.lower, self.upper
+        )
+
+        # modify the lnpdf
+        current_lnpdf[where] -= self.lamda * (
+            (mpars[wgt_name][where] - self.threshold) ** 2
+        )
+        return current_lnpdf
+
+
+##############################################################################
+# Define Model
 
 
 def make_model() -> sml.MixtureModel:
@@ -445,6 +502,15 @@ def make_model() -> sml.MixtureModel:
         stream_wgt_prior, param_name=f"spur.{WEIGHT_NAME}", data_scaler=scaler
     )
 
+    spur_force_wgt_prior = UpWeight(
+        threshold=-4.0,
+        lower=-45.0,
+        upper=-15.0,
+        lamda=0,
+        component="spur",
+        array_namespace="torch",
+    )
+
     mm = {"stream": stream_model, "spur": spur_model, "background": background_model}
     model = sml.MixtureModel(
         mm,
@@ -475,6 +541,8 @@ def make_model() -> sml.MixtureModel:
             replace(spur_wgt_prior, upper=-45, data_scaler=scaler),
             # spur: turn off above -15
             replace(spur_wgt_prior, lower=-15, data_scaler=scaler),
+            # spur: optionally ramp it up
+            spur_force_wgt_prior,
         ),
     )
 

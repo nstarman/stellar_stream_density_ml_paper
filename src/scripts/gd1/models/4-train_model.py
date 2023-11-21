@@ -1,6 +1,8 @@
 """Train GD-1 model."""
 
+import re
 import sys
+import warnings
 from typing import Any
 
 import matplotlib.pyplot as plt
@@ -36,22 +38,15 @@ except NameError:
         "diagnostic_plots": True,
         "weight_decay": 1e-8,
         # # epoch milestones
-        # "epochs": 1_250 * 10,
         "lr": 1e-3,
-        "T_high_init": 25,
-        "T_high": 5,
-        "lr_high": 1,
-        "T_low": 195,
-        "lr_low": 0.1,
-        "n_reps": 3,  # additional cycles past the first
+        "T_high": 10_000,
+        "T_spur": 5,
+        "T_post_spur": 95,
         "epochs": 12_000,
     }
-    snkmk["T_end"] = snkmk["epochs"] - snkmk["T_high_init"] + 1
-    # snkmk["T_end"] = (
-    #     snkmk["epochs"]
-    #     - (snkmk["T_high_init"] + snkmk["T_low"])
-    #     - snkmk["n_reps"] * (snkmk["T_high"] + snkmk["T_low"])
-    # ) + 1
+    snkmk["T_end"] = (
+        snkmk["epochs"] - snkmk["T_high"] - snkmk["T_spur"] - snkmk["T_post_spur"]
+    )
 
 model = make_model()
 
@@ -81,15 +76,16 @@ model["background"]["photometric"].load_state_dict(
     xp.load(save_path / "background_photometry_model.pt")
 )
 
+# Load a model
+start_epoch = 9_900
+model.load_state_dict(xp.load(save_path / "models" / f"model_{start_epoch:04d}.pt"))
+
 # =============================================================================
 # Training Parameters
 
 BATCH_SIZE = int(len(data) * 0.05)  # 5% of the data
 
-dataset = td.TensorDataset(
-    data.array,  # data
-    where.array,  # TRUE where NOT missing
-)
+dataset = td.TensorDataset(data.array, where.array)
 
 loader = td.DataLoader(
     dataset=dataset,
@@ -104,42 +100,48 @@ optimizer = optim.AdamW(
 )
 
 # Scheduler
-milestones = [25]
-# milestones_ = np.zeros(2 * (snkmk["n_reps"] + 1), dtype=int)
-# milestones_[::2] = snkmk["T_high"]
-# milestones_[0] = snkmk["T_high_init"]
-# milestones_[1::2] = snkmk["T_low"]
-# milestones_[1] = snkmk["T_low"] - (snkmk["T_high_init"] - snkmk["T_high"])
-# milestones = np.cumsum(milestones_).tolist()
-# print(milestones)
+milestones = [10_000, 10_005, 10_100]
 
 # scheduler = optim.lr_scheduler.ConstantLR(optimizer, factor=0.1)  # 1e-4
 scheduler = optim.lr_scheduler.SequentialLR(
     optimizer,
     [
         optim.lr_scheduler.ConstantLR(optimizer, 1.0, total_iters=snkmk["T_high"]),
-        optim.lr_scheduler.ConstantLR(optimizer, 1.0, total_iters=snkmk["T_end"]),
+        optim.lr_scheduler.ConstantLR(optimizer, 1.0, total_iters=snkmk["T_spur"]),
+        optim.lr_scheduler.ConstantLR(optimizer, 0.5, total_iters=snkmk["T_post_spur"]),
+        optim.lr_scheduler.ConstantLR(optimizer, 0.1, total_iters=snkmk["T_end"] + 1),
     ],
-    # + [
-    #     optim.lr_scheduler.ConstantLR(optimizer, 1.0, total_iters=snkmk["T_high"]),
-    #     optim.lr_scheduler.ConstantLR(optimizer, 0.5, total_iters=snkmk["T_low"]),
-    # ]
-    # * snkmk["n_reps"]
-    # + [optim.lr_scheduler.ConstantLR(optimizer, 0.5, total_iters=snkmk["T_end"])],
     milestones=milestones,
 )
+# Step the scheduler to the current epoch
+with warnings.catch_warnings():
+    warnings.filterwarnings(
+        "ignore", message=re.escape("Detected call of `lr_scheduler.step()`")
+    )
+    for _ in range(start_epoch):
+        scheduler.step()
 
 # =============================================================================
 # Train
 
 num_steps = len(loader.dataset) // loader.batch_size
-epoch: int = 0
+epoch: int = start_epoch
 epoch_iterator = tqdm(
-    range(snkmk["epochs"]),
+    range(start_epoch, snkmk["epochs"]),
     dynamic_ncols=True,
-    postfix={"lr": f"{scheduler.get_last_lr()[0]:.2e}", "loss": f"{0:.2e}"},
+    postfix={
+        "lr": f"{scheduler.get_last_lr()[0]:.2e}",
+        "loss": f"{0:.2e}",
+        "lambda": f"{model.priors[-1].lamda:.2e}",
+    },
 )
 for epoch in epoch_iterator:
+    # Turn on and off the regularization
+    if epoch == milestones[0]:
+        object.__setattr__(model.priors[-1], "lamda", 1e3)
+    if epoch == milestones[1]:
+        object.__setattr__(model.priors[-1], "lamda", 0)
+
     # Train in batches
     for step_arr, step_where_ in loader:
         # Prepare
@@ -166,15 +168,18 @@ for epoch in epoch_iterator:
         optimizer.step()
         model.zero_grad()
 
+    # Update learning rate
     scheduler.step()
     epoch_iterator.set_postfix(
-        {"lr": f"{scheduler.get_last_lr()[0]:.2e}", "loss": f"{loss_val:.2e}"}
+        {
+            "lr": f"{scheduler.get_last_lr()[0]:.2e}",
+            "loss": f"{loss_val:.2e}",
+            "lambda": f"{model.priors[-1].lamda:.2e}",
+        }
     )
 
     # Save
     if (epoch in milestones) or (epoch % 100 == 0) or (epoch == snkmk["epochs"] - 1):
-        print(epoch)  # noqa: T201
-
         # Save
         xp.save(model.state_dict(), save_path / "model.pt")
         xp.save(model.state_dict(), save_path / "models" / f"model_{epoch:04d}.pt")
