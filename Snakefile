@@ -583,7 +583,7 @@ rule pal5_masks_iso:
     input:
         "src/data/brutus/MIST_1.2_iso_vvcrit0.0.h5",
         "src/data/brutus/nn_c3k.h5",
-        ""src/data/pal5/gaia_ps1_xm.asdf",
+        "src/data/pal5/gaia_ps1_xm.asdf",
     params:
         diagnostic_plots=True,
     conda:
