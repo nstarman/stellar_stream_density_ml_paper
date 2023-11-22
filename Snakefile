@@ -480,11 +480,33 @@ rule gd1_member_table_full:
         "src/scripts/gd1/table/member_table_full.py"
 
 
+rule gd1_variable_nstream_percentile:
+    output:
+        "src/tex/output/gd1/nstream/posterior_percentile.txt"
+    conda:
+        "environment.yml"
+    cache: True
+    script:
+        "src/scripts/gd1/models/6-variable_nstream_percentile.py"
+
+
+rule gd1_variable_nstream_probability:
+    output:
+        "src/tex/output/gd1/nstream/minimum_membership_probability.txt"
+    conda:
+        "environment.yml"
+    cache: True
+    script:
+        "src/scripts/gd1/models/6-variable_nstream_probability.py"
+
+
 rule gd1_variable_nstream:
     output:
         "src/tex/output/gd1/nstream/nstream_variable.txt"
     input:
         "src/data/gd1/membership_likelhoods.ecsv",
+        "src/tex/output/gd1/nstream/posterior_percentile.txt",
+        "src/tex/output/gd1/nstream/minimum_membership_probability.txt",
     conda:
         "environment.yml"
     cache: True
@@ -492,11 +514,33 @@ rule gd1_variable_nstream:
         "src/scripts/gd1/models/6-variable_nstream.py"
 
 
+rule gd1_variable_nspur_percentile:
+    output:
+        "src/tex/output/gd1/nspur/posterior_percentile.txt"
+    conda:
+        "environment.yml"
+    cache: True
+    script:
+        "src/scripts/gd1/models/6-variable_nspur_percentile.py"
+
+
+rule gd1_variable_nspur_probability:
+    output:
+        "src/tex/output/gd1/nspur/minimum_membership_probability.txt"
+    conda:
+        "environment.yml"
+    cache: True
+    script:
+        "src/scripts/gd1/models/6-variable_nspur_probability.py"
+
+
 rule gd1_variable_nspur:
     output:
         "src/tex/output/gd1/nspur/nspur_variable.txt"
     input:
         "src/data/gd1/membership_likelhoods.ecsv",
+        "src/tex/output/gd1/nspur/posterior_percentile.txt",
+        "src/tex/output/gd1/nspur/minimum_membership_probability.txt",
     conda:
         "environment.yml"
     cache: True

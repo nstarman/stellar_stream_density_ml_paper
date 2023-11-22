@@ -20,11 +20,3 @@ is_strm = (lik_tbl["spur (50%)"] > 0.80) & (lik_tbl["spur.ln-weight"].mean(1) > 
 
 with (output_path / "nspur_variable.txt").open("w") as f:
     f.write(f"${sum(is_strm):d}$")
-
-# TODO: get these into the DAG, but can't handle folders yet
-
-with (output_path / "posterior_percentile.txt").open("w") as f:
-    f.write(r"$50$th")
-
-with (output_path / "minimum_membership_probability.txt").open("w") as f:
-    f.write(r"$80\%$")
