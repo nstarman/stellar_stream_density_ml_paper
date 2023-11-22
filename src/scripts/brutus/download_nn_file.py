@@ -18,7 +18,7 @@ except NameError:
     snkmk = {"load_from_static": True, "save_to_static": False}
 
 
-if snkmk["load_from_static"]:
+if snkmk["load_from_static"] and (paths.static / "brutus").exists():
     shutil.copyfile(
         paths.static / "brutus" / "nn_c3k.h5",
         paths.data / "brutus" / "nn_c3k.h5",

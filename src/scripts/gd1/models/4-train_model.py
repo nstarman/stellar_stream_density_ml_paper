@@ -58,7 +58,7 @@ save_path.mkdir(parents=True, exist_ok=True)
 static_path = paths.static / "gd1"
 static_path.mkdir(parents=True, exist_ok=True)
 
-if snkmk["load_from_static"]:
+if snkmk["load_from_static"] and (paths.static / "gd1").exists():
     model.load_state_dict(xp.load(static_path / "model.pt"))
     xp.save(model.state_dict(), save_path / "model.pt")
 

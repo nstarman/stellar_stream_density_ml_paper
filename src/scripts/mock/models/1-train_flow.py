@@ -39,7 +39,7 @@ except NameError:
     }
 
 
-if snkmk["load_from_static"]:
+if snkmk["load_from_static"] and (paths.static / "mock").exists():
     model_without_grad.load_state_dict(
         xp.load(paths.static / "mock" / "background_photometry_model.pt")
     )

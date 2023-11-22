@@ -45,7 +45,7 @@ save_path = paths.data / "pal5"
 save_path.mkdir(parents=True, exist_ok=True)
 (save_path / "models").mkdir(parents=True, exist_ok=True)
 
-if snkmk["load_from_static"]:
+if snkmk["load_from_static"] and (paths.static / "pal5").exists():
     model.load_state_dict(xp.load(paths.static / "pal5" / "model.pt"))
     xp.save(model.state_dict(), save_path / "model.pt")
 

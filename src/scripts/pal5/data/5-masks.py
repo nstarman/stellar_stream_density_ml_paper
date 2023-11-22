@@ -38,7 +38,7 @@ except NameError:
     }
 
 
-if snkmk["load_from_static"]:
+if snkmk["load_from_static"] and (paths.static / "pal5").exists():
     shutil.copyfile(paths.static / "pal5" / "masks.asdf", SAVE_LOC)
 
     sys.exit(0)

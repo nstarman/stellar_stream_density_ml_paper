@@ -38,7 +38,7 @@ except NameError:
 
 ##############################################################################
 
-if snkmk["load_from_static"]:
+if snkmk["load_from_static"] and (paths.static / "gd1").exists():
     shutil.copyfile(paths.static / "gd1" / "gaia_ps1_xm.asdf", SAVE_LOC)
     sys.exit(0)
 

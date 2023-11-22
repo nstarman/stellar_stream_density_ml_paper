@@ -27,7 +27,7 @@ DUSTMAPS_DIR.mkdir(exist_ok=True)
 
 dustmaps.config.config["data_dir"] = DUSTMAPS_DIR.as_posix()
 
-if snkmk["load_from_static"]:
+if snkmk["load_from_static"] and (paths.static / "dustmaps").exists():
     shutil.copyfile(
         paths.static / "dustmaps" / "bayestar2019.h5",
         DUSTMAPS_DIR / "bayestar" / "bayestar2019.h5",

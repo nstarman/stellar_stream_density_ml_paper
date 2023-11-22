@@ -39,7 +39,7 @@ except NameError:
         "diagnostic_plots": True,
     }
 
-if snkmk["load_from_static"]:
+if snkmk["load_from_static"] and (paths.static / "pal5").exists():
     # Load the model from the static directory
     model_without_grad.load_state_dict(
         xp.load(paths.static / "pal5" / "background_pm_model.pt")

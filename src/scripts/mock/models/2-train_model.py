@@ -44,7 +44,7 @@ except NameError:
 snkmk["epochs"] = snkmk["init_T"] + snkmk["T_0"] * snkmk["n_T"] + snkmk["final_T"]
 
 
-if snkmk["load_from_static"]:
+if snkmk["load_from_static"] and (paths.static / "mock").exists():
     model.load_state_dict(xp.load(paths.static / "mock" / "model.pt"))
     xp.save(model.state_dict(), paths.data / "mock" / "model.pt")
 

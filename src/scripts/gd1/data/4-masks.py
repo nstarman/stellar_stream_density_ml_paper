@@ -32,7 +32,7 @@ except NameError:
     snkmk = {"load_from_static": True, "save_to_static": False}
 
 
-if snkmk["load_from_static"]:
+if snkmk["load_from_static"] and (paths.static / "gd1").exists():
     shutil.copyfile(paths.static / "gd1" / "masks.asdf", SAVE_LOC)
 
     sys.exit(0)

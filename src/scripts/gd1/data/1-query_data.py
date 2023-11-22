@@ -36,7 +36,7 @@ except NameError:
     snkmk = {"load_from_static": True, "save_to_static": True}
 
 
-if snkmk["load_from_static"]:
+if snkmk["load_from_static"] and (paths.static / "gd1").exists():
     shutil.copyfile(paths.static / "gd1" / "gaia_ps1_xm_polygons.asdf", SAVE_LOC)
     sys.exit(0)
 else:
