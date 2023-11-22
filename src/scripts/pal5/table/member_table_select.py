@@ -30,7 +30,7 @@ sel = member_liks["stream (95%)"] > 0.8
 # Select some rows
 rows = []
 # we work within the table selection
-strm_mle = member_liks["stream (MLE)"][sel]
+strm_mle = member_liks["stream (50%)"][sel]
 # 1 row with highest probability
 rows.append(np.argmax(strm_mle))
 # 5 rows with a probability > 0.9
@@ -103,7 +103,7 @@ def process(value: float, minus: float, plus: float, /) -> str:
 table[r"$\mathcal{L}_{\rm stream}$"] = [
     process(v, m, p)
     for (v, m, p) in zip(
-        member_liks["stream (MLE)"][sel][rows],
+        member_liks["stream (50%)"][sel][rows],
         member_liks["stream (5%)"][sel][rows],
         member_liks["stream (95%)"][sel][rows],
         strict=True
@@ -112,7 +112,7 @@ table[r"$\mathcal{L}_{\rm stream}$"] = [
 table[r"$\mathcal{L}_{\rm background}$"] = [
     process(v, m, p)
     for (v, m, p) in zip(
-        member_liks["bkg (MLE)"][sel][rows],
+        member_liks["bkg (50%)"][sel][rows],
         member_liks["bkg (5%)"][sel][rows],
         member_liks["bkg (95%)"][sel][rows],
         strict=True
