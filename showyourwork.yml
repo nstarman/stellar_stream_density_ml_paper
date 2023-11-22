@@ -114,7 +114,7 @@ dependencies:
     - src/data/gd1/pm_edges.ecsv
     - src/data/gd1/masks.asdf
   src/scripts/gd1/plot/photometric_background_selection.py:
-    - src/data/gd1/subset/data.done
+    - src/data/gd1/data.done
   src/scripts/gd1/plot/results_full.py:
     - src/data/gd1/data.done
     - src/data/gd1/model.pt
