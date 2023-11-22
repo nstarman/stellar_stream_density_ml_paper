@@ -580,7 +580,7 @@ rule pal5_masks_pm:
 rule pal5_masks_iso:
     output:
         "src/data/pal5/isochrone.asdf"
-    inputs:
+    input:
         "src/data/brutus/MIST_1.2_iso_vvcrit0.0.h5",
         "src/data/brutus/nn_c3k.h5",
     params:
