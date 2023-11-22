@@ -237,4 +237,4 @@ tectonic_args: []
 verbose: false
 
 # Version of `showyourwork` used to create this workflow
-version: 0.4.2
+version: 0.4.3
