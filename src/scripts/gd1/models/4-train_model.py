@@ -6,6 +6,7 @@ import warnings
 from typing import Any
 
 import matplotlib.pyplot as plt
+import numpy as np
 import torch as xp
 import torch.utils.data as td
 from showyourwork.paths import user as user_paths
@@ -36,17 +37,17 @@ except NameError:
         "load_from_static": False,
         "save_to_static": False,
         "diagnostic_plots": True,
+        # training
         "weight_decay": 1e-8,
-        # # epoch milestones
         "lr": 1e-3,
         "T_high": 10_000,
-        "T_spur": 5,
-        "T_post_spur": 95,
-        "epochs": 12_000,
+        "T_spur": 1,
+        "T_post_spur": 999,
+        "T_refine": 500,
     }
-    snkmk["T_end"] = (
-        snkmk["epochs"] - snkmk["T_high"] - snkmk["T_spur"] - snkmk["T_post_spur"]
-    )
+snkmk["epochs"] = (
+    snkmk["T_high"] + snkmk["T_spur"] + snkmk["T_post_spur"] + snkmk["T_refine"]
+)
 
 model = make_model()
 
@@ -77,7 +78,7 @@ model["background"]["photometric"].load_state_dict(
 )
 
 # Load a model
-start_epoch = 9_900
+start_epoch = 0
 model.load_state_dict(xp.load(save_path / "models" / f"model_{start_epoch:04d}.pt"))
 
 # =============================================================================
@@ -100,7 +101,8 @@ optimizer = optim.AdamW(
 )
 
 # Scheduler
-milestones = [10_000, 10_005, 10_100]
+milestones_ = [snkmk["T_high"], snkmk["T_spur"], snkmk["T_post_spur"]]
+milestones = np.cumsum(milestones_).tolist()
 
 # scheduler = optim.lr_scheduler.ConstantLR(optimizer, factor=0.1)  # 1e-4
 scheduler = optim.lr_scheduler.SequentialLR(
@@ -108,8 +110,10 @@ scheduler = optim.lr_scheduler.SequentialLR(
     [
         optim.lr_scheduler.ConstantLR(optimizer, 1.0, total_iters=snkmk["T_high"]),
         optim.lr_scheduler.ConstantLR(optimizer, 1.0, total_iters=snkmk["T_spur"]),
-        optim.lr_scheduler.ConstantLR(optimizer, 0.5, total_iters=snkmk["T_post_spur"]),
-        optim.lr_scheduler.ConstantLR(optimizer, 0.1, total_iters=snkmk["T_end"] + 1),
+        optim.lr_scheduler.ConstantLR(optimizer, 1.0, total_iters=snkmk["T_post_spur"]),
+        optim.lr_scheduler.ConstantLR(
+            optimizer, 0.1, total_iters=snkmk["T_refine"] + 1
+        ),
     ],
     milestones=milestones,
 )
@@ -138,8 +142,10 @@ epoch_iterator = tqdm(
 for epoch in epoch_iterator:
     # Turn on and off the regularization
     if epoch == milestones[0]:
+        print("up-weighting spur")  # noqa: T201
         object.__setattr__(model.priors[-1], "lamda", 1e3)
     if epoch == milestones[1]:
+        print("turning off spur up-weighting")  # noqa: T201
         object.__setattr__(model.priors[-1], "lamda", 0)
 
     # Train in batches
@@ -179,7 +185,12 @@ for epoch in epoch_iterator:
     )
 
     # Save
-    if (epoch in milestones) or (epoch % 100 == 0) or (epoch == snkmk["epochs"] - 1):
+    if (
+        (epoch == start_epoch)
+        or (epoch in milestones)
+        or (epoch % 100 == 0)
+        or (epoch == snkmk["epochs"] - 1)
+    ):
         # Save
         xp.save(model.state_dict(), save_path / "model.pt")
         xp.save(model.state_dict(), save_path / "models" / f"model_{epoch:04d}.pt")

@@ -16,13 +16,15 @@ from astropy.table import QTable
 from showyourwork.paths import user as user_paths
 
 import stream_ml.pytorch as sml
-from stream_ml.core.prior import Prior
 from stream_ml.core.setup_package import WEIGHT_NAME
+from stream_ml.core.typing import ArrayNamespace  # noqa: TCH001
 from stream_ml.core.utils import within_bounds
-from stream_ml.pytorch import Data, Params
+from stream_ml.pytorch import Data, IndependentModels, MixtureModel
+from stream_ml.pytorch.builtin import Exponential
 from stream_ml.pytorch.params import ModelParameter, ModelParameters, set_param
 from stream_ml.pytorch.params.bounds import SigmoidBounds
 from stream_ml.pytorch.params.scaler import StandardLnWidth, StandardLocation
+from stream_ml.pytorch.prior import Prior
 from stream_ml.pytorch.typing import Array, NNModel
 from stream_ml.pytorch.utils import StandardScaler
 
@@ -36,6 +38,7 @@ from scripts.helper import isochrone_spline
 
 if TYPE_CHECKING:
     from stream_ml.core import ModelAPI
+    from stream_ml.pytorch import Params
 
 ##############################################################################
 # Setup
@@ -57,6 +60,7 @@ class UpWeight(Prior[Array]):
     lower: float = -inf
     upper: float = inf
     lamda: float = 100_000
+    array_namespace: ArrayNamespace[Array] = xp
 
     def __post_init__(self, *args: Any, **kwargs: Any) -> None:
         wgt_name = f"{self.component}.ln-weight"
@@ -92,7 +96,7 @@ class UpWeight(Prior[Array]):
 # Define Model
 
 
-def make_model() -> sml.MixtureModel:
+def make_model() -> MixtureModel:
     """Define the model.
 
     Returns
@@ -132,7 +136,7 @@ def make_model() -> sml.MixtureModel:
     # Astrometry
 
     bkg1_coord_names = ("phi2",)
-    background_astrometric_phi2_model = sml.builtin.Exponential(
+    background_astrometric_phi2_model = Exponential(
         net=sml.nn.sequential(
             data=1, hidden_features=64, layers=4, features=2, dropout=0.15
         ),
@@ -168,7 +172,7 @@ def make_model() -> sml.MixtureModel:
         name="background_astrometric_else_model",
     )
 
-    background_astrometric_model = sml.IndependentModels(
+    background_astrometric_model = IndependentModels(
         {
             "phi2": background_astrometric_phi2_model,
             "else": background_astrometric_else_model,
@@ -194,7 +198,7 @@ def make_model() -> sml.MixtureModel:
     # -----------------------------------------------------------------------------
     # All
 
-    background_model = sml.IndependentModels(
+    background_model = IndependentModels(
         {
             "astrometric": background_astrometric_model,
             "photometric": background_photometric_model,
@@ -211,13 +215,13 @@ def make_model() -> sml.MixtureModel:
 
     # Control points
     stream_astrometric_prior = sml.prior.ControlRegions(  # type: ignore[type-var]
-        center=sml.Data.from_format(  # type: ignore[type-var]
+        center=Data.from_format(  # type: ignore[type-var]
             gd1_cp,
             fmt="astropy.table",
             names=("phi1", "phi2", "pm_phi1"),
             renamer=renamer,
         ).astype(xp.Tensor, dtype=xp.float32),
-        width=sml.Data.from_format(  # type: ignore[type-var]
+        width=Data.from_format(  # type: ignore[type-var]
             gd1_cp,
             fmt="astropy.table",
             names=("w_phi2", "w_pm_phi1"),
@@ -226,15 +230,14 @@ def make_model() -> sml.MixtureModel:
         lamda=1_000,
     )
 
-    # TODO: put the parallax in the control points file
     stream_distance_prior = sml.prior.ControlRegions(  # type: ignore[type-var]
-        center=sml.Data.from_format(  # type: ignore[type-var]
+        center=Data.from_format(  # type: ignore[type-var]
             distance_cp,
             fmt="astropy.table",
             names=("phi1", "parallax"),
             renamer=renamer,
         ).astype(xp.Tensor, dtype=xp.float32),
-        width=sml.Data.from_format(  # type: ignore[type-var]
+        width=Data.from_format(  # type: ignore[type-var]
             distance_cp,
             fmt="astropy.table",
             names=("w_parallax",),
@@ -319,7 +322,7 @@ def make_model() -> sml.MixtureModel:
     # Photometry
 
     with asdf.open(paths.data / "gd1" / "isochrone.asdf", mode="r") as af:
-        abs_mags = sml.Data(**af["isochrone_data"]).astype(xp.Tensor, dtype=xp.float32)
+        abs_mags = Data(**af["isochrone_data"]).astype(xp.Tensor, dtype=xp.float32)
 
     stream_isochrone_spl = isochrone_spline(abs_mags["g", "r"].array, xp=np)
 
@@ -358,7 +361,7 @@ def make_model() -> sml.MixtureModel:
 
     # -----------------------------------------------------------------------------
 
-    stream_model = sml.IndependentModels(
+    stream_model = IndependentModels(
         {
             "astrometric": stream_astrometric_model,
             "photometric": stream_isochrone_model,
@@ -378,13 +381,13 @@ def make_model() -> sml.MixtureModel:
     # Astrometry
 
     spur_cp_prior = sml.prior.ControlRegions(
-        center=sml.Data.from_format(
+        center=Data.from_format(
             spur_cp,
             fmt="astropy.table",
             names=("phi1", "phi2", "pm_phi1"),
             renamer=renamer,
         ).astype(xp.Tensor, dtype=xp.float32),
-        width=sml.Data.from_format(
+        width=Data.from_format(
             spur_cp,
             fmt="astropy.table",
             names=("w_phi2", "w_pm_phi1"),
@@ -455,7 +458,7 @@ def make_model() -> sml.MixtureModel:
         priors=(spur_cp_prior,),
     )
 
-    spur_model = sml.IndependentModels(
+    spur_model = IndependentModels(
         {
             "astrometric": spur_astrometric_model,
             "photometric": stream_isochrone_model,
@@ -512,7 +515,7 @@ def make_model() -> sml.MixtureModel:
     )
 
     mm = {"stream": stream_model, "spur": spur_model, "background": background_model}
-    model = sml.MixtureModel(
+    model = MixtureModel(
         mm,
         net=sml.nn.sequential(
             data=1, hidden_features=32, layers=4, features=len(mm) - 1, dropout=0.15

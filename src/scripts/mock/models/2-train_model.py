@@ -41,7 +41,7 @@ except NameError:
         "eta_min": 1e-4,
         "lr": 5e-3,
     }
-    snkmk["epochs"] = snkmk["init_T"] + snkmk["T_0"] * snkmk["n_T"] + snkmk["final_T"]
+snkmk["epochs"] = snkmk["init_T"] + snkmk["T_0"] * snkmk["n_T"] + snkmk["final_T"]
 
 
 if snkmk["load_from_static"]:
@@ -94,10 +94,7 @@ scheduler = optim.lr_scheduler.SequentialLR(
             optimizer, T_0=snkmk["T_0"], eta_min=snkmk["eta_min"]
         ),
     ],
-    milestones=[
-        snkmk["init_T"],
-        # snkmk["init_T"] + snkmk["n_T"] * snkmk["T_0"],
-    ],
+    milestones=[snkmk["init_T"]],
 )
 scheduler2 = optim.lr_scheduler.ReduceLROnPlateau(
     optimizer,
