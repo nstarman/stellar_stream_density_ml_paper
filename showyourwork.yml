@@ -118,12 +118,15 @@ dependencies:
   src/scripts/gd1/plot/results_full.py:
     - src/data/gd1/data.done
     - src/data/gd1/model.pt
+    - src/data/gd1/membership_likelhoods.ecsv
   src/scripts/gd1/plot/results_panels.py:
     - src/data/gd1/data.done
     - src/data/gd1/model.pt
+    - src/data/gd1/membership_likelhoods.ecsv
   src/scripts/gd1/plot/smooth_likelihood.py:
     - src/data/gd1/data.done
     - src/data/gd1/model.pt
+    - src/data/gd1/membership_likelhoods.ecsv
   # ==============================
   # Pal5
   src/scripts/pal5/data/2-combine_data.py:
