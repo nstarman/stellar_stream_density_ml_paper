@@ -107,7 +107,7 @@ rule mock_isochrone_feh_variable:
         "src/scripts/mock/data/2-variable_isochrone_feh.py"
 
 
-rule gd1_model_script:
+rule mock_model_script:
     output: touch("src/data/mock/model.done")
     input:
         "src/data/mock/data.asdf",
@@ -129,7 +129,6 @@ rule mock_train_flow:
         save_to_static=False,
         diagnostic_plots=True,
         epochs=400,
-        batch_size=500,
         lr=1e-3,
     conda:
         "environment.yml"
@@ -150,8 +149,13 @@ rule mock_train_model:
         save_to_static=False,
         diagnostic_plots=True,
         # epoch milestones
+        init_T=500,
+        T_0=500,
+        n_T=3,
+        final_T=1_000,
+        # learning rate
+        eta_min=1e-4,
         lr=5e-3,
-        epochs=3_000
     conda:
         "environment.yml"
     cache: True
@@ -421,10 +425,13 @@ rule gd1_train_model:
         load_from_static=True,  # set to False to recompute
         save_to_static=False,
         diagnostic_plots=True,
-        # epoch milestones
-        epochs=1_250 * 10,
-        lr=1e-3,
+        # training
         weight_decay=1e-8,
+        lr=1e-3,
+        T_high=10_000,
+        T_spur=1,
+        T_post_spur=499,
+        T_refine=500,
     conda:
         "environment.yml"
     cache: True
