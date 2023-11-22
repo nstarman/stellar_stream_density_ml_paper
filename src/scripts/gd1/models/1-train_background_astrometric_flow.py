@@ -17,7 +17,6 @@ from torch import optim
 from tqdm import tqdm
 
 import stream_ml.pytorch as sml
-from scripts.mpl_colormaps import stream_cmap1 as cmap_stream
 from stream_ml.core import Data
 
 paths = user_paths()
@@ -29,6 +28,7 @@ sys.path.append(paths.scripts.parent.as_posix())
 from scripts.gd1.datasets import data, off_stream, where
 from scripts.gd1.frames import gd1_frame
 from scripts.gd1.model import make_model
+from scripts.mpl_colormaps import stream_cmap1 as cmap_stream
 
 model_without_grad = make_model()["background"]["astrometric"]["else"]
 

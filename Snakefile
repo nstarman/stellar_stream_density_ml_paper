@@ -50,7 +50,7 @@ rule mock_make_data:
         "src/data/brutus/MIST_1.2_iso_vvcrit0.0.h5",
         "src/data/brutus/nn_c3k.h5",
     params:
-        seed=10,
+        seed=35,
         diagnostic_plots=True,
     conda:
         "environment.yml"
@@ -123,7 +123,7 @@ rule mock_train_flow:
         "src/data/mock/background_photometry_model.pt"
     input:
         "src/data/mock/data.asdf",
-        "model.done",
+        "src/data/mock/model.done",
     params:
         load_from_static=True,  # set to False to train the model
         save_to_static=False,
@@ -142,7 +142,7 @@ rule mock_train_model:
         "src/data/mock/model.pt"
     input:
         "src/data/mock/data.asdf",
-        "model.done",
+        "src/data/mock/model.done",
         "src/data/mock/background_photometry_model.pt",
     params:
         load_from_static=True,  # set to False to train the model
@@ -320,9 +320,8 @@ rule gd1_info:
         "src/scripts/gd1/models/0-info.py"
 
 
-# NOTE: this is a hacky way to aggregate the dependencies of the data script
 rule gd1_dataset_script:
-    output: touch("src/data/gd1/subset/data.done")
+    output: touch("src/data/gd1/data.done")
     input:
         "src/data/gd1/gaia_ps1_xm.asdf",
         "src/data/gd1/info.asdf",
@@ -340,7 +339,7 @@ rule gd1_control_points_distance:
         "environment.yml"
     cache: True
     script:
-        "src/scripts/gd1/model/1-control_points_distance.py"
+        "src/scripts/gd1/models/3-control_points_distance.py"
 
 
 rule gd1_control_points_stream:
@@ -350,7 +349,7 @@ rule gd1_control_points_stream:
         "environment.yml"
     cache: True
     script:
-        "src/scripts/gd1/model/1-control_points_stream.py"
+        "src/scripts/gd1/models/3-control_points_stream.py"
 
 
 rule gd1_control_points_spur:
@@ -360,7 +359,7 @@ rule gd1_control_points_spur:
         "environment.yml"
     cache: True
     script:
-        "src/scripts/gd1/model/1-control_points_spur.py"
+        "src/scripts/gd1/models/3-control_points_spur.py"
 
 
 rule gd1_model_script:
@@ -377,11 +376,11 @@ rule gd1_model_script:
         "src/scripts/gd1/model.py"
 
 
-rule gd1_train_background_parallax_flow:
+rule gd1_train_background_astrometric_flow:
     output:
-        "src/data/gd1/subset/background_parallax_model.pt"
+        "src/data/gd1/background_astrometric_model.pt"
     input:
-        "src/data/gd1/subset/data.done",
+        "src/data/gd1/data.done",
         "src/data/gd1/model.done",
     params:
         load_from_static=True,  # set to False to recompute
@@ -392,14 +391,14 @@ rule gd1_train_background_parallax_flow:
         "environment.yml"
     cache: True
     script:
-        "src/scripts/gd1/model/subset/1-train_background_parallax_flow.py"
+        "src/scripts/gd1/models/1-train_background_astrometric_flow.py"
 
 
 rule gd1_train_background_photometry_flow:
     output:
-        "src/data/gd1/subset/background_photometry_model.pt"
+        "src/data/gd1/background_photometry_model.pt"
     input:
-        "src/data/gd1/subset/data.done",
+        "src/data/gd1/data.done",
         "src/data/gd1/model.done",
     params:
         load_from_static=True,  # set to False to recompute
@@ -410,17 +409,17 @@ rule gd1_train_background_photometry_flow:
         "environment.yml"
     cache: True
     script:
-        "src/scripts/gd1/model/subset/2-train_background_photometry_flow.py"
+        "src/scripts/gd1/models/2-train_background_photometry_flow.py"
 
 
 rule gd1_train_model:
     output:
-        "src/data/gd1/subset/model.pt"
+        "src/data/gd1/model.pt"
     input:
-        "src/data/gd1/subset/data.done",
+        "src/data/gd1/data.done",
         "src/data/gd1/model.done",
-        "src/data/gd1/subset/background_photometry_model.pt",
-        "src/data/gd1/subset/background_parallax_model.pt",
+        "src/data/gd1/background_photometry_model.pt",
+        "src/data/gd1/background_astrometric_model.pt",
     params:
         load_from_static=True,  # set to False to recompute
         save_to_static=False,
@@ -436,7 +435,7 @@ rule gd1_train_model:
         "environment.yml"
     cache: True
     script:
-        "src/scripts/gd1/model/subset/3-train_model.py"
+        "src/scripts/gd1/models/4-train_model.py"
 
 
 rule gd1_member_likelihoods:
@@ -450,7 +449,7 @@ rule gd1_member_likelihoods:
         "environment.yml"
     cache: True
     script:
-        "src/scripts/gd1/model/4-likelihoods.py"
+        "src/scripts/gd1/models/5-likelihoods.py"
 
 
 rule gd1_member_table_select:
@@ -490,7 +489,7 @@ rule gd1_variable_nstream:
         "environment.yml"
     cache: True
     script:
-        "src/scripts/gd1/model/5-variable_nstream.py"
+        "src/scripts/gd1/models/6-variable_nstream.py"
 
 
 rule gd1_variable_nspur:
@@ -502,7 +501,7 @@ rule gd1_variable_nspur:
         "environment.yml"
     cache: True
     script:
-        "src/scripts/gd1/model/5-variable_nspur.py"
+        "src/scripts/gd1/models/6-variable_nspur.py"
 
 
 # ---------------------------------------------------------
@@ -623,6 +622,7 @@ rule pal5_info:
     input:
         "src/data/pal5/gaia_ps1_xm.asdf",
         "src/data/pal5/masks.asdf",
+        "src/data/pal5/isochrone.asdf",
     params:
         pm_mask="pm_med_icrs",
         phot_mask="phot_15",
@@ -631,19 +631,6 @@ rule pal5_info:
     cache: True
     script:
         "src/scripts/pal5/models/0-info.py"
-
-
-rule pal5_control_points_stream:
-    output:
-        "src/data/pal5/control_points_stream.ecsv"
-    conda:
-        "environment.yml"
-    params:
-        diagnostic_plots=True,
-    cache: True
-    script:
-        "src/scripts/pal5/models/1-control_points_stream.py"
-
 
 
 # NOTE: this is a hacky way to aggregate the dependencies of the data script
@@ -657,6 +644,20 @@ rule pal5_data_script:
     cache: False
     script:
         "src/scripts/pal5/datasets.py"
+
+
+rule pal5_control_points_stream:
+    output:
+        "src/data/pal5/control_points_stream.ecsv"
+    input:
+        "src/data/pal5/data.done",
+    conda:
+        "environment.yml"
+    params:
+        diagnostic_plots=True,
+    cache: True
+    script:
+        "src/scripts/pal5/models/1-control_points_stream.py"
 
 
 # NOTE: this is a hacky way to aggregate the dependencies of the model script
@@ -735,3 +736,18 @@ rule pal5_member_table_full:
     cache: True
     script:
         "src/scripts/pal5/table/member_table_full.py"
+
+
+# ---------------------------------------------------------
+# Table
+
+rule pal5_control_points_table:
+    output:
+        "src/tex/output/pal5/control_points.tex"
+    input:
+        "src/data/pal5/control_points_stream.ecsv",
+    conda:
+        "environment.yml"
+    cache: True
+    script:
+        "src/scripts/pal5/table/control_points.py"

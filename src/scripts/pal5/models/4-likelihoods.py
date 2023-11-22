@@ -32,7 +32,7 @@ from scripts.pal5.model import model
 # Load model
 
 model = pycopy.deepcopy(model)
-model.load_state_dict(xp.load(paths.data / "pal5" / "models" / "model_12000.pt"))
+model.load_state_dict(xp.load(paths.data / "pal5" / "model.pt"))
 model = model.eval()
 
 

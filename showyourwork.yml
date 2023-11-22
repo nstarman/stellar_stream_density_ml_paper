@@ -90,23 +90,23 @@ dependencies:
     - src/data/gd1/control_points_stream.ecsv
     - src/data/gd1/control_points_spur.ecsv
     - src/data/gd1/control_points_distance.ecsv
-  src/scripts/gd1/models/2-train_background_photometry_flow.py:
+  src/scripts/gd1/models/1-train_background_astrometric_flow:
     - src/data/gd1/data.done
     - src/data/gd1/model.done
-  src/scripts/gd1/models/2-train_parallax_photometry_flow.py:
+  src/scripts/gd1/models/2-train_background_photometry_flow:
     - src/data/gd1/data.done
     - src/data/gd1/model.done
-  src/scripts/gd1/models/3-train_model.py:
+  src/scripts/gd1/models/4-train_model.py:
     - src/data/gd1/data.done
     - src/data/gd1/model.done
     - src/data/gd1/background_photometry_model.pt
     - src/data/gd1/background_parallax_model.pt
-  src/scripts/gd1/models/4-likelihoods.py:
+  src/scripts/gd1/models/5-likelihoods.py:
     - src/data/gd1/data.done
     - src/data/gd1/model.pt
-  src/scripts/gd1/models/5-variable_nstream.py:
+  src/scripts/gd1/models/6-variable_nstream.py:
     - src/data/gd1/membership_likelhoods.ecsv
-  src/scripts/gd1/models/5-variable_nspur.py:
+  src/scripts/gd1/models/6-variable_nspur.py:
     - src/data/gd1/membership_likelhoods.ecsv
   # ------
   src/scripts/gd1/plot/data_selection.py:
@@ -163,12 +163,15 @@ dependencies:
   src/scripts/pal5/plot/results_full.py:
     - src/data/pal5/data.done
     - src/data/pal5/model.pt
+    - src/data/pal5/membership_likelhoods.ecsv
   src/scripts/pal5/plot/results_panels.py:
     - src/data/pal5/data.done
     - src/data/pal5/model.pt
+    - src/data/pal5/membership_likelhoods.ecsv
   src/scripts/pal5/plot/smooth_likelihood.py:
     - src/data/pal5/data.done
     - src/data/pal5/model.pt
+    - src/data/pal5/membership_likelhoods.ecsv
 
 
 # Name of the `.tex` manuscript and corresponding `.pdf` article

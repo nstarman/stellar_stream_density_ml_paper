@@ -1,11 +1,9 @@
-"""Plot results."""
-
-from __future__ import annotations
+"""GD-1 Model."""
 
 import sys
 from dataclasses import KW_ONLY, dataclass, replace
 from math import inf
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 import asdf
 import astropy.units as u
@@ -16,10 +14,11 @@ from astropy.table import QTable
 from showyourwork.paths import user as user_paths
 
 import stream_ml.pytorch as sml
+from stream_ml.core import ModelAPI
 from stream_ml.core.setup_package import WEIGHT_NAME
-from stream_ml.core.typing import ArrayNamespace  # noqa: TCH001
+from stream_ml.core.typing import ArrayNamespace
 from stream_ml.core.utils import within_bounds
-from stream_ml.pytorch import Data, IndependentModels, MixtureModel
+from stream_ml.pytorch import Data, IndependentModels, MixtureModel, Params
 from stream_ml.pytorch.builtin import Exponential
 from stream_ml.pytorch.params import ModelParameter, ModelParameters, set_param
 from stream_ml.pytorch.params.bounds import SigmoidBounds
@@ -35,10 +34,6 @@ sys.path.append(paths.scripts.parent.as_posix())
 # isort: split
 
 from scripts.helper import isochrone_spline
-
-if TYPE_CHECKING:
-    from stream_ml.core import ModelAPI
-    from stream_ml.pytorch import Params
 
 ##############################################################################
 # Setup

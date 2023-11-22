@@ -26,7 +26,7 @@ plt.style.use(paths.scripts / "paper.mplstyle")
 
 # Load model
 model = copy.deepcopy(model)
-model.load_state_dict(xp.load(paths.data / "pal5" / "models" / "model_11700.pt"))
+model.load_state_dict(xp.load(paths.data / "pal5" / "model.pt"))
 model = model.eval()
 
 # Evaluate likelihood

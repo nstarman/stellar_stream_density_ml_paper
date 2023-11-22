@@ -1,9 +1,7 @@
 """Train photometry background flow."""
 
-from __future__ import annotations
-
 import sys
-from collections.abc import Callable  # noqa: TCH003
+from collections.abc import Callable
 from dataclasses import dataclass
 
 import asdf
@@ -15,10 +13,12 @@ from showyourwork.paths import user as user_paths
 
 import stream_ml.pytorch as sml
 from stream_ml.core import WEIGHT_NAME
+from stream_ml.core.typing import ArrayNamespace
 from stream_ml.pytorch.builtin import Parallax2DistMod
 from stream_ml.pytorch.params import ModelParameter, ModelParameters
 from stream_ml.pytorch.params.bounds import ClippedBounds, SigmoidBounds
 from stream_ml.pytorch.params.scaler import StandardLnWidth, StandardLocation
+from stream_ml.pytorch.typing import Array
 
 paths = user_paths()
 
@@ -166,23 +166,23 @@ mass_of_gamma = CubicSpline(gamma_mass[:, 0], gamma_mass[:, 1])
 class Pal5StreamMassFunction:
     """Stream mass function."""
 
-    mass_of_gamma: Callable[[float | xp.Array], xp.Array]
+    mass_of_gamma: Callable[[float | Array], Array]
 
     def __post_init__(self) -> None:
         """Post init."""
-        self._mmin: xp.Array
-        self._mmax: xp.Array
+        self._mmin: Array
+        self._mmax: Array
         object.__setattr__(self, "_mmin", xp.asarray(self.mass_of_gamma([0])))
         object.__setattr__(self, "_mmax", xp.asarray(self.mass_of_gamma([1])))
 
     @property
-    def _ln_pdf_norm(self) -> xp.Array:
+    def _ln_pdf_norm(self) -> Array:
         """Normalization for the PDF."""
         return xp.log(xp.asarray(2)) + xp.log(xp.sqrt(self._mmax) - xp.sqrt(self._mmin))
 
     def __call__(
-        self, gamma: xp.Array, _: sml.Data[xp.Array], *, xp: sml.ArrayNamespace
-    ) -> xp.Array:
+        self, gamma: Array, _: sml.Data[Array], *, xp: ArrayNamespace
+    ) -> Array:
         """Return the PDF."""
         return -0.5 * xp.log(xp.asarray(self.mass_of_gamma(gamma))) - self._ln_pdf_norm
 

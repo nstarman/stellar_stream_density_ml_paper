@@ -4,7 +4,8 @@ channels:
 dependencies:
   - python=3.10
   - pip=23.1
-  - cython
+  - cython<3
+  - gsl
 
   - asdf>=2.15
   - asdf-astropy
@@ -22,8 +23,8 @@ dependencies:
   - pip:
       - daft
       - gaiadr3-zeropoint>=0.0.4
-      - gala>=1.6,<1.7
-      - galstreams>1.0
+      - gala>=1.7
+      - git+https://github.com/nstarman/galstreams.git@gala17
       - git+https://github.com/GalOrrery/interpolated-coordinates.git
       - nflows
       - pre-commit

@@ -46,7 +46,7 @@ with asdf.open(
 
 # Load model
 model = make_model()
-model.load_state_dict(xp.load(paths.data / "gd1" / "models" / "model_11700.pt"))
+model.load_state_dict(xp.load(paths.data / "gd1" / "model.pt"))
 model = model.eval()
 
 # Load results from 4-likelihoods.py

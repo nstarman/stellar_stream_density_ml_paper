@@ -46,7 +46,7 @@ save_path.mkdir(parents=True, exist_ok=True)
 (save_path / "models").mkdir(parents=True, exist_ok=True)
 
 if snkmk["load_from_static"]:
-    model.load_state_dict(xp.load(paths.static / "pal5" / "models" / "model_12000.pt"))
+    model.load_state_dict(xp.load(paths.static / "pal5" / "model.pt"))
     xp.save(model.state_dict(), save_path / "model.pt")
 
     sys.exit(0)
