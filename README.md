@@ -17,4 +17,4 @@
 
 An open source scientific article created using the [showyourwork](https://github.com/showyourwork/showyourwork) workflow.
 
-Read the [article](stellar_stream_density_ml_paper.pdf) here.
+Read the [article](https://arxiv.org/abs/2311.16960) here.
