@@ -210,7 +210,7 @@ def diagnostic_plot(  # noqa: C901, PLR0912
     )
 
     handles = []
-    for k, cutoff, cmap in (
+    for k, cutoff_, cmap in (
         ("stream", stream_cutoff, cmap_stream),
         ("spur", spur_cutoff, cmap_spur),
     ):
@@ -221,7 +221,7 @@ def diagnostic_plot(  # noqa: C901, PLR0912
             (mp["phi2", "mu"] + xp.exp(mp["phi2", "ln-sigma"])),
             color=cmap(0.99),
             alpha=0.25,
-            where=cutoff,
+            where=cutoff_,
             zorder=-5,
         )
         handles.append(f1)
@@ -261,7 +261,7 @@ def diagnostic_plot(  # noqa: C901, PLR0912
         zorder=-5,
     )
 
-    for k, cutoff, cmap in (
+    for k, cutoff_, cmap in (
         ("stream", stream_cutoff, cmap_stream),
         ("spur", spur_cutoff, cmap_spur),
     ):
@@ -272,7 +272,7 @@ def diagnostic_plot(  # noqa: C901, PLR0912
             (mp["plx", "mu"] + xp.exp(mp["plx", "ln-sigma"])),
             color=cmap(0.99),
             alpha=0.25,
-            where=cutoff,
+            where=cutoff_,
         )
 
     ax04.set_ylim(data["plx"].min().numpy(), data["plx"].max().numpy())
@@ -316,7 +316,7 @@ def diagnostic_plot(  # noqa: C901, PLR0912
         zorder=-5,
     )
 
-    for k, cutoff, cmap in (
+    for k, cutoff_, cmap in (
         ("stream", stream_cutoff, cmap_stream),
         ("spur", spur_cutoff, cmap_spur),
     ):
@@ -336,7 +336,7 @@ def diagnostic_plot(  # noqa: C901, PLR0912
             color=cmap(0.99),
             alpha=0.25,
             zorder=-2,
-            where=cutoff,
+            where=cutoff_,
         )
 
     # ---------------------------------------------------------------------------
@@ -358,7 +358,7 @@ def diagnostic_plot(  # noqa: C901, PLR0912
         zorder=-10,
     )
 
-    for k, cutoff, cmap in (
+    for k, cutoff_, cmap in (
         ("stream", stream_cutoff, cmap_stream),
         ("spur", spur_cutoff, cmap_spur),
     ):
@@ -377,7 +377,7 @@ def diagnostic_plot(  # noqa: C901, PLR0912
             ),
             color=cmap(0.99),
             alpha=0.25,
-            where=cutoff,
+            where=cutoff_,
             zorder=-2,
         )
 
@@ -403,7 +403,7 @@ def diagnostic_plot(  # noqa: C901, PLR0912
         zorder=-5,
     )
 
-    for k, cutoff, cmap in (
+    for k, cutoff_, cmap in (
         ("stream", stream_cutoff, cmap_stream),
         ("spur", spur_cutoff, cmap_spur),
     ):
@@ -420,7 +420,7 @@ def diagnostic_plot(  # noqa: C901, PLR0912
             d2sp.to_value("kpc"),
             alpha=0.15,
             color=cmap(0.99),
-            where=cutoff,
+            where=cutoff_,
         )
         ax07.fill_between(
             data["phi1"],
@@ -428,7 +428,7 @@ def diagnostic_plot(  # noqa: C901, PLR0912
             d1sp.to_value("kpc"),
             alpha=0.25,
             color=cmap(0.99),
-            where=cutoff,
+            where=cutoff_,
         )
 
     # =============================================================================

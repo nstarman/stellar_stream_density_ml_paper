@@ -67,7 +67,7 @@ with xp.no_grad():
 
     stream_lnlik = model.component_ln_posterior("stream", mpars, data, where=where)
     bkg_lnlik = model.component_ln_posterior("background", mpars, data, where=where)
-    tot_lnlik = xp.logaddexp(stream_lnlik, bkg_lnlik)  # FIXME
+    tot_lnlik = xp.logaddexp(stream_lnlik, bkg_lnlik)
 
 # Weight
 weight = mpars[(f"stream.{WEIGHT_NAME}",)]
@@ -86,7 +86,7 @@ psort = np.argsort(stream_prob)
 ##############################################################################
 # Make Figure
 
-fig = plt.figure(figsize=(11, 12.5))
+fig = plt.figure(figsize=(11, 13))
 gs = GridSpec(
     2,
     1,
@@ -96,7 +96,7 @@ gs = GridSpec(
     left=0.07,
     right=0.98,
     top=0.965,
-    bottom=0.03,
+    bottom=0.04,
 )
 
 alpha = p2alpha(stream_prob, minval=0.1)
@@ -368,7 +368,7 @@ legend1 = plt.legend(
     ],
     ncols=3,
     loc="upper right",
-    bbox_to_anchor=(1, -0.25),
+    bbox_to_anchor=(1, -0.2),
 )
 ax05.add_artist(legend1)
 
@@ -396,7 +396,7 @@ for i, b in enumerate(np.unique(which_bin)):
     for ax in (ax01, ax02, ax03, ax04, ax05):
         ax.axvline(bins[i], color="gray", ls="--", zorder=-200)
         ax.axvline(bins[i + 1], color="gray", ls="--", zorder=-200)
-    smlvis._slices.connect_slices_to_top(  # noqa: SL
+    smlvis._slices.connect_slices_to_top(  # noqa: SLF001
         fig, ax05, ax10i, left=bins[i], right=bins[i + 1], color="gray"
     )
 
@@ -488,7 +488,6 @@ for i, b in enumerate(np.unique(which_bin)):
     ax12i = fig.add_subplot(
         gs1[2, i],
         xlabel="g [mag]",
-        xticklabels=[],
         rasterization_zorder=0,
         sharey=ax120 if ax120 is not None else None,
     )
@@ -516,10 +515,14 @@ for i, b in enumerate(np.unique(which_bin)):
         zorder=-9,
     )
 
+    ax12i.invert_xaxis()
     if i == 0:
         ax12i.set_ylabel("r [mag]")
         ax120 = ax12i
     else:
         ax12i.tick_params(labelleft=False)
+
+ax120.invert_yaxis()  # shared axis
+
 
 fig.savefig(paths.figures / "mock" / "results.pdf")

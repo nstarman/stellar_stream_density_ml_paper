@@ -5,6 +5,7 @@ import sys
 
 import numpy as np
 import torch as xp
+from astropy.coordinates import Distance, SkyCoord
 from astropy.table import QTable
 from showyourwork.paths import user as user_paths
 from tqdm import tqdm
@@ -26,7 +27,7 @@ from scripts.helper import manually_set_dropout, recursive_iterate
 
 model = make_model()
 model = pycopy.deepcopy(model)
-model.load_state_dict(xp.load(paths.data / "gd1" / "model.pt"))
+model.load_state_dict(xp.load(paths.static / "gd1" / "model.pt"))
 model = model.eval()
 
 
@@ -60,7 +61,6 @@ with xp.no_grad():
         bkg_lnlik = model.component_ln_posterior("background", mpars, data, where=where)
         stream_lnlik = model.component_ln_posterior("stream", mpars, data, where=where)
         spur_lnlik = model.component_ln_posterior("spur", mpars, data, where=where)
-        # tot_lnlik = model.ln_posterior(mpars, data, where=where)  # TODO
         tot_lnlik = xp.logsumexp(xp.stack((stream_lnlik, spur_lnlik, bkg_lnlik), 1), 1)
 
         # Store, applying the postprocessing
@@ -92,7 +92,6 @@ with xp.no_grad():
     bkg_lnlik = model.component_ln_posterior("background", mpars, data, where=where)
     stream_lnlik = model.component_ln_posterior("stream", mpars, data, where=where)
     spur_lnlik = model.component_ln_posterior("spur", mpars, data, where=where)
-    # tot_lnlik = model.ln_posterior(mpars, data, where=where)  # TODO
     tot_lnlik = xp.logsumexp(xp.stack((stream_lnlik, spur_lnlik, bkg_lnlik), 1), 1)
 
     # Probabilities
@@ -106,6 +105,13 @@ with xp.no_grad():
 
 lik_tbl = QTable()
 lik_tbl["source id"] = table["source_id"]
+lik_tbl["coord"] = SkyCoord(
+    ra=table["ra"],
+    dec=table["dec"],
+    distance=Distance(parallax=table["parallax"]),
+    pm_ra_cosdec=table["pmra"],
+    pm_dec=table["pmdec"],
+)
 
 lik_tbl["bkg (MLE)"] = bkg_prob.numpy()
 lik_tbl["bkg (5%)"] = np.percentile(bkg_probs, 5, axis=1)

@@ -12,6 +12,7 @@ import shapely.ops as so
 from astropy.table import QTable
 from matplotlib.colors import LogNorm
 from scipy.interpolate import InterpolatedUnivariateSpline
+from scipy.stats import gaussian_kde
 from showyourwork.paths import user as user_paths
 
 paths = user_paths()
@@ -35,6 +36,12 @@ masks_table = QTable.read(paths.data / "gd1" / "masks.asdf")
 
 pm_edges = QTable.read(paths.data / "gd1" / "pm_edges.ecsv")
 
+with asdf.open(
+    paths.data / "gd1" / "info.asdf", lazy_load=False, copy_arrays=True
+) as af:
+    names = tuple(af["names"])
+    renamer = af["renamer"]
+
 # Load isochrone
 with asdf.open(
     paths.data / "gd1" / "isochrone.asdf", lazy_load=False, copy_arrays=True
@@ -55,10 +62,6 @@ spline_pmphi2 = InterpolatedUnivariateSpline(gd1_sc.phi1.value, gd1_sc.pm_phi2.v
 # Lit tracks
 _lit1_kw = {"c": "k", "ls": "--", "alpha": 0.6}
 
-###############################################################################
-
-
-path_pm = make_path(pm_edges["pm_phi1_cosphi2_medium"], pm_edges["pm_phi2_medium"])
 
 _mask = (
     # position cuts
@@ -67,6 +70,43 @@ _mask = (
     & (table["phi2"] > -4 * u.deg)
     & (table["phi2"] < 2 * u.deg)
 )
+
+
+# Get off-stream selection
+_sel_off = (  # full tight selection
+    masks_table["phot_medium"]
+    & (table["phi1"] > -80 * u.deg)
+    & (table["phi1"] < 10 * u.deg)
+    & masks_table["low_phi2"]
+    & (table["parallax"] > -0.5 * u.mas)
+    & (table["pm_phi1"] > -15 * u.mas / u.yr)
+    & (table["pm_phi1"] < -10 * u.mas / u.yr)
+    & (table["pm_phi2"] > -4.5 * u.mas / u.yr)
+    & (table["pm_phi2"] < -2 * u.mas / u.yr)
+    & ~np.isnan(table["g0"])
+    & ~np.isnan(table["r0"])
+    & ~np.isnan(table["i0"])
+    # & (table["gaia_g"] < 20 * u.mag)
+)
+off_stream = ~masks_table["offstream"][_sel_off]
+
+# Stream KDE
+bw_method = 0.05
+background_kde = gaussian_kde(
+    np.c_[
+        table["g0"].value[_sel_off][off_stream], table["i0"].value[_sel_off][off_stream]
+    ].T,
+    bw_method=bw_method,
+)
+positions = np.c_[
+    table["g0"].value[_sel_off][~off_stream], table["i0"].value[_sel_off][~off_stream]
+]
+stream_kde = gaussian_kde(positions.T, bw_method=bw_method)
+
+###############################################################################
+
+
+path_pm = make_path(pm_edges["pm_phi1_cosphi2_medium"], pm_edges["pm_phi2_medium"])
 
 
 fig = plt.figure(layout="constrained", figsize=(11, 6))
@@ -131,8 +171,9 @@ ax10 = fig.add_subplot(
     rasterization_zorder=0,
     axisbelow=False,
 )
+# Data
 _mask = _mask & (
-    ((table["g0"] > 0) & (table["i0"] > 0))
+    ((table["g0"] > 0) & (table["r0"] > 0))
     & ((table["phi2"] > -2.5 * u.deg) & (table["phi2"] < 1 * u.deg))
 )
 ax10.hist2d(
@@ -144,6 +185,24 @@ ax10.hist2d(
     zorder=-10,
     range=((-0.5, 2.5), (12, 22)),
 )
+
+# On-stream
+alpha = stream_kde(positions.T) - background_kde(positions.T)
+alpha[alpha < 0] = 0
+alpha[alpha > 1] = 1
+ax10.scatter(
+    (
+        table["g0"].value[_sel_off][~off_stream]
+        - table["i0"].value[_sel_off][~off_stream]
+    ),
+    table["g0"].value[_sel_off][~off_stream],
+    s=0.3,
+    alpha=0.1 + 0.9 * alpha,
+    zorder=-10,
+    label="`on'-stream",
+    c="tab:green",
+)
+
 
 # Isochrone
 ax10.plot(*isochrone.T, c="tab:blue", label="w=0.3", zorder=-5)
@@ -179,6 +238,16 @@ ax30.hist2d(
     bins=100,
     zorder=-10,
 )
+
+ax30.scatter(
+    table["phi1"].value[_sel_off][~off_stream],
+    table["phi2"].value[_sel_off][~off_stream],
+    color="tab:green",
+    alpha=0.5,
+    s=5,
+    zorder=-10,
+)
+
 # add text to the top left corner of the plot saying log-density
 t = ax30.text(
     0.05,

@@ -1,29 +1,32 @@
 """Import data."""
 
+import pathlib
+
 import asdf
 import astropy.units as u
 import numpy as np
 import torch as xp
 from astropy.table import QTable
-from showyourwork.paths import user as user_paths
 
 import stream_mapper.pytorch as sml
 
-paths = user_paths()
+from ..syw import user as user_paths
+
+paths = user_paths(pathlib.Path(__file__).parents[3])
 
 ###############################################################################
 
 # Info
 with asdf.open(
-    paths.data / "gd1" / "info.asdf", lazy_load=False, copy_arrays=True
+    paths.static / "gd1" / "info.asdf", lazy_load=False, copy_arrays=True
 ) as af:
     sel = af["mask"]
     names = tuple(af["names"])
     renamer = af["renamer"]
 
 # Tables
-table = QTable.read(paths.data / "gd1" / "gaia_ps1_xm.asdf")[sel]
-masks = QTable.read(paths.data / "gd1" / "masks.asdf")[sel]
+table = QTable.read(paths.static / "gd1" / "gaia_ps1_xm.asdf")[sel]
+masks = QTable.read(paths.static / "gd1" / "masks.asdf")[sel]
 
 # =============================================================================
 

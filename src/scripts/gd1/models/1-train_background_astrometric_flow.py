@@ -40,7 +40,7 @@ try:
     snkmk = dict(snakemake.params)
 except NameError:
     snkmk = {
-        "load_from_static": False,
+        "load_from_static": True,
         "save_to_static": False,
         "epochs": 2_500,
         "diagnostic_plots": True,
@@ -97,6 +97,7 @@ def diagnostic_plot(data: Data, prob: np.ndarray) -> plt.Figure:
     -------
     plt.Figure
         The figure.
+
     """
     psort = np.argsort(prob[off_stream])
 

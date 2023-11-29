@@ -1,6 +1,9 @@
+ci:
+  autoupdate_schedule: "quarterly"
+
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.4.0
+    rev: v4.6.0
     hooks:
       - id: check-added-large-files
       - id: check-ast
@@ -31,15 +34,15 @@ repos:
       - id: rst-directive-colons
       - id: rst-inline-touching-normal
 
-  - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: "v0.0.267"
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: "v0.4.7"
     hooks:
       - id: ruff
         args:
           - --fix
 
   - repo: https://github.com/psf/black
-    rev: 23.3.0
+    rev: 24.4.2
     hooks:
       - id: black
         additional_dependencies: [toml]

@@ -5,6 +5,7 @@ import sys
 
 import numpy as np
 import torch as xp
+from astropy.coordinates import Distance, SkyCoord
 from astropy.table import QTable
 from showyourwork.paths import user as user_paths
 from tqdm import tqdm
@@ -57,7 +58,6 @@ with xp.no_grad():
 
         stream_lnlik = model.component_ln_posterior("stream", mpars, data, where=where)
         bkg_lnlik = model.component_ln_posterior("background", mpars, data, where=where)
-        # tot_lnlik = model.ln_posterior(mpars, data, where=where)  # TODO
         tot_lnlik = xp.logaddexp(stream_lnlik, bkg_lnlik)
 
         # Store, applying the postprocessing
@@ -81,7 +81,6 @@ with xp.no_grad():
     # Likelihoods
     stream_lnlik = model.component_ln_posterior("stream", mpars, data, where=where)
     bkg_lnlik = model.component_ln_posterior("background", mpars, data, where=where)
-    # tot_lnlik = model.ln_posterior(mpars, data, where=where)  # TODO
     tot_lnlik = xp.logaddexp(stream_lnlik, bkg_lnlik)
 
     clean = np.ones(len(data), dtype=bool)
@@ -98,6 +97,13 @@ with xp.no_grad():
 
 lik_tbl = QTable()
 lik_tbl["source id"] = table["source_id"]
+lik_tbl["coord"] = SkyCoord(
+    ra=table["ra"],
+    dec=table["dec"],
+    distance=Distance(parallax=table["parallax"], allow_negative=True),
+    pm_ra_cosdec=table["pmra"],
+    pm_dec=table["pmdec"],
+)
 lik_tbl["bkg (MLE)"] = bkg_prob.numpy()
 lik_tbl["bkg (5%)"] = np.percentile(bkg_probs, 5, axis=1)
 lik_tbl["bkg (50%)"] = np.percentile(bkg_probs, 50, axis=1)

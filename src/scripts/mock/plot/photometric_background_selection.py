@@ -1,6 +1,5 @@
 """Train photometry background flow."""
 
-
 import asdf
 import matplotlib.pyplot as plt
 import numpy as np
@@ -26,7 +25,7 @@ with asdf.open(
 
 # =============================================================================
 
-fig, axs = plt.subplots(2, 1, figsize=(4, 4))
+fig, axs = plt.subplots(1, 2, figsize=(8, 4))
 
 # Plot the astrometric background selection
 axs[0].plot(
@@ -48,7 +47,6 @@ axs[0].plot(
 )
 axs[0].set_xlabel(r"$\phi_1 \ $ [$\degree$]")
 axs[0].set_ylabel(r"$\phi_2 \ $ [$\degree$]")
-axs[0].set_aspect(2)
 axs[0].grid(visible=True, which="both", axis="y")
 axs[0].grid(visible=True, which="major", axis="x")
 axs[0].set_rasterization_zorder(100)
@@ -64,7 +62,7 @@ axs[1].scatter(
 )
 axs[1].set_xlabel(r"$g-r \ $ [mag]")
 axs[1].set_ylabel(r"$g \ $ [mag]")
-axs[1].set_aspect("auto")
+axs[1].set_aspect("equal")
 axs[1].grid(visible=True, which="major")
 axs[1].set_rasterization_zorder(100)
 

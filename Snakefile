@@ -189,6 +189,254 @@ rule mock_falseident_variable:
         "src/scripts/mock/stats/variable_falseident.py"
 
 
+################################################################################
+# Mock2 data
+
+
+rule mock2_query_real_data:
+    output:
+        "src/data/mock2/gd1_query_real.fits"
+    params:
+        load_from_static=True,  # set to False to redownload
+        save_to_static=False,
+        diagnostic_plots=True,
+    conda:
+        "environment.yml"
+    cache: True
+    script:
+        "src/scripts/mock2/data/0-query-real.py"
+
+
+rule mock2_query_sim_data:
+    output:
+        "src/data/mock2/gd1_query_sim.fits"
+    params:
+        load_from_static=True,  # set to False to redownload
+        save_to_static=False,
+        diagnostic_plots=True,
+    conda:
+        "environment.yml"
+    cache: True
+    script:
+        "src/scripts/mock2/data/0-query-sim.py"
+
+
+rule mock2_emulate_astro_data:
+    output:
+        "src/data/mock2/astro_data_flow.eqx"
+    input:
+        "src/data/mock2/gd1_query_real.fits",
+        "src/data/mock2/gd1_query_sim.fits",
+    params:
+        load_from_static=True,  # set to False to redownload
+        save_to_static=False,
+        diagnostic_plots=True,
+    conda:
+        "environment.yml"
+    cache: True
+    script:
+        "src/scripts/mock2/data/1-emulate-astro-data.py"
+
+
+rule mock2_emulate_astro_errors:
+    output:
+        "src/data/mock2/astro_error_flow.eqx"
+    input:
+        "src/data/mock2/gd1_query_real.fits",
+        "src/data/mock2/gd1_query_sim.fits",
+    params:
+        load_from_static=True,  # set to False to redownload
+        save_to_static=False,
+        diagnostic_plots=True,
+    conda:
+        "environment.yml"
+    cache: True
+    script:
+        "src/scripts/mock2/data/1-emulate-astro-error.py"
+
+
+rule mock2_emulate_phot_data:
+    output:
+        "src/data/mock2/phot_data_flow.eqx"
+    input:
+        "src/data/mock2/gd1_query_real.fits",
+        "src/data/mock2/gd1_query_sim.fits",
+    params:
+        load_from_static=True,  # set to False to redownload
+        save_to_static=False,
+        diagnostic_plots=True,
+    conda:
+        "environment.yml"
+    cache: True
+    script:
+        "src/scripts/mock2/data/1-emulate-phot-data.py"
+
+
+rule mock2_emulate_phot_errors:
+    output:
+        "src/data/mock2/phot_error_flow.eqx"
+    input:
+        "src/data/mock2/gd1_query_real.fits",
+        "src/data/mock2/gd1_query_sim.fits",
+    params:
+        load_from_static=True,  # set to False to redownload
+        save_to_static=False,
+        diagnostic_plots=True,
+    conda:
+        "environment.yml"
+    cache: True
+    script:
+        "src/scripts/mock2/data/1-emulate-phot-error.py"
+
+
+rule mock2_make_data:
+    output:
+        "src/data/mock2/data.asdf"
+    input:
+        "src/data/brutus/MIST_1.2_iso_vvcrit0.0.h5",
+        "src/data/brutus/nn_c3k.h5",
+        "src/data/mock2/astro_data_flow.eqx",
+        "src/data/mock2/astro_error_flow.eqx",
+        "src/data/mock2/phot_data_flow.eqx",
+        "src/data/mock2/phot_error_flow.eqx",
+    params:
+        seed=35,
+        diagnostic_plots=True,
+    conda:
+        "environment.yml"
+    cache: True
+    script:
+        "src/scripts/mock2/data/2-make.py"
+
+
+rule mock2_nstream_variable:
+    output:
+        "src/tex/output/mock2/nstream_variable.txt"
+    input:
+        "src/data/mock2/data.asdf"
+    conda:
+        "environment.yml"
+    cache: True
+    script:
+        "src/scripts/mock2/data/3-variable_nstream.py"
+
+
+rule mock2_nbackround_variable:
+    output:
+        "src/tex/output/mock2/nbackground_variable.txt"
+    input:
+        "src/data/mock2/data.asdf"
+    conda:
+        "environment.yml"
+    cache: True
+    script:
+        "src/scripts/mock2/data/3-variable_nbackground.py"
+
+
+rule mock2_isochrone_age_variable:
+    output:
+        "src/tex/output/mock2/isochrone_age_variable.txt"
+    input:
+        "src/data/mock2/data.asdf"
+    conda:
+        "environment.yml"
+    cache: True
+    script:
+        "src/scripts/mock2/data/3-variable_isochrone_age.py"
+
+
+rule mock2_isochrone_feh_variable:
+    output:
+        "src/tex/output/mock2/isochrone_feh_variable.txt"
+    input:
+        "src/data/mock2/data.asdf"
+    conda:
+        "environment.yml"
+    cache: True
+    script:
+        "src/scripts/mock2/data/3-variable_isochrone_feh.py"
+
+
+rule mock2_model_script:
+    output: touch("src/data/mock2/model.done")
+    input:
+        "src/data/mock2/data.asdf",
+    conda:
+        "environment.yml"
+    cache: False
+    script:
+        "src/scripts/mock2/model.py"
+
+
+rule mock2_train_flow:
+    output:
+        "src/data/mock2/background_photometry_model.pt"
+    input:
+        "src/data/mock2/data.asdf",
+        "src/data/mock2/model.done",
+    params:
+        load_from_static=True,  # set to False to train the model
+        save_to_static=False,
+        diagnostic_plots=True,
+        epochs=400,
+        lr=1e-3,
+    conda:
+        "environment.yml"
+    cache: True
+    script:
+        "src/scripts/mock2/models/1-train_flow.py"
+
+
+rule mock2_train_model:
+    output:
+        "src/data/mock2/model.pt"
+    input:
+        "src/data/mock2/data.asdf",
+        "src/data/mock2/model.done",
+        "src/data/mock2/background_photometry_model.pt",
+    params:
+        load_from_static=True,  # set to False to train the model
+        save_to_static=False,
+        diagnostic_plots=True,
+        # epoch milestones
+        T1=2_100,
+        T2=2_100,
+        T3=2_100,
+        # learning rate
+        eta_min=1e-4,
+        lr=2e-3,
+    conda:
+        "environment.yml"
+    cache: True
+    script:
+        "src/scripts/mock2/models/2-train_model.py"
+
+
+rule mock2_ncorrect_variable:
+    output:
+        "src/tex/output/mock2/ncorrect_variable.txt"
+    input:
+        "src/data/mock2/data.asdf",
+        "src/data/mock2/model.pt",
+    conda:
+        "environment.yml"
+    cache: True
+    script:
+        "src/scripts/mock2/stats/variable_ncorrect.py"
+
+
+rule mock2_falseident_variable:
+    output:
+        "src/tex/output/mock2/falseident_variable.txt"
+    input:
+        "src/data/mock2/data.asdf",
+        "src/data/mock2/model.pt",
+    conda:
+        "environment.yml"
+    cache: True
+    script:
+        "src/scripts/mock2/stats/variable_falseident.py"
+
 
 ################################################################################
 # Dustmaps

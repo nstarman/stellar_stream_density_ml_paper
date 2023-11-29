@@ -40,8 +40,8 @@ table["w_phi2"] = 1.75 * u.deg
 
 # pm-phi1
 MAS_YR = u.mas / u.yr
-table["pm_phi1"] = np.NaN * MAS_YR
-table["w_pm_phi1"] = np.NaN * MAS_YR
+table["pm_phi1"] = np.nan * MAS_YR
+table["w_pm_phi1"] = np.nan * MAS_YR
 
 table.loc[-70]["pm_phi1", "w_pm_phi1"] = (-11.2, 1) * MAS_YR
 table.loc[-60]["pm_phi1", "w_pm_phi1"] = (-12.5, 0.80) * MAS_YR
@@ -51,7 +51,7 @@ table.loc[-30]["pm_phi1", "w_pm_phi1"] = [-12.6, 0.75] * MAS_YR
 table.loc[-10]["pm_phi1", "w_pm_phi1"] = (-10.0, 1.75) * MAS_YR
 
 
-table.add_row([5 * u.deg, np.NaN * u.deg, np.NaN * u.deg, -7.4 * MAS_YR, 1.75 * MAS_YR])
+table.add_row([5 * u.deg, np.nan * u.deg, np.nan * u.deg, -7.4 * MAS_YR, 1.75 * MAS_YR])
 
 # re-sort
 table.sort("phi1")

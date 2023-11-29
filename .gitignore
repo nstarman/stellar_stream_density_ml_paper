@@ -17,3 +17,5 @@ __pycache__
 /src/static/gd13
 /src/static/gd13/joined-GD-1.fits
 /src/scripts/_gd1
+/.vscode/settings.json
+/notebooks

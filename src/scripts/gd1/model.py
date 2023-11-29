@@ -1,5 +1,6 @@
 """GD-1 Model."""
 
+import pathlib
 import sys
 from dataclasses import KW_ONLY, dataclass, replace
 from math import inf
@@ -11,7 +12,7 @@ import numpy as np
 import torch as xp
 import zuko
 from astropy.table import QTable
-from showyourwork.paths import user as user_paths
+from ..syw import user as user_paths
 
 import stream_mapper.pytorch as sml
 from stream_mapper.core import ModelAPI
@@ -27,7 +28,7 @@ from stream_mapper.pytorch.prior import Prior
 from stream_mapper.pytorch.typing import Array, NNModel
 from stream_mapper.pytorch.utils import StandardScaler
 
-paths = user_paths()
+paths = user_paths(pathlib.Path(__file__).parents[3])
 
 # Add the parent directory to the path
 sys.path.append(paths.scripts.parent.as_posix())
@@ -39,9 +40,9 @@ from scripts.helper import isochrone_spline
 # Setup
 
 # Load data
-distance_cp = QTable.read(paths.data / "gd1" / "control_points_distance.ecsv")
-gd1_cp_ = QTable.read(paths.data / "gd1" / "control_points_stream.ecsv")
-spur_cp = QTable.read(paths.data / "gd1" / "control_points_spur.ecsv")
+distance_cp = QTable.read(paths.static / "gd1" / "control_points_distance.ecsv")
+gd1_cp_ = QTable.read(paths.static / "gd1" / "control_points_stream.ecsv")
+spur_cp = QTable.read(paths.static / "gd1" / "control_points_spur.ecsv")
 
 
 @dataclass(frozen=True, repr=False)
@@ -98,9 +99,10 @@ def make_model() -> MixtureModel:
     -------
     model : sml.MixtureModel
         The model.
+
     """
     scaler: StandardScaler
-    with asdf.open(paths.data / "gd1" / "info.asdf", mode="r") as af:
+    with asdf.open(paths.static / "gd1" / "info.asdf", mode="r") as af:
         renamer = af["renamer"]
         scaler = StandardScaler(**af["scaler"]).astype(xp.Tensor, dtype=xp.float32)
         all_coord_bounds = {
@@ -316,7 +318,7 @@ def make_model() -> MixtureModel:
     # -----------------------------------------------------------------------------
     # Photometry
 
-    with asdf.open(paths.data / "gd1" / "isochrone.asdf", mode="r") as af:
+    with asdf.open(paths.static / "gd1" / "isochrone.asdf", mode="r") as af:
         abs_mags = Data(**af["isochrone_data"]).astype(xp.Tensor, dtype=xp.float32)
 
     stream_isochrone_spl = isochrone_spline(abs_mags["g", "r"].array, xp=np)

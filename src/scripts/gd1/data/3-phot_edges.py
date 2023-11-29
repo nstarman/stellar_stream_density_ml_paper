@@ -17,7 +17,7 @@ paths = user_paths()
 
 ##############################################################################
 
-filters = brutus.filters.ps[:-2]  # (g, r)
+filters = brutus.filters.ps[:-2]  # (g, r, i)
 
 # Build isochrone
 abs_mags, _, _ = brutus.seds.Isochrone(

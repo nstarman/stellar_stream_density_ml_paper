@@ -1,5 +1,6 @@
 """Train photometry background flow."""
 
+import sys
 from typing import Any
 
 import asdf
@@ -10,14 +11,24 @@ import matplotlib.pyplot as plt
 import numpy as np
 from astropy.table import QTable, Row
 from matplotlib.colors import LogNorm
+from scipy.stats import gaussian_kde
 from showyourwork.paths import user as user_paths
 
 import stream_mapper.pytorch as sml
 
 paths = user_paths()
 
+# Add the parent directory to the path
+sys.path.append(paths.scripts.parent.as_posix())
+# isort: split
+
+from scripts.pal5.datasets import data, off_stream
+
 ###############################################################################
-# Load stuff
+# Prep
+
+# Munge the data
+data = data.astype(np.ndarray)
 
 # Matplotlib style
 plt.style.use(paths.scripts / "paper.mplstyle")
@@ -62,7 +73,15 @@ allstreams = galstreams.MWStreams(implement_Off=True)
 pal5I21 = allstreams["Pal5-I21"].track
 pal5PW19 = allstreams["Pal5-PW19"].track
 
-###############################################################################
+
+# On/off stream selection
+bw_method = 0.05
+background_kde = gaussian_kde(
+    np.c_[data["g"][off_stream], data["r"][off_stream]].T,
+    bw_method=bw_method,
+)
+positions = np.c_[data["g"][~off_stream], data["r"][~off_stream]]
+stream_kde = gaussian_kde(positions.T, bw_method=bw_method)
 
 
 def _sel_patch(row: Row, k1: str, k2: str, **kwargs: Any) -> mpl.patches.Rectangle:
@@ -71,12 +90,14 @@ def _sel_patch(row: Row, k1: str, k2: str, **kwargs: Any) -> mpl.patches.Rectang
         (row[k1 + "_min"].value, row[k2 + "_min"].value),
         row[k1 + "_max"].value - row[k1 + "_min"].value,
         row[k2 + "_max"].value - row[k2 + "_min"].value,
-        **kwargs
+        **kwargs,
     )
     rec.set_facecolor((*rec.get_facecolor()[:-1], 0.1))
 
     return rec
 
+
+###############################################################################
 
 fig = plt.figure(layout="constrained", figsize=(11, 6))
 outer_grid = fig.add_gridspec(2, 1, wspace=0, hspace=0, height_ratios=[1, 1.75])
@@ -122,21 +143,22 @@ ax00.legend(loc="lower left", fontsize=8)
 
 ax10 = fig.add_subplot(
     gs0[0, 2],
-    xlabel=r"$g_0 - i_0$ [mag]",
+    xlabel=r"$g_0 - r_0$ [mag]",
     ylabel=r"$g_0$ [mag]",
     rasterization_zorder=0,
 )
 mask_ = (
     mask_
     & (
-        ((table["g0"] > 0) & (table["i0"] > 0))
+        ((table["g0"] > 0) & (table["r0"] > 0))
         & ((table["phi2"] > -2.5 * u.deg) & (table["phi2"] < 1 * u.deg))
     )
     & masks_table["M5"]
     & masks_table["things"]
 )
+# plot the data
 ax10.hist2d(
-    (table["g0"] - table["i0"]).value[mask_ & masks_table["pm_med_icrs"]],
+    (table["g0"] - table["r0"]).value[mask_ & masks_table["pm_med_icrs"]],
     table["g0"].value[mask_ & masks_table["pm_med_icrs"]],
     bins=100,
     label="GD-1",
@@ -145,7 +167,21 @@ ax10.hist2d(
     zorder=-10,
     range=((-0.125, 1.25), (14, 21)),
 )
+# add the on-stream selection
+alpha = stream_kde(positions.T) - background_kde(positions.T)
+alpha[alpha < 0] = 0
+alpha[alpha > 1] = 1
+ax10.scatter(
+    data["g"][~off_stream] - data["r"][~off_stream],
+    data["g"][~off_stream],
+    s=1,
+    alpha=0.05 + 0.95 * alpha,
+    label="on-off",
+    c="tab:green",
+    zorder=-5,
+)
 
+# Add the buffered isochrone
 ax10.plot(
     isochrone_15[:, 0] - isochrone_15[:, 1],
     isochrone_15[:, 0],
@@ -180,7 +216,21 @@ ax30.hist2d(
     norm=LogNorm(),
     bins=100,
     zorder=-10,
+    label="off-stream",
 )
+# on-stream selection
+ax30.plot(
+    data["phi1"][~off_stream],
+    data["phi2"][~off_stream],
+    ls="none",
+    marker=",",
+    ms=1e-2,
+    color="tab:green",
+    alpha=0.5,
+    zorder=-5,
+    label="`on'-stream",
+)
+
 # add text to the top left corner of the plot saying log-density
 t = ax30.text(
     0.05,
@@ -191,7 +241,7 @@ t = ax30.text(
     verticalalignment="top",
 )
 t.set_bbox({"facecolor": "white", "alpha": 0.75, "edgecolor": "gray"})
-
+ax30.legend(loc="upper right", fontsize=12)
 
 # Parallax
 ax31 = fig.add_subplot(

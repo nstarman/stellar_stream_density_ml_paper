@@ -1,3 +1,31 @@
+[project]
+name = "stellar-stream-density-ml-paper"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "asdf-astropy>=0.6.1",
+    "asdf>=3.5.0",
+    "astropy>=6.1.4",
+    "galstreams",
+    "matplotlib>=3.9.2",
+    "numpy>=2.1.3",
+    "scipy>=1.14.1",
+    "stream-mapper-pytorch",
+    "tqdm>=4.66.6",
+    "zuko==0.3.1",
+]
+
+
+[dependency-groups]
+dev = [
+    "ipykernel>=6.29.5",
+    "notebook>=7.2.2",
+    "pip>=24.3.1",
+]
+
+
 [tool.black]
 line-length = 88
 
@@ -12,38 +40,40 @@ line-length = 88
 
 [tool.ruff]
 line-length = 88
+
+[tool.ruff.lint]
 select = ["ALL"]
 ignore = [
-    # flake8-annotations (ANN)
     "ANN101", "ANN102",
     "ANN401",  # Dynamically typed expressions are disallowed in `**kwargs`
-    # flake8-bandit (B)
     "B008", "B011",
-    # flake8-commas (COM)
     "COM812",
-    # pydocstyle (D)
     "D105", "D107", "D203", "D213", "D417",
-    # pycodestyle (E)
     "E402",
-    # eradicate (ERA)
     "ERA001",  # commented-out-code
-    # pep8-naming (N)
+    "ISC001",
+    "F722",
+    "FA102",  # Missing `from __future__ import annotations`, but uses PEP 585 collection
+    "FIX002",  # Line contains TODO, consider resolving the issue
     "N80",
     "N812",  # lowercase imported as non lowercase
     "N815", "N816",  # mixedCase
     "N999",  # Invalid module name
-    # Refactor (PLR)
     "PLR0915",  # Too many statements
     "PLR2004",  # Magic values
-    # RUF
     "RUF005",
-    # flake8-tidy-imports (TID)
+    "TD002",
+    "TD003",
     "TID252",  # Relative imports from parent modules are banned
 ]
 
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 "src/scripts/*.py" = ["INP001", "FBT003"]  #  implicit namespace package
 
-[tool.ruff.isort]
+[tool.ruff.lint.isort]
 known-first-party = ["stream_mapper", "scripts"]
 known-local-folder = ["paths"]
+
+[tool.uv.sources]
+stream-mapper-pytorch = { path = "../../../../local/stream_mapper-pytorch"}
+galstreams = { git = "https://github.com/cmateu/galstreams" }

@@ -1,5 +1,6 @@
 """Plot results."""
 
+import pathlib
 import sys
 from dataclasses import replace
 
@@ -15,7 +16,7 @@ from stream_mapper.pytorch.params import ModelParameter, ModelParameters
 from stream_mapper.pytorch.params.bounds import SigmoidBounds
 from stream_mapper.pytorch.params.scaler import StandardLnWidth, StandardLocation
 
-paths = user_paths()
+paths = user_paths(pathlib.Path(__file__).parents[3])
 
 # Add the parent directory to the path
 sys.path.append(paths.scripts.parent.as_posix())
