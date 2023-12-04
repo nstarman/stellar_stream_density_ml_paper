@@ -129,7 +129,7 @@ WHERE
     AND G.parallax BETWEEN {plx_bounds[0].value} AND {plx_bounds[1].value}
     AND G.phot_g_mean_mag BETWEEN {gmag_bounds[0].value} AND {gmag_bounds[1].value}
     AND PS1.g_mean_psf_mag - PS1.r_mean_psf_mag BETWEEN {g_r_bounds[0].value} AND {g_r_bounds[1].value}
-""".format(  # noqa: E501, S608
+""".format(  # noqa: E501
     gaia_columns=a_as_b(gaia_cols, "G."),
     xmatch_columns=a_as_b(xmatch_cols, "xm."),
     panstarrs_columns=a_as_b(ps1_cols, "PS1."),
