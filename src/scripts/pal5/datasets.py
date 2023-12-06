@@ -25,7 +25,6 @@ table = QTable.read(paths.data / "pal5" / "gaia_ps1_xm.asdf")[sel]
 masks = QTable.read(paths.data / "pal5" / "masks.asdf")[sel]
 
 
-# TODO: where should this go?
 # We set photoometrics with G_gaia > 20 to NaN
 completeness_mask = table["gaia_g"] > 20 * u.mag
 table["g0"][completeness_mask] = np.nan
@@ -45,7 +44,6 @@ data = sml.Data.from_format(
 # True where NOT missing
 where = sml.Data(~xp.isnan(data.array), names=data.names)
 
-# TODO: it would be nice to keep this as NaN.
 # Need to set missing data to some value, even though it's ignored, for the
 # gradient. Maybe can use zuko's MaskedMLP?
 data.array[~where.array] = xp.asarray(

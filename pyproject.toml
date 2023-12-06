@@ -14,30 +14,24 @@ line-length = 88
 line-length = 88
 select = ["ALL"]
 ignore = [
-    # flake8-annotations (ANN)
     "ANN101", "ANN102",
     "ANN401",  # Dynamically typed expressions are disallowed in `**kwargs`
-    # flake8-bandit (B)
     "B008", "B011",
-    # flake8-commas (COM)
     "COM812",
-    # pydocstyle (D)
     "D105", "D107", "D203", "D213", "D417",
-    # pycodestyle (E)
     "E402",
-    # eradicate (ERA)
     "ERA001",  # commented-out-code
-    # pep8-naming (N)
+    "FA102",  # Missing `from __future__ import annotations`, but uses PEP 585 collection
+    "FIX002",  # Line contains TODO, consider resolving the issue
     "N80",
     "N812",  # lowercase imported as non lowercase
     "N815", "N816",  # mixedCase
     "N999",  # Invalid module name
-    # Refactor (PLR)
     "PLR0915",  # Too many statements
     "PLR2004",  # Magic values
-    # RUF
     "RUF005",
-    # flake8-tidy-imports (TID)
+    "TD002",
+    "TD003",
     "TID252",  # Relative imports from parent modules are banned
 ]
 

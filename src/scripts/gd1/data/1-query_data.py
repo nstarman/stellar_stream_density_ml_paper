@@ -183,7 +183,6 @@ for i, (phi1a, phi1b) in tqdm(
     jobs[name] = (query, job)
 
 # Collect results
-# TODO: make awaitable and async (using asyncio.as_completed)
 for i, (query, job) in tqdm(enumerate(jobs.values()), total=len(jobs)):
     tbl = job.get_results()
 

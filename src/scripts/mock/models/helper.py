@@ -232,7 +232,7 @@ def diagnostic_plot(
         for ax in (ax01, ax02):
             ax.axvline(bins[i], color="gray", ls="--", zorder=-200)
             ax.axvline(bins[i + 1], color="gray", ls="--", zorder=-200)
-        smlvis._slices.connect_slices_to_top(  # noqa: SL
+        smlvis._slices.connect_slices_to_top(  # noqa: SLF001
             fig, ax03, ax10i, left=bins[i], right=bins[i + 1], color="gray"
         )
 

@@ -67,7 +67,7 @@ with xp.no_grad():
 
     stream_lnlik = model.component_ln_posterior("stream", mpars, data, where=where)
     bkg_lnlik = model.component_ln_posterior("background", mpars, data, where=where)
-    tot_lnlik = xp.logaddexp(stream_lnlik, bkg_lnlik)  # FIXME
+    tot_lnlik = xp.logaddexp(stream_lnlik, bkg_lnlik)
 
 # Weight
 weight = mpars[(f"stream.{WEIGHT_NAME}",)]
@@ -396,7 +396,7 @@ for i, b in enumerate(np.unique(which_bin)):
     for ax in (ax01, ax02, ax03, ax04, ax05):
         ax.axvline(bins[i], color="gray", ls="--", zorder=-200)
         ax.axvline(bins[i + 1], color="gray", ls="--", zorder=-200)
-    smlvis._slices.connect_slices_to_top(  # noqa: SL
+    smlvis._slices.connect_slices_to_top(  # noqa: SLF001
         fig, ax05, ax10i, left=bins[i], right=bins[i + 1], color="gray"
     )
 
