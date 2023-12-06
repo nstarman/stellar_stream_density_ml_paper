@@ -74,7 +74,6 @@ def diagnostic_plot(model: ModelAPI, data: Data, where: Data) -> plt.Figure:
 
         stream_lnlik = model.component_ln_posterior("stream", mpars, data, where=where)
         bkg_lnlik = model.component_ln_posterior("background", mpars, data, where=where)
-        # tot_lnlik = model.ln_posterior(mpars, data, where=where)  # FIXME!
         tot_lnlik = xp.logaddexp(stream_lnlik, bkg_lnlik)
 
         # back to training

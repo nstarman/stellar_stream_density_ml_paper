@@ -34,7 +34,6 @@ af = asdf.AsdfFile()
 
 # -----------------------------------------------------------------------------
 # Mask
-# TODO: move this to the data files
 
 sel = (
     masks["M5"]

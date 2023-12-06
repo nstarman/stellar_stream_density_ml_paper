@@ -49,10 +49,6 @@ prob_idx = np.where(
 )[0]
 subselect = rng.choice(np.arange(len(prob_idx)), size=1, replace=False, shuffle=False)
 rows.extend(prob_idx[subselect])
-# # 3 rows with non-zero joint probability  # TODO
-# prob_idx = np.where((strm_mle > 0.1) & (spur_mle > 0.6))[0]
-# subselect = rng.choice(np.arange(len(prob_idx)), size=3, replace=False, shuffle=False)
-# rows.extend(prob_idx[subselect])
 
 
 def process_lines(vs: Array, es: Array) -> list[str]:
