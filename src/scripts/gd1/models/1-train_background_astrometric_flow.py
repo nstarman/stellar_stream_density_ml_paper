@@ -97,6 +97,7 @@ def diagnostic_plot(data: Data, prob: np.ndarray) -> plt.Figure:
     -------
     plt.Figure
         The figure.
+
     """
     psort = np.argsort(prob[off_stream])
 

@@ -1,6 +1,5 @@
 """GD-1 distance control points."""
 
-
 import astropy.units as u
 import numpy as np
 from astropy.coordinates import Distance

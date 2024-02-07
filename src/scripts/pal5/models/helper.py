@@ -1,4 +1,5 @@
 """Helper function."""
+
 # ruff: noqa: ERA001
 
 

@@ -98,6 +98,7 @@ def make_model() -> MixtureModel:
     -------
     model : sml.MixtureModel
         The model.
+
     """
     scaler: StandardScaler
     with asdf.open(paths.data / "gd1" / "info.asdf", mode="r") as af:

@@ -1,6 +1,5 @@
 """Train photometry background flow."""
 
-
 import asdf
 import matplotlib.pyplot as plt
 import numpy as np

@@ -1,6 +1,5 @@
 """Save the number of stars in the GD-1 stream."""
 
-
 from astropy.table import QTable
 from showyourwork.paths import user as user_paths
 

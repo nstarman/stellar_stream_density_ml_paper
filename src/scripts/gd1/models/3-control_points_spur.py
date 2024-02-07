@@ -1,6 +1,5 @@
 """GD1 spur control points."""
 
-
 import astropy.units as u
 from astropy.table import QTable
 from showyourwork.paths import user as user_paths
