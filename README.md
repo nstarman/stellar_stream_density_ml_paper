@@ -22,4 +22,3 @@ Read the [article](https://arxiv.org/abs/2311.16960) here.
 This is the DOI for the REPO. Most of the time you will want to cite the PAPER!
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10903751.svg)](https://doi.org/10.5281/zenodo.10903752)
-
