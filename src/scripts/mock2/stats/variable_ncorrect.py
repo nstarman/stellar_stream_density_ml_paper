@@ -7,7 +7,6 @@ import torch as xp
 from showyourwork.paths import user as user_paths
 
 import stream_mapper.pytorch as sml
-from stream_mapper.core import WEIGHT_NAME
 
 paths = user_paths()
 
@@ -15,19 +14,19 @@ paths = user_paths()
 sys.path.append(paths.scripts.parent.as_posix())
 # isort: split
 
-from scripts.mock.model import model
-from scripts.mock.models import helper
+from scripts.mock2.model import model
+from scripts.mock2.models import helper
 
-(paths.output / "mock").mkdir(parents=True, exist_ok=True)
+(paths.output / "mock2").mkdir(parents=True, exist_ok=True)
 
 # =============================================================================
 # Load Data
 
 # Load model
-model.load_state_dict(xp.load(paths.data / "mock" / "model.pt"))
+model.load_state_dict(xp.load(paths.data / "mock2" / "model.pt"))
 
 # Load data
-with asdf.open(paths.data / "mock" / "data.asdf") as af:
+with asdf.open(paths.data / "mock2" / "data.asdf") as af:
     data = sml.Data(**af["data"]).astype(xp.Tensor, dtype=xp.float32)
     where = sml.Data(**af["where"]).astype(xp.Tensor, dtype=xp.bool)
     table = af["table"]
@@ -42,11 +41,10 @@ with xp.no_grad():
     tot_lik = model.posterior(mpars, data, where=where)
 
 stream_prob = stream_lik / tot_lik
-stream_prob[(stream_prob > 0.4) & (mpars[(f"stream.{WEIGHT_NAME}",)] < -4)] = 0
 
 true_stream = table["label"] == "stream"
-numstream = sum(true_stream)
-falseident = sum((stream_prob.numpy() > 0.8) & ~true_stream) / numstream * 100
+ncorrect = sum((stream_prob.numpy() > 0.75) & true_stream) / true_stream.sum() * 100
 
-with (paths.output / "mock" / "falseident_variable.txt").open("w") as f:
-    f.write(f"{falseident:2g}")
+
+with (paths.output / "mock2" / "ncorrect_variable.txt").open("w") as f:
+    f.write(f"{ncorrect:.1f}")

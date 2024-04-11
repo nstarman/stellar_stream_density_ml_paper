@@ -34,7 +34,7 @@ def p2alpha(p: Array, /, minval: float = 0.1) -> Array:
 
 
 def color_by_probable_member(
-    *pandcmaps: tuple[Array, LinearSegmentedColormap]
+    *pandcmaps: tuple[Array, LinearSegmentedColormap],
 ) -> np.ndarray:
     """Color by the most probable member."""
     # probabilities

@@ -2,7 +2,6 @@
 
 # ruff: noqa: ERA001
 
-
 import sys
 from math import inf
 

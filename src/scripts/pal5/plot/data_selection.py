@@ -71,7 +71,7 @@ def _sel_patch(row: Row, k1: str, k2: str, **kwargs: Any) -> mpl.patches.Rectang
         (row[k1 + "_min"].value, row[k2 + "_min"].value),
         row[k1 + "_max"].value - row[k1 + "_min"].value,
         row[k2 + "_max"].value - row[k2 + "_min"].value,
-        **kwargs
+        **kwargs,
     )
     rec.set_facecolor((*rec.get_facecolor()[:-1], 0.1))
 

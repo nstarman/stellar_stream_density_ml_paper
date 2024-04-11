@@ -1,5 +1,6 @@
 """GD-1 Model."""
 
+import pathlib
 import sys
 from dataclasses import KW_ONLY, dataclass, replace
 from math import inf
@@ -27,7 +28,7 @@ from stream_mapper.pytorch.prior import Prior
 from stream_mapper.pytorch.typing import Array, NNModel
 from stream_mapper.pytorch.utils import StandardScaler
 
-paths = user_paths()
+paths = user_paths(pathlib.Path(__file__).parents[3])
 
 # Add the parent directory to the path
 sys.path.append(paths.scripts.parent.as_posix())

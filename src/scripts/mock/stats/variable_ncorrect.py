@@ -43,11 +43,10 @@ with xp.no_grad():
 
 stream_prob = stream_lik / tot_lik
 stream_prob[(stream_prob > 0.4) & (mpars[(f"stream.{WEIGHT_NAME}",)] < -4)] = 0
-# nstream = int(sum(stream_prob > 0.8))
 
 true_stream = table["label"] == "stream"
 ncorrect = sum((stream_prob.numpy() > 0.8) & true_stream) / true_stream.sum() * 100
 
 
 with (paths.output / "mock" / "ncorrect_variable.txt").open("w") as f:
-    f.write(f"{ncorrect:g}")
+    f.write(f"{ncorrect:0.1f}")

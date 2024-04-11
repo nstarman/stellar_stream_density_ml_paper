@@ -1,5 +1,7 @@
 """Import data."""
 
+import pathlib
+
 import asdf
 import astropy.units as u
 import numpy as np
@@ -9,7 +11,7 @@ from showyourwork.paths import user as user_paths
 
 import stream_mapper.pytorch as sml
 
-paths = user_paths()
+paths = user_paths(pathlib.Path(__file__).parents[3])
 
 ###############################################################################
 

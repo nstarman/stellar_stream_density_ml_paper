@@ -71,6 +71,49 @@ dependencies:
     - src/scripts/mock/model.py
     - src/data/mock/model.pt
   # ==============================
+  # MOCK2
+  src/scripts/mock2/data/make.py:
+    - src/data/mock2/gd1_query_real.fits
+    - src/data/mock2/gd1_query_sim.fits
+    - src/data/mock2/astro_data_flow.eqx
+    - src/data/mock2/astro_error_flow.eqx
+    - src/data/mock2/phot_data_flow.eqx
+    - src/data/mock2/phot_error_flow.eqx
+    - src/data/brutus/MIST_1.2_iso_vvcrit0.0.h5
+    - src/data/brutus/nn_c3k.h5
+  src/scripts/mock2/data/variable_isochrone_age.py:
+    - src/data/mock2/data.asdf
+  src/scripts/mock2/data/variable_isochrone_feh.py:
+    - src/data/mock2/data.asdf
+  src/scripts/mock2/data/variable_nbackground.py:
+    - src/data/mock2/data.asdf
+  src/scripts/mock2/data/variable_nstream.py:
+    - src/data/mock2/data.asdf
+  src/scripts/mock2/model.py:
+    - src/data/mock2/data.asdf
+  src/scripts/mock2/models/1-train_flow.py:
+    - src/data/mock2/data.asdf
+    - src/scripts/mock2/model.py
+  src/scripts/mock2/models/2-train_model.py:
+    - src/data/mock2/data.asdf
+    - src/scripts/mock2/model.py
+    - src/data/mock2/background_photometry_model.pt
+  src/scripts/mock2/plot/photometric_background_selection.py:
+    - src/data/mock2/data.asdf
+    - src/scripts/mock2/model.py
+  src/scripts/mock2/plot/results.py:
+    - src/data/mock2/data.asdf
+    - src/scripts/mock2/model.py
+    - src/data/mock2/model.pt
+  src/scripts/mock2/stats/variable_ncorrect.py:
+    - src/data/mock2/data.asdf
+    - src/scripts/mock2/model.py
+    - src/data/mock2/model.pt
+  src/scripts/mock2/stats/variable_falseident.py:
+    - src/data/mock2/data.asdf
+    - src/scripts/mock2/model.py
+    - src/data/mock2/model.pt
+  # ==============================
   # GD1
   src/scripts/gd1/data/2-combine_data.py:
     - src/data/gd1/gaia_ps1_xm_polygons.asdf
@@ -113,6 +156,10 @@ dependencies:
     - src/data/gd1/gaia_ps1_xm.asdf
     - src/data/gd1/pm_edges.ecsv
     - src/data/gd1/masks.asdf
+  src/scripts/gd1/plot/member_probabilities.py:
+    - src/data/gd1/data.done
+    - src/data/gd1/model.pt
+    - src/data/gd1/membership_likelhoods.ecsv
   src/scripts/gd1/plot/photometric_background_selection.py:
     - src/data/gd1/data.done
   src/scripts/gd1/plot/results_full.py:
@@ -137,6 +184,7 @@ dependencies:
     - src/data/pal5/gaia_ps1_xm.asdf
     - src/data/pal5/pm_edges.ecsv
     - src/data/pal5/footprint.npz
+  # ------
   src/scripts/pal5/models/0-info.py:
     - src/data/pal5/gaia_ps1_xm.asdf
     - src/data/pal5/masks.asdf
@@ -156,11 +204,16 @@ dependencies:
   src/scripts/pal5/models/4-likelihoods.py:
     - src/data/pal5/data.done
     - src/data/pal5/model.pt
+  # ------
   src/scripts/pal5/plot/data_selection.py:
     - src/data/pal5/gaia_ps1_xm.asdf
     - src/data/pal5/pm_edges.ecsv
     - src/data/pal5/masks.asdf
     - src/data/pal5/info.asdf
+  src/scripts/pal5/plot/member_probabilities.py:
+    - src/data/pal5/data.done
+    - src/data/pal5/model.pt
+    - src/data/pal5/membership_likelhoods.ecsv
   src/scripts/pal5/plot/photometric_background_selection.py:
     - src/data/pal5/data.done
   src/scripts/pal5/plot/results_full.py:
