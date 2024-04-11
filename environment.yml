@@ -12,10 +12,15 @@ dependencies:
   - astroquery>0.4
   - astropy=5.2
   - dustmaps=1.0
+  - equinox
+  - flowjax
+  - gala
   - healpy=1.16
+  - jax
   - matplotlib=3.7
   - numpy=1.24
   - scipy=1.11
+  - seaborn
   - shapely
   - tqdm=4.65
 

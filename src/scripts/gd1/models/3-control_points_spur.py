@@ -13,9 +13,27 @@ paths = user_paths()
 table = QTable(
     # fmt: off
     rows=[
-        [-35.0 * u.deg, 1.3 * u.deg, 0.85 * u.deg, -12.95 * u.mas / u.yr, 2.0 * u.mas / u.yr],  # noqa: E501
-        [-30.0 * u.deg, 1.3 * u.deg, 0.85 * u.deg, -12.6 * u.mas / u.yr, 2.0 * u.mas / u.yr],  # noqa: E501
-        [-20 * u.deg, 1.5 * u.deg, 0.85 * u.deg, -11.5 * u.mas / u.yr, 2.0 * u.mas / u.yr],  # noqa: E501
+        [
+            -35.0 * u.deg,
+            1.3 * u.deg,
+            0.85 * u.deg,
+            -12.95 * u.mas / u.yr,
+            2.0 * u.mas / u.yr,
+        ],
+        [
+            -30.0 * u.deg,
+            1.3 * u.deg,
+            0.85 * u.deg,
+            -12.6 * u.mas / u.yr,
+            2.0 * u.mas / u.yr,
+        ],
+        [
+            -20 * u.deg,
+            1.5 * u.deg,
+            0.85 * u.deg,
+            -11.5 * u.mas / u.yr,
+            2.0 * u.mas / u.yr,
+        ],
     ],
     # fmt: on
     names=("phi1", "phi2", "w_phi2", "pm_phi1", "w_pm_phi1"),
