@@ -33,8 +33,8 @@ try:
     snkmk = dict(snakemake.params)
 except NameError:
     snkmk = {
-        "load_from_static": False,
-        "save_to_static": False,
+        "load_from_static": True,
+        "save_to_static": True,
         "diagnostic_plots": True,
         "T1": 2_100,
         "T2": 2_100,
@@ -45,7 +45,7 @@ except NameError:
 snkmk["epochs"] = snkmk["T1"] + snkmk["T2"] + snkmk["T3"]
 
 
-if snkmk["load_from_static"] and (paths.static / "mock2").exists():
+if snkmk["load_from_static"] and (paths.static / "mock2" / "model.pt").exists():
     model.load_state_dict(xp.load(paths.static / "mock2" / "model.pt"))
     xp.save(model.state_dict(), paths.data / "mock2" / "model.pt")
 

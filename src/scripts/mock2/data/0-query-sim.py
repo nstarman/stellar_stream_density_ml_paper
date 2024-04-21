@@ -33,7 +33,7 @@ try:
 except NameError:
     snkmk = {
         "diagnostic_plots": True,
-        "load_from_static": False,
+        "load_from_static": True,
         "save_to_static": True,
     }
 
@@ -45,6 +45,9 @@ diagnostic_plots.mkdir(parents=True, exist_ok=True)
 
 
 ##############################################################################
+
+names = ("ra", "dec", "parallax", "pmra", "pmdec", "G", "G-R")
+dims = len(names)
 
 if snkmk["load_from_static"]:
     shutil.copyfile(
@@ -69,9 +72,6 @@ else:
     # Define the distance range in parsecs
     max_plx = Distance(3 * u.kpc).parallax
     min_plx = Distance(15 * u.kpc).parallax
-
-    dims = 5 + 2  # 5D position, 2D photometry
-    names = ("ra", "dec", "parallax", "pmra", "pmdec", "G", "G-R")
 
     # Construct the query
     ra_min = (coord.ra - ra_radius).to_value("deg")

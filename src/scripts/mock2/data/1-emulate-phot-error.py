@@ -137,15 +137,16 @@ else:
         ]
     )
 
-    # Save the flow info
-    eqx.tree_serialise_leaves(
-        paths.data / "mock2" / "phot_errors_preprocess.eqx", preprocess_errors
-    )
-
     if snkmk["save_to_static"]:
         eqx.tree_serialise_leaves(
             paths.static / "mock2" / "phot_errors_preprocess.eqx", preprocess_errors
         )
+
+
+# Save the flow info
+eqx.tree_serialise_leaves(
+    paths.data / "mock2" / "phot_errors_preprocess.eqx", preprocess_errors
+)
 
 # Transform the data
 dXp = jax.vmap(preprocess_errors.transform)(dX)
@@ -228,15 +229,13 @@ else:
         normalized_phot_error_flow, fjxb.Invert(preprocess_errors)
     )
 
-    # Save the flow info
-    eqx.tree_serialise_leaves(
-        paths.data / "mock2" / "phot_error_flow.eqx", phot_error_flow
-    )
-
     if snkmk["save_to_static"]:
         eqx.tree_serialise_leaves(
             paths.static / "mock2" / "phot_error_flow.eqx", phot_error_flow
         )
+
+# Save the flow info
+eqx.tree_serialise_leaves(paths.data / "mock2" / "phot_error_flow.eqx", phot_error_flow)
 
 
 # ---------------------------------

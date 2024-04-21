@@ -92,15 +92,15 @@ else:
         ]
     )
 
-    # Save the flow info
-    eqx.tree_serialise_leaves(
-        paths.data / "mock2" / "astro_data_preprocess.eqx", preprocess_data
-    )
-
     if snkmk["save_to_static"]:
         eqx.tree_serialise_leaves(
             paths.static / "mock2" / "astro_data_preprocess.eqx", preprocess_data
         )
+
+# Save the flow info
+eqx.tree_serialise_leaves(
+    paths.data / "mock2" / "astro_data_preprocess.eqx", preprocess_data
+)
 
 # Transformed data
 Xp = jax.vmap(preprocess_data.transform)(X)
@@ -198,11 +198,12 @@ else:
     )
     flow = fjdist.Transformed(normalized_flow, fjxb.Invert(preprocess_data))
 
-    # Save the flow info
-    eqx.tree_serialise_leaves(paths.data / "mock2" / "astro_data_flow.eqx", flow)
-
     if snkmk["save_to_static"]:
         eqx.tree_serialise_leaves(paths.static / "mock2" / "astro_data_flow.eqx", flow)
+
+
+# Save the flow info
+eqx.tree_serialise_leaves(paths.data / "mock2" / "astro_data_flow.eqx", flow)
 
 
 if snkmk["diagnostic_plots"]:

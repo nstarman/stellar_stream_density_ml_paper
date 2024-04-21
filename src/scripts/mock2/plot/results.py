@@ -32,8 +32,7 @@ plt.style.use(paths.scripts / "paper.mplstyle")
 plt.rcParams["ytick.direction"] = "inout"
 
 # Load model
-# model.load_state_dict(xp.load(paths.data / "mock2" / "model.pt"))
-model.load_state_dict(xp.load(paths.data / "mock2" / "models" / "epoch_06200.pt"))
+model.load_state_dict(xp.load(paths.data / "mock2" / "model.pt"))
 
 # Load data
 with asdf.open(

@@ -13,8 +13,6 @@ dependencies:
   - astropy=5.2
   - dustmaps=1.0
   - equinox
-  - flowjax
-  - gala
   - healpy=1.16
   - jax
   - matplotlib=3.7
@@ -26,8 +24,10 @@ dependencies:
 
   - pip:
       - daft
+      - flowjax
       - gaiadr3-zeropoint>=0.0.4
-      - gala>=1.7
+      # - gala>=1.8
+      - git+https://github.com/adrn/gala.git@v1.8.1
       - git+https://github.com/nstarman/galstreams.git@gala17
       - git+https://github.com/GalOrrery/interpolated-coordinates.git
       - nflows

@@ -40,7 +40,7 @@ try:
     snkmk = dict(snakemake.params)
 except NameError:
     snkmk = {
-        "load_from_static": False,
+        "load_from_static": True,
         "save_to_static": False,
         "epochs": 2_500,
         "diagnostic_plots": True,

@@ -199,6 +199,7 @@ rule mock2_query_real_data:
     params:
         load_from_static=True,  # set to False to redownload
         save_to_static=False,
+        diagnostic_plots=True,
     conda:
         "environment.yml"
     cache: True
@@ -212,6 +213,7 @@ rule mock2_query_sim_data:
     params:
         load_from_static=True,  # set to False to redownload
         save_to_static=False,
+        diagnostic_plots=True,
     conda:
         "environment.yml"
     cache: True
@@ -222,9 +224,13 @@ rule mock2_query_sim_data:
 rule mock2_emulate_astro_data:
     output:
         "src/data/mock2/astro_data_flow.eqx"
+    input:
+        "src/data/mock2/gd1_query_real.fits",
+        "src/data/mock2/gd1_query_sim.fits",
     params:
         load_from_static=True,  # set to False to redownload
         save_to_static=False,
+        diagnostic_plots=True,
     conda:
         "environment.yml"
     cache: True
@@ -235,9 +241,13 @@ rule mock2_emulate_astro_data:
 rule mock2_emulate_astro_errors:
     output:
         "src/data/mock2/astro_error_flow.eqx"
+    input:
+        "src/data/mock2/gd1_query_real.fits",
+        "src/data/mock2/gd1_query_sim.fits",
     params:
         load_from_static=True,  # set to False to redownload
         save_to_static=False,
+        diagnostic_plots=True,
     conda:
         "environment.yml"
     cache: True
@@ -248,9 +258,13 @@ rule mock2_emulate_astro_errors:
 rule mock2_emulate_phot_data:
     output:
         "src/data/mock2/phot_data_flow.eqx"
+    input:
+        "src/data/mock2/gd1_query_real.fits",
+        "src/data/mock2/gd1_query_sim.fits",
     params:
         load_from_static=True,  # set to False to redownload
         save_to_static=False,
+        diagnostic_plots=True,
     conda:
         "environment.yml"
     cache: True
@@ -261,9 +275,13 @@ rule mock2_emulate_phot_data:
 rule mock2_emulate_phot_errors:
     output:
         "src/data/mock2/phot_error_flow.eqx"
+    input:
+        "src/data/mock2/gd1_query_real.fits",
+        "src/data/mock2/gd1_query_sim.fits",
     params:
         load_from_static=True,  # set to False to redownload
         save_to_static=False,
+        diagnostic_plots=True,
     conda:
         "environment.yml"
     cache: True
@@ -277,6 +295,10 @@ rule mock2_make_data:
     input:
         "src/data/brutus/MIST_1.2_iso_vvcrit0.0.h5",
         "src/data/brutus/nn_c3k.h5",
+        "src/data/mock2/astro_data_flow.eqx",
+        "src/data/mock2/astro_error_flow.eqx",
+        "src/data/mock2/phot_data_flow.eqx",
+        "src/data/mock2/phot_error_flow.eqx",
     params:
         seed=35,
         diagnostic_plots=True,

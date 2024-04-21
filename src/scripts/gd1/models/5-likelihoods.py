@@ -1,7 +1,6 @@
 """Compute and save a table of the per-star likelihoods."""
 
 import copy as pycopy
-import pathlib
 import sys
 
 import numpy as np
@@ -13,7 +12,7 @@ from tqdm import tqdm
 
 from stream_mapper.core import Params
 
-paths = user_paths(pathlib.Path(__file__).parents[3])
+paths = user_paths()
 
 # Add the parent directory to the path
 sys.path.append(paths.scripts.parent.as_posix())

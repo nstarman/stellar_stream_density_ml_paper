@@ -98,15 +98,15 @@ else:
         ]
     )
 
-    # Save the flow info
-    eqx.tree_serialise_leaves(
-        paths.data / "mock2" / "astro_errors_preprocess.eqx", preprocess_errors
-    )
-
     if snkmk["save_to_static"]:
         eqx.tree_serialise_leaves(
             paths.static / "mock2" / "astro_errors_preprocess.eqx", preprocess_errors
         )
+
+# Save the flow info
+eqx.tree_serialise_leaves(
+    paths.data / "mock2" / "astro_errors_preprocess.eqx", preprocess_errors
+)
 
 
 # Transform the data
@@ -202,13 +202,13 @@ else:
         normalized_error_flow, fjxb.Invert(preprocess_errors)
     )
 
-    # Save the flow info
-    eqx.tree_serialise_leaves(paths.data / "mock2" / "astro_error_flow.eqx", error_flow)
-
     if snkmk["save_to_static"]:
         eqx.tree_serialise_leaves(
             paths.static / "mock2" / "astro_error_flow.eqx", error_flow
         )
+
+# Save the flow info
+eqx.tree_serialise_leaves(paths.data / "mock2" / "astro_error_flow.eqx", error_flow)
 
 
 # -------------------------------------------

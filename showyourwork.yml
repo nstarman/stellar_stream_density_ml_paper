@@ -55,9 +55,6 @@ dependencies:
     - src/data/mock/data.asdf
     - src/scripts/mock/model.py
     - src/data/mock/background_photometry_model.pt
-  src/scripts/mock/plot/photometric_background_selection.py:
-    - src/data/mock/data.asdf
-    - src/scripts/mock/model.py
   src/scripts/mock/plot/results.py:
     - src/data/mock/data.asdf
     - src/scripts/mock/model.py
@@ -156,6 +153,7 @@ dependencies:
     - src/data/gd1/gaia_ps1_xm.asdf
     - src/data/gd1/pm_edges.ecsv
     - src/data/gd1/masks.asdf
+    - src/data/gd1/info.asdf
   src/scripts/gd1/plot/member_probabilities.py:
     - src/data/gd1/data.done
     - src/data/gd1/model.pt
@@ -264,7 +262,7 @@ scripts:
 # Display of the `showyourwork` stamp on first page
 stamp:
   # Show the stamp?
-  enabled: true
+  enabled: false
   # Stamp angle in degrees
   angle: -20.0
   # Stamp size in inches

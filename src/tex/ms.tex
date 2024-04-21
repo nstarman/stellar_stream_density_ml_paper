@@ -2,7 +2,7 @@
 
 \PassOptionsToPackage{table}{xcolor}
 
-\documentclass[twocolumn]{aastex631}
+\documentclass[twocolumn, linenumbers]{aastex631}
 \usepackage{showyourwork}
 \usepackage{amsmath, amssymb}
 \usepackage{gensymb}
@@ -134,10 +134,7 @@
     both streams we obtain a catalog of stellar membership probabilities that
     are made publicly available.  Importantly, our model is capable of handling
     data with incomplete phase-space observations, making our method applicable
-    to the growing census of Milky Way stellar streams. When applied to a
-    population of streams, the resulting membership probabilities from our model
-    form the required input to infer the Milky Way's dark matter distribution
-    from the scale of the stellar halo down to subhalos.
+    to the growing census of Milky Way stellar streams.
 
 \end{abstract}
 
@@ -148,7 +145,7 @@
     thanks to all-sky astrometric missions like \Gaia{}
     \citep{GaiaCollaboration+2016, GaiaCollaboration+2023} and low-surface
     brightness photometric surveys (e.g., \citealt{Ibata+1998,
-    GrillmairDionatos2006, Shipp+2018, Ibata+2021}).  The formation of streams
+    GrillmairDionatos2006, GrillmairCarlin2016, Shipp+2018, Ibata+2021}).  The formation of streams
     can be traced back to a progenitor (a globular cluster or satellite galaxy)
     whose stars are gradually lost to the tidal field of the host galaxy. The
     stars extend along a series of similar orbits, called tidal tails, which can
@@ -157,7 +154,7 @@
     distribution of galaxies, sourced by both the baryonic and dark matter
     components.
 
-    The average properties of a stream (e.g., the mean position and velocity
+    The average properties of a stream along its track (e.g., the mean position and velocity
     track of the tidal tails) can be used to reconstruct the global dark matter
     distribution of the stellar halo (e.g., \citealt{Johnston+1999, Bonaca+2014,
     Bovy2014, Bovy+2016, Nibauer+2022, Koposov+2023}), while local variations in
@@ -174,7 +171,7 @@
     SandersBinney2013, Bovy2014, Nibauer+2022}) and local substructures (e.g.,
     the bar's pattern speed and the mass of subhalo perturbers;
     \citealt{Antoja+2014, Hattori+2016, Price-Whelan+2016, Bovy+2017,
-    Pearson+2017, Bonaca+2019}), these methods often rely on the existence of a
+    Pearson+2017, Bonaca+2019, Malhan+2021}), these methods often rely on the existence of a
     homogenized stream-tracer population that characterizes a given stream
     across each of the observable phase-space dimensions.  Additionally, because
     even the fine-grained properties of streams are influenced by the detailed
@@ -285,8 +282,6 @@
     MNDs are well suited to characterize streams (and the background) with all
     their variations in position, width, and linear density.
 
-    % sub: framing_the_data (end)
-
 
     \subsection{Framing the Data} \label{sub:method:framing_the_data}
 
@@ -331,6 +326,8 @@
         and their connection constrained by a prior. Thus the methods developed
         here may be extended and applied even to wrapped and kinked streams.
         However, we leave extending the model framework to a future work.
+
+    % sub: framing_the_data (end)
 
     \subsection{Likelihood Setup}\label{sub:method:likelihood_setup}
 
@@ -422,7 +419,7 @@
         Assuming the conditional independence of the astrometry and
         photometry\footnote{ For \Gaia{} data this is true in practice but not
         in detail: there exist small correlations between the astrometric and
-        photometric data.}, we split each model into linearly separable
+        photometric data \citep[see e.g. the \href{https://www.cosmos.esa.int/web/gaia/science-performance\#astrometric\%20performance}{\Gaia{} website} or][]{GaiaDR2Astrometry2018}.}, we split each model into linearly separable
         astrometric and photometric models $\cmp{q}{\pdf} = \cmp{q,w}{\pdf}
         \cmp{q,m}{\pdf}$.
 
@@ -479,7 +476,7 @@
         astrometrics as well as photometry and chemical abundances available
         \citep[e.g.,][]{Koposov+2019, Antoja+2020, Li+2022}, while most have
         partial coverage, lacking some feature dimensions.  Most streams
-        detected by \Gaia \citep{Gaia2016, Gaia2023}, for instance, have proper
+        detected by \Gaia{} \citep{Gaia2016, Gaia2023}, for instance, have proper
         motions but not radial velocities nor high signal-to-noise parallax
         measurements.  Follow-up surveys, like \dataarchive{S5} \citep{Li+2019},
         add many feature dimensions, however only for a select set of streams.
@@ -751,7 +748,7 @@
             For the $n$-th star, the photometric model is:
             \begin{multline} \label{eq:photometric_probability_point}
                 \cmp{S,m}{\pdf}(\mbs{m_i}, \gamma | \mbs{\theta}(\phi_1)) 
-                \\ \sim \mcal{N}(\nth{\mbs{m}} | \{\mcal{I(\gamma)} + \mu(\phi_1), \mbs{\Sigma}_{\mcal{I}}^2(\gamma) + \mathds{1} \sigma_\mu^2(\phi_1) + {\cmp{m}{\nth{\mbs{\Sigma}}}}^2 \}) \\ \times \prior(\gamma, \nth{\mbs{m}}, \phi_1),
+                \\ = \mcal{N}(\nth{\mbs{m}} | \{\mcal{I(\gamma)} + \mu(\phi_1), \mbs{\Sigma}_{\mcal{I}}^2(\gamma) + \mathds{1} \sigma_\mu^2(\phi_1) + {\cmp{m}{\nth{\mbs{\Sigma}}}}^2 \}) \\ \times \prior(\gamma, \nth{\mbs{m}}, \phi_1),
             \end{multline}
     
             where $\cmp{m}{\nth{\mbs{\Sigma}}}$ is the data covariance and
@@ -1141,58 +1138,49 @@
 
 \section{Results: Mock} \label{sec:results_mock}
 
-    In this section we present an application of our model to a synthetic stream
+    In this section we present an application of our model to a synthetic stream and background
     with known ground truths, and demonstrate the model's ability to
     characterize stream density variations and membership probabilities in an
     unsupervised manner.
+    In \autoref{app:tailored_mock} we apply the method to a more tailored data set, demonstrating that we can obtain near-perfect reconstruction of the stream -- the stream width in each components, and the presence of gaps -- and separation between stream and background stars. 
+    Here, the mock synthetic data emulates real observations, with complex background distributions and observational uncertainties. As will be shown, even in these more adverse conditions our model maps the stream in great detail.
 
     \subsection{Data Simulation} \label{sub:results_mock:data}
 
-        We generate synthetic stream observations by sampling from simple
-        algebraic forms.  In $\phi_1$ we sample from a uniform distribution.
-        Non-Poissonian density variations, like gaps, are introduced by adding
-        to the uniform distribution two Gaussian distributions centered at
-        different values of $\phi_1$ with negative amplitudes and random widths.
-        Stream stars are then sampled from this uniform-plus-gaps mixture
-        distribution.  In $\phi_2$ we sample from a quadratic in $\phi_1$ with
-        normally-distributed $0.15^{\degree}$ scatter.  The distances are
-        uniformly sampled from $7$ to $15$ kpc in a linear function in $\phi_1$
-        with normally-distributed $0.25 \ \rm{kpc}$ scatter, then transformed to
-        the parallax $\parallax$. Even though the stream width is constant in
-        the distance the width in parallax is not, which will be used to
-        demonstrate that we can recover $\phi_1$ dependent distributions.  The
-        number of stream stars is $\variable{output/mock/nstream_variable.txt}$.
-        $\variable{output/mock/nbackground_variable.txt}$ background astrometric
-        points are generated by sampling from uniform distributions in each
-        coordinate.
+        We generate realistic mock stream observations by sampling from a synthetic \Gaia{} catalog with an injected particle-spray mock stream. Realistic observational errors are applied to both the background and stream.
+
+        The background is based on the \Gaia{} mission's \href{https://gea.esac.esa.int/archive/documentation/GEDR3/Gaia_archive/chap_datamodel/sec_dm_simulation_tables/ssec_dm_gaia_source_simulation.html}{Main database Combined Data \texttt{gaia\_source\_simulation}}, which is a realization of the Gaia Object Generator (GOG; \citealt{2014EAS....67..355A}) simulation. The GOG is based on the Gaia Universe Model \citep{2012A&A...543A.100R}, which is in turn based on an updated Besan{\c c}on Galactic model \citep{2003A&A...409..523R}. The GOG Galactic catalogue simulates, among other observables, astrometric and photometric measurements for stars in a full 3D distribution about the Milky Way. While the model does well for large structure, e.g. the Disk and Halo, it does not contain substructure like stellar streams. One will be injected later.
+        We query the GOG catalogue around the region $(\alpha, 
+        \delta) = (148, 37)$ in a $40\times 10$ degree box, 
+        with the distance restricted to 5-15 kpc.
+        This is a data cube centered on the location of \stream{GD-1}. Given that the model will be applied to the \stream{GD-1} stream in \autoref{sec:results_gd1}, this is a good test case.
+        Rather than using the data cube directly, it is convenient to emulate the data and draw a new synthetic catalogue. We do this for two reasons. First, we want to control the stream-to-background count, which is $\variable{output/mock2/nstream_variable.txt} / \variable{output/mock2/nbackground_variable.txt} \, \sim 1\%$. 
+        Second, the GOG has known issues with outliers (see \href{https://gea.esac.esa.int/archive/documentation/GEDR3/Data_processing/chap_simulated/ssec_cu2knowniss/}{GEDR3 known issues}) that can be avoided through emulation. We train two normalizing flows, one on the astrometry and the other on the photometry in the data cube. Two additional normalizing flows are trained on the error distributions of the real \Gaia{} data in the specified region. Using the real \Gaia{} data has the dual advantage of realism and mitigating issues in the GOG, including that the errors are too covariate. From the emulator we draw $\variable{output/mock2/nbackground_variable.txt}$ background stars. Their distribution may be seen in \autoref{fig:mock_data_photometric_background_selection} and \autoref{fig:mock_data_result}, particularly the histogram plots of the latter, discussed later.
+
+        Into the observed background distribution we inject a mock stellar stream. The stream is a particle-spray model, following \cite{2015MNRAS.452..301F}, integrated in a Milky Way-like potential. We give the stream $10^4 \ \rm{M}_\odot$ progenitor a phase-space position similar to \stream{GD-1}, but with modified proper motions so as to nicely spread along the observational field. We refer the reader to the code, bundled with this paper for details. In the field the stream comprises $\variable{output/mock2/nstream_variable.txt}$ stars. Astrometric uncertainties are drawn from the astrometric error emulator, convolved with the stream, and used in the later model.
     
-        The synthetic stream's photometry is also simulated using a
+        The synthetic stream's photometry is simulated using a
         \variable{output/mock/isochrone_age_variable.txt}\unskip, [Fe/H] =
         \variable{output/mock/isochrone_feh_variable.txt} MIST isochrone
-        \citep[using][]{brutus}. The isochrone is truncated just short of the
-        giant branch, and is sampled from assuming a stream mass function
-        similar to \stream{Pal\,5} \citep{GrillmairSmith2001} as well as with an
-        intrinsic uniform 0.2~dex scatter orthogonal to the isochrone track.
-
+        \citep[using][]{brutus}. This isochrone is empirically similar to \stream{GD-1} -- all that is required for this model which does not constrain the metallicity. To test the stream mass function priors -- \autoref{eq:isochrone_prior_components} -- and make the stream recovery more challenging by removing the main sequence turn-off, the isochrone is truncated just short of the
+        giant branch. The truncated isochrone is sampled from assuming a stream mass function
+        similar to \stream{Pal\,5} \citep{GrillmairSmith2001}, which is reasonable for many streams. Observational errors
+        are added according to the photometry error emulator.
         The isochrone is shifted by the stream's distance modulus, which is
-        derived from the astrometric distance track.  The background photometric
-        coordinates are generated as a 2-dimensional Gaussian with non-zero
-        covariance. The background is illustrative, if not realistic, in that it
-        is a distribution about which we care very little beyond our ability to
-        fit with a model.  Thus, the synthetic data scenario described here, and
+        derived from the astrometric distance track.
+        Thus, the synthetic data scenario described here, and
         presented in \autoref{fig:mock_data_photometric_background_selection},
-        generates a mock stream in astrometric coordinates and photometric
-        coordinates, with density variations, a distance gradient which is
-        consistent in parallax and distance modulus (i.e., magnitudes), all
-        superimposed over a $\sim 10$ times larger noisy field of background
-        points in each astrometric and photometric dimension. 
+        generates a realistic mock stream in astrometric coordinates and photometric
+        coordinates, all superimposed over a $\sim 100$ times larger noisy field of background points in each astrometric and photometric dimension. 
+
+    % sub: data_simulation (end)
 
     \subsection{Model Specification} \label{sub:results_mock:model}
 
         \begin{figure}
-            \script{mock/plot/photometric_background_selection.py}
+            \script{mock2/plot/photometric_background_selection.py}
             \centering
-            \includegraphics[width=1\linewidth]{figures/mock/photometric_background_selection.pdf}
+            \includegraphics[width=1\linewidth]{figures/mock2/photometric_background_selection.pdf}
             \caption{
                 %
                 \textbf{Top panel:} Astrometric coordinates ($\phi_1$, $\phi_2$)
@@ -1213,10 +1201,10 @@
             \label{fig:mock_data_photometric_background_selection}
         \end{figure}
 
-        \begin{figure*}[!h]
-            \script{mock/plot/results.py}
+        \begin{figure*}[!ht]
+            \script{mock2/plot/results.py}
             \centering
-            \includegraphics[width=0.9\linewidth]{figures/mock/results.pdf}
+            \includegraphics[width=0.89\linewidth]{figures/mock2/results.pdf}
             \caption{%
                 Illustration of the model's performance in recovering a stream
                 from synthetic observations. The \textbf{top panel} shows the
@@ -1224,17 +1212,15 @@
                 predicted by the model, overplotted on the true stream fraction
                 (black-outlined histogram).
                 %
-                In the \textbf{middle two rows} we also show the $\phi_2$ and
-                parallax, $\parallax$, tracks as a function of $\phi_1$ and
-                their associated widths (labeled as $\sigma_{\phi_2}$ and
-                $\sigma_{\parallax}$, respectively). The true values for these
-                quantities are shown in gray, while our model prediction and
-                uncertainty is show by the dashed red curve and red band, and by
-                the color of the data points (color-coded by membership
-                probability). The model does an excellent job at identifying the
+                In the \textbf{middle three rows} we also show the $\phi_2$, $\parallax$, and $\mu_{\phi_1}^*$, tracks as a function of $\phi_1$ and
+                their associated widths (labeled as $\sigma_{\phi_2}$,
+                $\sigma_{\parallax}$, $\sigma_{\mu_{\phi_1}^*}$, respectively). The true values for these
+                quantities are shown in black, while our model prediction and
+                uncertainty is show by the red curve and band, and by
+                the color of the data points. The model does an excellent job at identifying the
                 ground truth stream stars.
                 %
-                In the \textbf{bottom three rows} we demonstrate our ability to
+                In the \textbf{bottom four rows} we demonstrate our ability to
                 separate the stream from the background both astrometrically and
                 photometrically. Histograms are shown for each model component
                 (black for the ground truth, blue for the background, red for
@@ -1250,38 +1236,42 @@
             }
             \label{fig:mock_data_result}
         \end{figure*}
+
+        We now specify the details of the background and on-stream model utilized for recovering the injected stream. 
     
-        We select on-stream and off-stream regions using the known $\phi_1,
+        We first discuss our density model for the background distribution in photometry. We select on-stream and off-stream regions using the known $\phi_1,
         \phi_2$ range of the mock stream.  The upper panel of
         \autoref{fig:mock_data_photometric_background_selection} shows these
         selections in blue and black, respectively.  The lower panel shows the
-        on and off-stream selections in photometric coordinates.  In this space
-        it is apparent that the on-stream region has two populations, drawn from
+        on and off-stream selections in photometric coordinates. Given the low density of the stream, it is not apparent that the on-stream region has two populations, drawn from
         the isochrone and from background points included in the simple $\phi_1,
-        \phi_2$ box.  In contrast, the off-stream region has only the the
-        background population.  We use the off-stream population to train a
+        \phi_2$ box. We use the off-stream population to train a
         conditional normalizing flow (see
         \autoref{sub:method:pre-training_distributions}) on the magnitudes $g$
         and $r$ and conditioned on $\phi_1$.  The normalizing flow is now a
         non-parametric distribution characterizing the photometric background,
-        including its variation over $\phi_1$.  For this mock stream the
-        flexibility of the normalizing flow greatly exceeds necessity: the
-        background is drawn from a $\phi_1$-invariant multivariate normal,
-        essentially the base distribution of the normalizing flow.  It is
-        therefore no surprise that the trained normalizing flow provides an
-        excellent characterization of the background.  We will later see that
-        the flow performs similarly well on complex distributions.  Having
-        trained the background photometric model we proceed to build and train
-        the full model.
+        including any variation over $\phi_1$. Importantly, we pre-train the photometric model described above and keep its parameters fixed in our mixture model.
 
-        Per \autoref{eq:stream_and_bkg_prob} the stream is an independent
+       
+        Next, we discuss our astrometric model for the distribution of background stars. Unlike the photometric background model, we allow for the astrometric background model to adapt as we fit the stream. The astrometric background model is split into three components: the first is a uniform
+        distribution in $\phi_2$, the second is an exponential distribution
+        for $\parallax$, and the third is a Gaussian distribution for $\mu_{\phi_1}^*$.  The uniform distribution does not have any parameters,
+        and thus no associated neural network.  The exponential distribution has only the
+        slope parameter and we use a 3-layer \texttt{LTD} with shape (1, 32, 1)
+        and 15\% dropout. The Gaussian distribution has two parameters and is a 4-layer \texttt{LTD} with shape (1, 64, 1)
+        and 15\% dropout. The input for each of these neural networks is the stream's length coordinate, $\phi_1$. We therefore allow for the background density to change with angle along the stream.
+        
+    
+
+        Finally, we specify our model for the on-stream density. Per \autoref{eq:stream_and_bkg_prob} the stream is an independent
         addition of both astrometric and photometric models.  In astrometrics
-        the stream is a Gaussian track in $\phi_2$ and parallax $\parallax$,
+        the stream is a Gaussian track in $\phi_2$, parallax $\parallax$, and $\phi_1$ proper motion $\mu_{\phi_1}^*$
         using the model defined in
-        \autoref{ssub:method:astrometric_model:on_stream}.  We use a 4-layer
-        \texttt{LTD} with overall shape ($\phi_1$ input, 4 outputs), where the 4
+        \autoref{ssub:method:astrometric_model:on_stream}.  We use a 5-layer
+        \texttt{LTD} with overall shape ($\phi_1$ input, 6 outputs), where the 4
         outputs are $[\mu_{\phi_2}, \sigma_{\phi_2}, \mu_{\parallax},
-        \sigma_{\parallax}](\phi_1)$.  The network is small, but sufficiently
+        \sigma_{\parallax}, \mu_{\mu_{\phi_1}^*},
+        \sigma_{\mu_{\phi_1}^*}](\phi_1)$.  The network is small, but sufficiently
         large to permit 15\% dropout and retain robust predictions.  The
         photometric model is a distance modulus-shifted isochrone, using the
         model outlined in  \autoref{ssub:method:photometric_model:on_stream}. We
@@ -1291,23 +1281,44 @@
         modeling, linking the distance modulus and parallax track, as explained
         in \autoref{ssub:method:linking_to_astrometrics}.
 
-        The total background model has two pieces, an astrometric and a
-        photometric model.  As a pre-training phase the photometric normalizing
-        flow model was fitted to an off-stream selection and is now held fixed.
-        The astrometric model is split in two components, the first is a uniform
-        distribution in $\phi_2$, and the second is an exponential distribution
-        for $\parallax$.  The uniform distribution does not have any parameters,
-        and thus no neural network.  The exponential distribution has only the
-        slope parameter and we use a 3-layer \texttt{LTD} with shape (1, 32, 1)
-        and 15\% dropout. Background and stream are combined in a mixture model
-        whose mixture parameters are a 4-layer (1, 64, 1) \texttt{LTD} network.
+        
+        With the various pieces of the model identified, the background and stream densities are combined through a two-component mixture model
+        whose mixture parameters are a 4-layer (1, 64, 1) \texttt{LTD} network (input is $\phi_1$ and output is the mixture weight).
         We train the mixture model with an \texttt{AdamW} optimizer with
-        learning rate of $5\times10^{-3}$ and a scheduler to periodically and
-        temporarily increase the learning rate, encouraging the optimizer
-        towards better minima.
+        learning rate of $3\times10^{-3}$ and a scheduler to periodically decrease the learning rate, allowing for characterization of smaller-scale features.
 
-    \newpage
     \subsection{Trained Density Model} \label{sub:results_mock:results}
+
+        The result of applying our density model to the synthetic data is
+        illustrated in \autoref{fig:mock_data_result}. The top panel shows the
+        weight parameter that controls membership probability as a function of
+        $\phi_1$. The dashed curve represents the output of our data-driven
+        model, while the histogram is the ground truth. The second panel shows
+        the stream and background in the $(\phi_1,\phi_2)$ plane, and the third
+        panel shows the stream and background in the $(\phi_1,\parallax)$ plane.
+        Points are color-coded according to their membership probability
+        \autoref{eq:membership_prob}. The weight parameter clearly shows that
+        the model has captured the overall density variations along the
+        stream.
+
+        We find that the stream is successfully recovered in both astrometric
+        and photometric coordinates, with
+        $\variable{output/mock2/ncorrect_variable.txt}\%$ 
+        of stream stars being recovered with membership probability greater than
+        $75\%$. Impressively, the model does a good job of recovering from the error convolved distribution (gray) the true distribution (black) of the stream, as can be seen in the $\sigma$ plots. In the lower rows of \autoref{fig:mock_data_result} we
+        illustrate the synthetic data color-coded by stream membership
+        probability (top) and background membership probability (background) for
+        different $\phi_1$ slices. Importantly, the photometric portion of the
+        mixture model successfully identifies the stream in magnitude space,
+        showing a high stream membership probability where the stream is
+        present, and a low probability ($\sim 0$) where the stream is absent.
+        The false positive rate (i.e., stars misidentified as stream members)
+        for this test is found to be $\variable{output/mock2/falseident_variable.txt}\%$ (6 stars) when cutting on the 75\%
+        membership probability threshold.
+
+% sec: results  (end)
+
+\section{Results: GD-1} \label{sec:results_gd1}
 
 % sec: results_gd1 ---
     \begin{figure*}[ht]
@@ -1329,57 +1340,33 @@
             selection is based on a 12 Gyr, [Fe/H] = -1.2 MIST isochrone,
             buffered by 0.3 mag to select the stream. The data is cut at
             $G\leq20$, before applying the isochrone selection.
+            Light green points are the stream and background from an ``on''-stream region defined in row 2, column 1. The stream's isochrone is apparent as an overdensity.
             %
             \textbf{Rows 2 \& 3:}
-            Applying the combination of astrometric and photometric selections,
+            Applying the combination of astrometric and photometric selections (blue 2d bins),
             plotted for astrometric coordinates $\phi_2, \parallax,
             \mu_{\phi_1}, \mu_{\phi_2}$.  The proper motions are plotted
             relative to \citetalias{Ibata+2021}. Using a log-density coloring,
             the stream is identifiable in all phase-space coordinates except
-            $\parallax$ where the errors are significant.  }
+            $\parallax$ where the errors are significant.
+            % 
+            \textbf{Row 2, column 1:}
+            Light green points are the stream and background defining an ``on''-stream region. Blue points are in the off-stream
+            region used to train the background photometric model. Note the green points are generated from a reduced field with a tighter proper
+            motion cut to aid in visually identifying the stream.  The
+            proper motion cut is $-15 < \mu_{\phi_1}^* < -10$, $-4.5 <
+            \mu_{\phi_2} < -2$ [mas/yr].
+            %
+            }
         \label{fig:gd1-data_selection}
     \end{figure*}
 % --- sec: results_gd1 (end)
-
-        The result of applying our density model to the synthetic data is
-        illustrated in \autoref{fig:mock_data_result}. The top panel shows the
-        weight parameter that controls membership probability as a function of
-        $\phi_1$. The dashed curve represents the output of our data-driven
-        model, while the histogram is the ground truth. The second panel shows
-        the stream and background in the $(\phi_1,\phi_2)$ plane, and the third
-        panel shows the stream and background in the $(\phi_1,\parallax)$ plane.
-        Points are color-coded according to their membership probability
-        \autoref{eq:membership_prob}. The weight parameter clearly shows that
-        the model has captured the two prominent density variations along the
-        stream.  There are additional variations, mostly around the edges of the
-        stream, though re-sampling the neural network weights with dropout
-        reveals that these variations represent regions of higher model
-        uncertainty. 
-
-        We find that the stream is successfully recovered in both astrometric
-        and photometric coordinates, with
-        $>99\%$ %$\variable{output/mock/ncorrect_variable.txt}\%$ 
-        of stream stars being recovered with membership probability greater than
-        $80\%$.  In the bottom two rows of \autoref{fig:mock_data_result} we
-        illustrate the synthetic data color-coded by stream membership
-        probability (top) and background membership probability (background) for
-        different $\phi_1$ slices. Importantly, the photometric portion of the
-        mixture model successfully identifies the stream in magnitude space,
-        showing a high stream membership probability where the stream is
-        present, and a low probability ($\sim 0$) where the stream is absent.
-        The false positive rate (i.e., stars misidentified as stream members)
-        for this test is found to be $<0.1\%$ (3 stars) when cutting on the 80\%
-        membership probability threshold.
-
-% sec: results  (end)
-
-\section{Results: GD-1} \label{sec:results_gd1}
 
     We now apply our method for stream characterization to the stellar stream
     \stream{GD-1}, initially discovered by \citet{GrillmairDionatos2006}.
     Previous work has identified several density variations along \stream{GD-1}
     \citep{deBoer+2018}, including a bifurcation that can be modeled by an
-    encounter with a dense dark matter subhalo \citep{Bonaca+2019, Webb+2019}.
+    encounter with a dense perturber \citep{Bonaca+2019, Webb+2019}.
     Characterizing the detailed density fluctuations of this stream is therefore
     important for constraining a population of perturbers.  We discuss the data
     selection in \autoref{sub:results_gd1:data}, model specifics in
@@ -1454,30 +1441,6 @@
 
     \subsection{Model Specification}\label{sub:results_gd1:model}
 
-        \begin{figure}
-            \script{gd1/plot/photometric_background_selection.py}
-            \centering
-            \includegraphics[width=1\linewidth]{figures/gd1/photometric_background_selection.pdf}
-            \vspace{-20pt}
-            \caption{%
-                The on and off-stream selection.
-                % 
-                \textbf{Top panel:} Astrometric coordinates ($\phi_1$,
-                $\phi_2$).  Light blue points are the stream and background
-                within an on-stream region. Black points are in the off-stream
-                region used to train the background photometric model. Note this
-                plot is generated from a reduced field with a tighter proper
-                motion cut to aid in visually identifying the stream.  The
-                proper motion cut is $-15 < \mu_{\phi_1}^* < -10$, $-4.5 <
-                \mu_{\phi_2} < -2$ [mas/yr].
-                %
-                \textbf{Bottom panel:} CMD of the astrometric selection above.
-                The stream's isochrone is apparent as an overdensity.
-                %
-            }
-            \label{fig:gd1-photometric_background_selection}
-        \end{figure}
-
         The modeling framework, detailed in section \autoref{sec:method}, is
         modular, allowing many model components to be combined, nested, added to
         the mixture, and linked via priors.  The model we require for
@@ -1497,8 +1460,8 @@
         flow's flexibility, while necessary in this context, also poses a
         problem: the flow captures the stream as easily as the background.
         Consequently we select on-stream and off-stream regions using the known
-        $\phi_1,\phi_2$ range of the stream, as shown in the upper panel of
-        \autoref{fig:gd1-photometric_background_selection}.  In the lower panel
+        $\phi_1,\phi_2$ range of the stream, as shown in green points in 
+        \autoref{fig:gd1-data_selection}.  In the first row
         we plotted this selection in photometric coordinates, where an isochrone
         is apparent in the on-stream selection.  The normalizing flow is trained
         on the off-stream selection, and will be fixed (not trainable, nor
@@ -1529,7 +1492,7 @@
             \item $\mu_{\phi_1}^*, \mu_{\phi_2}, \varpi \sim q_{\rm flow}$: a 3
                 argument , one context feature ($\phi_1$) normalizing flow
                 trained on an off-stream selection (see
-                \autoref{fig:gd1-photometric_background_selection} for that
+                \autoref{fig:gd1-data_selection} for that
                 selection). Though discussed in the context of a photometric
                 background, \autoref{sub:method:pre-training_distributions}
                 details how these flows are constructed and trained.
@@ -1631,33 +1594,29 @@
             \label{fig:gd1-results-full}
         \end{figure*}
 
-        \begin{figure*}[t]
-            \script{gd1/plot/results_panels.py}
+        \begin{figure}[t]
+            \script{gd1/plot/member_probabilities.py}
             \centering
-            \includegraphics[width=1\linewidth]{figures/gd1/results_panels.pdf}
+            \includegraphics[width=1.05\linewidth]{figures/gd1/member_probabilities.pdf}
             \caption{%
-                Photometric coordinate $(g, r)$ plots for each model component
-                in 4 $\phi_1$ ranges across the data set. Over-plotted is the
-                model isochrone, shifted to the mean distance of the track
-                within the selected $\phi_1$ range. Importantly this means we do
-                not expect the mean isochrone to exactly match the distribution
-                of points. See \autoref{fig:gd1-results-full} for the match of
-                the distance gradient to the data and prior literature results.
+                Distribution of membership probabilities (primary axis).
+                Number of stars exceeding the membership probability (secondary axis; green).
+                \stream{GD-1} stars have high membership probability, compared to low-membership probability background stars. As can be seen, the majority of stars are confidently separated, with a minima between the background and stream at $\sim 50\%$ membership probability.
                 %
             }
-            \label{fig:gd1-results-panels}
-        \end{figure*}
+            \label{fig:gd1-member_probs}
+        \end{figure}
 
-        In this section we present results from our model applied to real {\it
-        Gaia} and Pan-STARRS data of \stream{GD-1}.  We visualize the
+        In this section we present results from our model applied to real \Gaia{} and Pan-STARRS data of \stream{GD-1}.  We visualize the
         performance of our model in identifying stream stars in
         \autoref{fig:gd1-results-full}, and illustrate our photometric fit in
         \autoref{fig:gd1-results-panels}. In \autoref{tab:gd1_member_table} we
         provide a selection of \stream{GD-1} member stars. The full catalog is
         available online at
-        \href{https://zenodo.org/records/10211410}{zenodo:10211410}. Lastly,
+        \href{https://zenodo.org/doi/10.5281/zenodo.10903751}{DOI 10.5281/zenodo.10211409}. In Fig.~\ref{fig:gd1-member_probs} a summary of stream membership probabilities for the GD-1 field considered is provided.  Lastly,
         \autoref{fig:gd1-heatmap} is a membership probability-weighted density
         heatmap of the \stream{GD-1} stream derived from our fit.
+
 
         In \autoref{fig:gd1-results-full}, the top panels shows the fraction of
         stars belonging to the stream (red) and spur (yellow) as a function of
@@ -1700,7 +1659,7 @@
         50th-percentile ridge. This highlights the importance of exploring the
         full posterior of parameters, not only a Maximum Likelihood Estimation
         (MLE) or posterior ridge-line.
-
+        
         Our model finds \variable{output/gd1/nstream/nstream_variable.txt}stars
         that belong to the main stream component with membership probability
         greater than
@@ -1720,6 +1679,8 @@
         credible region in the track means there can be significant variation in
         a star's estimated membership probability. 
 
+        We illustrate our determination of membership probabilities in Fig.~\ref{fig:gd1-member_probs}. The x-axis is the stream-membership probability, computed from Eq.~\ref{eq:membership_prob}. The histogram illustrates the number of stars (i.e., membership frequency) in bins of membership probability. The green curve (secondary y-axis) is the survival function of the histogram, or one minus the cumulative density function. This curve provides the number of stars with membership probability greater than the x-axis value. For instance, all stars in the field have membership probabilities greater than 0, while around 800 stars have membership probabilities greater than 0.8.
+        
         The extent of the main stream in $\phi_1$ is roughly $80~\rm{deg}$, and
         the angular extent of the spur is roughly $15~\rm{deg}$. The distance
         track (bottom panel) places the stream in the range of $6-10~\rm{kpc}$,
@@ -1732,6 +1693,23 @@
         estimates. The similarity of our inferred distance track compared to
         other works indicates that our photometric model is performing
         satisfactorily.
+
+        \begin{figure*}[t]
+            \script{gd1/plot/results_panels.py}
+            \centering
+            \includegraphics[width=1\linewidth]{figures/gd1/results_panels.pdf}
+            \caption{%
+                Photometric coordinate $(g, r)$ plots for each model component
+                in 4 $\phi_1$ ranges across the data set. Over-plotted is the
+                model isochrone, shifted to the mean distance of the track
+                within the selected $\phi_1$ range. Importantly this means we do
+                not expect the mean isochrone to exactly match the distribution
+                of points. See \autoref{fig:gd1-results-full} for the match of
+                the distance gradient to the data and prior literature results.
+                %
+            }
+            \label{fig:gd1-results-panels}
+        \end{figure*}
 
         We also recover the well-known underdensity gaps along the stream around
         $\phi_1 \approx -40, -20 \ \rm{and } -5~\rm{deg}$ (seen best in
@@ -1773,50 +1751,6 @@
         defer a more detailed fit of the diffuse extra-tidal structure of Milky
         Way streams to future work.
 
-        We note that the model-predicted track does not always closely align
-        with the predicted member stars or our notion of a slowly-evolving
-        stream. This misalignment is most evident in $\mu_{\phi_1^*}$, where the
-        track has a sharp turn up at $\phi_1 \sim -65 \ \rm{deg}$ and then
-        flattens out. There are a number of contributing factors. First, the
-        observational uncertainties are large enough that this flattening is
-        consistent with the data. Second, we do not enforce the stream track to
-        be smooth with $\phi_1$ -- our fits are dictated by the data.  Last,
-        examining 2D slices when fitting in high dimensional spaces can be
-        misleading \citep{Aggarwal+2002}. Unsurprisingly, the raw membership
-        probabilities for each model component provide a more accurate
-        representation of the stream's 6d phase-space distribution than any
-        phase-space slice could, as may be seen in \autoref{fig:gd1-heatmap}. We
-        discuss the smoothed stream model determined solely by membership
-        probabilities at the end of this section.
-        
-        We highlight the performance of our photometric model in
-        \autoref{fig:gd1-results-panels}. In this figure, we color-code each
-        star by its membership probability (top row; same as
-        \autoref{fig:gd1-results-full}), and in the bottom row we visualize the
-        performance of our photometric model in bands of $\phi_1$. Our model
-        isochrone, which shifts vertically due to our distance modulus estimate,
-        is shown in green (we plot the mean-distance isochrone in each $\phi_1$
-        band). Because our model preforms a joint fit in photometry and
-        astrometry, the most probable stream members do not need to fall exactly
-        along the isochrone.  Still, the likely stream members are
-        overwhelmingly distributed as might be expected from a single-stellar
-        population.  Even the more diffuse tails of the stream can be seen in
-        the CMD distribution, where they still roughly follow a single-stellar
-        population. 
-        
-        With membership probabilities for each component of the stream estimated
-        from both astrometry and photometry, it is possible to quickly construct
-        a custom representation of the stream's phase-space density. We
-        illustrate this in  \autoref{fig:gd1-heatmap}, which shows a Gaussian
-        kernel density estimate (KDE) of bandwidth $0.1 \ \rm{deg}$ (or mas/yr)
-        fit to the model. The primary overdensities at $\phi_1 = (-50, -30, -10)
-        \ \rm{deg}$ are all visible in $\phi_2$. The gap at $20 \ \rm{deg}$ is
-        prominent in all features, but the gap at $-40$ is less visible in
-        proper motions, since the spur shares the stream's proper motions and
-        thus contributes to the density in those coordinates. This highlights
-        the importance of constructing a multidimensional smooth density model
-        of streams.
-
         \begin{figure}[ht]
             \script{gd1/plot/smooth_likelihood.py}
             \centering
@@ -1833,8 +1767,87 @@
             \label{fig:gd1-heatmap}
         \end{figure}
 
+        We note that the model-predicted track does not always closely align
+        with the predicted member stars or our notion of a slowly-evolving
+        stream. This misalignment is most evident in $\mu_{\phi_1^*}$, where the
+        track has a sharp turn up at $\phi_1 \sim -65 \ \rm{deg}$ and then
+        flattens out. There are a number of contributing factors. First, the
+        observational uncertainties are large enough that this flattening is
+        consistent with the data. Second, we do not enforce the stream track to
+        be smooth with $\phi_1$ -- our fits are dictated by the data.  Last,
+        examining 2D slices when fitting in high dimensional spaces can be
+        misleading \citep{Aggarwal+2002}. Unsurprisingly, the raw membership
+        probabilities for each model component provide a more accurate
+        representation of the stream's 6d phase-space distribution than any
+        phase-space slice could, as may be seen in \autoref{fig:gd1-heatmap}. We
+        discuss the smoothed stream model determined solely by membership
+        probabilities at the end of this section.
+
+        We highlight the performance of our photometric model in
+        \autoref{fig:gd1-results-panels}. In this figure, we color-code each
+        star by its membership probability (top row; same as
+        \autoref{fig:gd1-results-full}), and in the bottom row we visualize the
+        performance of our photometric model in bands of $\phi_1$. Our model
+        isochrone, which shifts vertically due to our distance modulus estimate,
+        is shown in green (we plot the mean-distance isochrone in each $\phi_1$
+        band). Because our model preforms a joint fit in photometry and
+        astrometry, the most probable stream members do not need to fall exactly
+        along the isochrone.  Still, the likely stream members are
+        overwhelmingly distributed as might be expected from a single-stellar
+        population.  Even the more diffuse tails of the stream can be seen in
+        the CMD distribution, where they still roughly follow a single-stellar
+        population.
+
+        With membership probabilities for each component of the stream estimated
+        from both astrometry and photometry, it is possible to quickly construct
+        a custom representation of the stream's phase-space density. We
+        illustrate this in  \autoref{fig:gd1-heatmap}, which shows a Gaussian
+        kernel density estimate (KDE) of bandwidth $0.1 \ \rm{deg}$ (or mas/yr)
+        fit to the model. The primary overdensities at $\phi_1 = (-50, -30, -10)
+        \ \rm{deg}$ are all visible in $\phi_2$. The gap at $20 \ \rm{deg}$ is
+        prominent in all features, but the gap at $-40$ is less visible in
+        proper motions, since the spur shares the stream's proper motions and
+        thus contributes to the density in those coordinates. This highlights
+        the importance of constructing a multidimensional smooth density model
+        of streams.
+
 
 % sub: gd1 (end)
+
+% -----------------------------------
+
+    \begin{figure*}[ht]
+        \script{pal5/plot/data_selection.py}
+        \centering
+        \includegraphics[width=1\linewidth]{figures/pal5/data_selection.pdf}
+        \caption{%
+            Data selections for \stream{Pal\,5}, within the data cube described
+            in \autoref{sub:results_pal5:data}.
+            %
+            \textbf{Row 1:}
+            Proper motion and photometric selections.  \stream{Pal\,5} is
+            apparent in the proper motions as a small overdensity. The
+            photometric selection is based on a 12 Gyr, [Fe/H] = $-1.2$ MIST
+            isochrone, buffered by 0.3 dex. The photometry is also cut to
+            \Gaia{}'s $G\leq20$ mag, before applying the isochrone selection.
+            In green is plotted an ``on''-stream selection (see $\phi_1, \phi_2$ plot). The stream's isochrone is somewhat apparent, but the
+            background contamination is large.
+            %
+            \textbf{Rows 2 \& 3:}
+            Applying the combination of astrometric and photometric selections (Row 1, blue regions),
+            plotted for astrometric coordinates $\phi_2, \parallax,
+            \mu_{\phi_1}, \mu_{\phi_2}$.  The stream is an identifiable
+            overdensity in only $\phi_2$ and errors dominate all other
+            coordinates.
+            \textbf{Row 2, left:}
+            Green points define an``on"-stream region. Light blue points are the background and are used to train the background photometric
+            model (\autoref{sub:results_pal5:model}). The \stream{M5} cluster is masked from the stream, cutting into the on-stream selection.
+            %
+        }
+        \label{fig:pal5-data_selection}
+    \end{figure*}
+
+% -----------------------------------
 
 
 \section{Results: Palomar 5} \label{sec:results_pal5}
@@ -1849,30 +1862,6 @@
     selection in \autoref{sub:results_pal5:data}, model specifics in
     \autoref{sub:results_pal5:model}, and the results in
     \autoref{sub:results_pal5:results}.
-
-    \begin{figure*}[ht]
-        \script{pal5/plot/data_selection.py}
-        \centering
-        \includegraphics[width=1\linewidth]{figures/pal5/data_selection.pdf}
-        \caption{%
-            Data selections for \stream{Pal\,5}, within the data cube described
-            in \autoref{sub:results_pal5:data}.
-            %
-            \textbf{Row 1:}
-            Proper motion and photometric selections.  \stream{Pal\,5} is
-            apparent in the proper motions as a small overdensity. The
-            photometric selection is based on a 12 Gyr, [Fe/H] = -1.2 MIST
-            isochrone, buffered by 0.3 dex. The photometry is also cut to
-            \Gaia{}'s $G\leq20$ mag, before applying the isochrone selection.
-            %
-            \textbf{Rows 2 \& 3:}
-            Applying the combination of astrometric and photometric selections,
-            plotted for astrometric coordinates $\phi_2, \parallax,
-            \mu_{\phi_1}, \mu_{\phi_2}$.  The stream is an identifiable
-            overdensity in only $\phi_2$ and errors dominate all other
-            coordinates.  }
-        \label{fig:pal5-data_selection}
-    \end{figure*}
 
     \subsection{Data Selection} \label{sub:results_pal5:data}
 
@@ -1898,7 +1887,7 @@
         Ibata+2016, Price-Whelan+2019} and thus increasing the probability of
         the star being considered a member.  The 1$\sigma$ dust correction
         errors are included by quadrature in $\mbs{\Sigma}_n$, the per-star
-        photometric uncertainty. We also correct the parallax for the \Gaia\
+        photometric uncertainty. We also correct the parallax for the \Gaia{}
         zero-point as in \autoref{sub:results_gd1:data}.  The result is a field
         populated by \variable{output/pal5/ndata_variable.txt} stars, from which
         we would like to identify stream members.
@@ -1927,11 +1916,9 @@
         for a few degrees around the progenitor. The distance of \stream{Pal\,5}
         means most $\parallax$ measurements have $\sim 100\%$ errors, so neither
         the stream nor even the progenitor are evident.
-        
 
     % sub data_selection (end)
 
-    \vspace{-6pt}
     \subsection{Model Specification} \label{sub:results_pal5:model}
 
         In this section we discuss how the total \stream{Pal\,5} model is built,
@@ -1951,71 +1938,9 @@
         off. Thus we do not model the stream photometrically. We only use
         photometric cuts to remove some background. Similarly, we do not include
         the parallax as the errors are too large for the parallax to contribute
-        to the model. 
+        to the model.
 
-        \begin{figure}[ht]
-            \script{pal5/plot/photometric_background_selection.py}
-            \centering
-            \includegraphics[width=1\linewidth]{figures/pal5/photometric_background_selection.pdf}
-            \caption{%
-                \textbf{Top panel:} Astrometric coordinates ($\phi_1$,
-                $\phi_2$).  Light blue points are the stream and background
-                within an ``on"-stream region. Black points are in the
-                ``off"-stream region used to train the background photometric
-                model. The \stream{M5} cluster is masked as a black circle
-                cutting into the on-stream selection at $\phi_1\sim-1\degree$.
-                %
-                \textbf{Bottom panel:} CMD plot of the astrometric selection
-                above. The stream's isochrone is somewhat apparent, but the
-                background contamination is large.
-                %
-            }
-            \label{fig:pal5-photometric_background_selection}
-        \end{figure}
-        
-        To avoid a large convergence time, we use as a prior the known stream
-        track, in this case \package{galstream}'s \citep{Mateu2022}
-        implementation of \stream{Pal\,5} from \citet{Ibata+2021}. From the
-        track, we set down guides (see
-        \autoref{sub:methods:priors:track_region_prior}) regularly spaced in
-        $\phi_1$. We include all the guides in \autoref{tab:pal5_track_prior}.
-        We don't place guides in the other coordinates, except at the location
-        of the progenitor, because the stream is not visible and the models
-        disagree on the proper motions (see \autoref{fig:pal5-data_selection},
-        top left plot).  The progenitor is an exception, both visible
-        kinematically and also extremely well measured
-        \citep{VasilievBaumgardt2021}, and we place a tight kinematic prior on
-        the stream track at the location of the progenitor.  The guide priors
-        are visible in \autoref{fig:pal5-results-full}.
-        \variable{output/pal5/control_points.tex}
-
-        The background is fit with an analytic distribution and a normalizing
-        flow:
-        \begin{itemize}
-            \setlength\itemsep{0em}
-            \item $\phi_2 \sim \rm{TruncExp}(\lambda; a, b)$: a truncated
-                exponential distribution (see
-                \autoref{app:sub:exponential_distribution}).  The distribution
-                has 1 parameter and we use a \texttt{LTD} neural network with
-                15\% dropout.
-            \item $\mu_{\phi_1}, \mu_{\phi_2} \sim q_{\rm flow}$: a two feature,
-                one context feature normalizing flow trained on an off-stream
-                selection (see
-                \autoref{fig:pal5-photometric_background_selection} for that
-                selection). \autoref{sub:method:pre-training_distributions}
-                details how these flows are constructed and trained.
-        \end{itemize}
-
-        All the component models are tied together into a mixture model.  The
-        weight parameter network is the usual \texttt{LTD} with 15\% dropout.
-        The stream weights are in the range $\ln{f_{\rm stream}} \in [-10, 0]$
-        and set to $-\infty$ for $\phi_1 \notin [-10^\circ, 10^\circ]$. By
-        \autoref{eq:mixture_weight_normalization} the background  brings the
-        cumulative weight to one, normalizing the mixture.
-
-    % sub model_specification (end)
-
-    \subsection{Trained Density Model} \label{sub:results_pal5:results}
+% -----------------------------------
 
         \begin{figure*}[ht]
             \script{pal5/plot/results_full.py}
@@ -2054,7 +1979,43 @@
             \label{fig:pal5-results-full}
         \end{figure*}
 
-        \begin{figure*}[htp]
+% -----------------------------------
+
+        To avoid a large convergence time, we use as a prior the known stream
+        track, in this case \package{galstream}'s \citep{Mateu2022}
+        implementation of \stream{Pal\,5} from \citet{Ibata+2021}. From the
+        track, we set down guides (see
+        \autoref{sub:methods:priors:track_region_prior}) regularly spaced in
+        $\phi_1$. We include all the guides in \autoref{tab:pal5_track_prior}.
+        We don't place guides in the other coordinates, except at the location
+        of the progenitor, because the stream is not visible and the models
+        disagree on the proper motions (see \autoref{fig:pal5-data_selection},
+        top left plot).  The progenitor is an exception, both visible
+        kinematically and also extremely well measured
+        \citep{VasilievBaumgardt2021}, and we place a tight kinematic prior on
+        the stream track at the location of the progenitor.  The guide priors
+        are visible in \autoref{fig:pal5-results-full}.
+        \variable{output/pal5/control_points.tex}
+
+        The background is fit with an analytic distribution and a normalizing
+        flow:
+        \begin{itemize}
+            \setlength\itemsep{0em}
+            \item $\phi_2 \sim \rm{TruncExp}(\lambda; a, b)$: a truncated
+                exponential distribution (see
+                \autoref{app:sub:exponential_distribution}).  The distribution
+                has 1 parameter and we use a \texttt{LTD} neural network with
+                15\% dropout.
+            \item $\mu_{\phi_1}, \mu_{\phi_2} \sim q_{\rm flow}$: a two feature,
+                one context feature normalizing flow trained on an off-stream
+                selection (see
+                \autoref{fig:pal5-data_selection} for that
+                selection). \autoref{sub:method:pre-training_distributions}
+                details how these flows are constructed and trained.
+        \end{itemize}
+
+% ------------------------
+        \begin{figure*}[tp]
             \script{pal5/plot/results_panels.py}
             \centering
             \includegraphics[width=1\linewidth]{figures/pal5/results_panels.pdf}
@@ -2073,16 +2034,28 @@
             }
             \label{fig:pal5-results-panels}
         \end{figure*}
+% ------------------------
 
+        All the component models are tied together into a mixture model.  The
+        weight parameter network is the usual \texttt{LTD} with 15\% dropout.
+        The stream weights are in the range $\ln{f_{\rm stream}} \in [-10, 0]$
+        and set to $-\infty$ for $\phi_1 \notin [-10^\circ, 10^\circ]$. By
+        \autoref{eq:mixture_weight_normalization} the background  brings the
+        cumulative weight to one, normalizing the mixture.
+
+    % sub model_specification (end)
+
+    \subsection{Trained Density Model} \label{sub:results_pal5:results}
         \variable{output/pal5/member_table_select.tex}
-    
-        Our fit to \stream{Pal\,5} and its tidal tails is illustrated in
-        \autoref{fig:pal5-results-full}. In the top panel we plot the stream
+
+        In this section we illustrate our fit to \stream{Pal\,5} and its tidal tails. The trained density model is shown in
+        \autoref{fig:pal5-results-full} in astrometric coordinates, 
+        \autoref{fig:pal5-results-panels} in photometric coordinates, and membership probabilities for all stars in the Pal-5 field considered are summarized in \autoref{fig:pal5-member_probs}. A heatmap of the stream, weighted by membership probabilities, is shown in \autoref{fig:pal5-heatmap}.
+        
+        In the top panel of \autoref{fig:pal5-results-full} we plot the stream
         fraction and its uncertainty, estimated by applying dropout during
         inference and evaluation of our model. The model clearly identifies the
-        progenitor cluster $(\phi_1 = 0)$. 
-    
-        The membership probability of stream stars is illustrated in subsequent
+        progenitor cluster $(\phi_1 = 0)$. The membership probability of stream stars is illustrated in subsequent
         panels of \autoref{fig:pal5-results-full}, with guide points and their
         widths shown in red. The leading and trailing arms of the stream are
         clearly identified in our fits, with high membership probability on
@@ -2142,19 +2115,22 @@
         validity of our astrometric membership model, since a photometric fit
         was never performed. 
 
-        The stream solution, i.e. the per-star membership likelihood, is a
-        posterior distribution. \autoref{fig:pal5-results-full} and
-        \autoref{fig:pal5-results-panels} show the membership likelihood
-        evaluated at the $50$th percentile of this distribution, per star. In
-        \autoref{fig:pal5-heatmap} we sample over the full distribution and
-        smooth by a 0.1~deg (or mas/yr) kernel to produce a smooth
-        representation of the stream. As a consequence of the sampling we see
-        the model's stream solution extends beyond the $\approx \pm5\degree$
-        shown previously.  Though the model certainty and individual membership
-        likelihoods are low, the stream path matches closely with findings in
-        deeper photometric catalogues, like \citet{Ibata+2017}.
+        \begin{figure}[htp]
+            \script{pal5/plot/member_probabilities.py}
+            \centering
+            \includegraphics[width=1.05\linewidth]{figures/pal5/member_probabilities.pdf}
+            \caption{%
+                Distribution of membership probabilities (primary axis).
+                Number of stars with membership probability exceeding the threshold (secondary axis).
+                \stream{Pal\,5} stars have high membership probability, compared to low-membership probability background stars. As can be seen, there are two minima in the probability distribution, at $\sim 50\%$ and $\sim 85\%$ membership probability.
+                %
+            }
+            \label{fig:pal5-member_probs}
+        \end{figure}
+        
+        Our determination of stream membership probabilities is summarized in Fig.~\ref{fig:pal5-member_probs}. The x-axis is the stream-membership probability, computed from Eq.~\ref{eq:membership_prob}. The histogram illustrates the number of stars (i.e., membership frequency) in bins of membership probability. The green curve is the survival function of the histogram, or one minus the cumulative distribution function. For example, this curve indicates that there are roughly 400 stars with membership probability greater than $0.8$.
 
-        \begin{figure}[ht]
+        \begin{figure}[htp]
             \script{pal5/plot/smooth_likelihood.py}
             \centering
             \hspace{-25pt}\includegraphics[width=1.05\linewidth]{figures/pal5/smooth_likelihood.pdf}
@@ -2174,6 +2150,18 @@
             \label{fig:pal5-heatmap}
         \end{figure}
 
+        The stream solution, i.e. the per-star membership likelihood, is a
+        posterior distribution. \autoref{fig:pal5-results-full} and
+        \autoref{fig:pal5-results-panels} show the membership likelihood
+        evaluated at the $50$th percentile of this distribution, per star. In
+        \autoref{fig:pal5-heatmap} we sample over the full distribution and
+        smooth by a 0.1~deg (or mas/yr) kernel to produce a smooth
+        representation of the stream. As a consequence of the sampling we see
+        the model's stream solution extends beyond the $\approx \pm5\degree$
+        shown previously.  Though the model certainty and individual membership
+        likelihoods are low, the stream path matches closely with findings in
+        deeper photometric catalogues, like \citet{Ibata+2017}.
+
         While \Gaia{} alone is not photometrically capable of observing the main
         sequence of \stream{Pal\,5}'s tidal tails, the modeling framework we
         present here is capable of operating on outer-joined datasets. This
@@ -2185,7 +2173,7 @@
         Still, this section highlights the capability of our model when applied
         to a noisy field with a diffuse stream.
 
-    % sub trained_density_model
+    % sub trained_density_model (end)
 
 % section pal5 (end)
 
@@ -2267,13 +2255,14 @@
         data-driven approach to characterize previously unknown or diffuse
         extensions to a stream would mark a substantial improvement over our
         current implementation. We leave this to future work.
+        
 
     \subsection{Comparison to Existing Methods} \label{sub:comparison}
 
         There are several existing methods for the detection of stellar streams,
         and some existing work on detailed stream characterization. Here we
         briefly overview the existing methods, and highlight commonalities and
-        differences between the results of our work and previous studies. 
+        differences between the results of our work and previous studies.
 
         Currently, the matched filter is the most common method for detecting
         and characterizing streams (e.g., \citealt{Rockosi+2002, Grillmair2014,
@@ -2309,8 +2298,9 @@
         streams, rather, it is well-suited for characterizing streams that fall
         within some predefined field. Thus, our method can be used for
         characterizing the VIA MACHINAE candidates, and obtaining more robust
-        membership probabilities. 
+        membership probabilities.
 
+        
         In \citet{Patrick+2022} the stellar density of 13 tidal streams is
         modeled in on-sky positions and color-magnitude coordinates. The
         morphology of each stream is characterized by a series of splines, which
@@ -2445,7 +2435,7 @@
     informed by astrometry and photometry. We apply the method to the stream
     \stream{GD-1} and the tidal tails of \stream{Palomar 5}, generating
     membership catalogs for both streams that are publicly available at
-    \href{https://zenodo.org/records/10211410}{zenodo:10211410}. Our
+    \href{https://zenodo.org/doi/10.5281/zenodo.10903751}{DOI 10.5281/zenodo.10211409}. Our
     characterization of \stream{GD-1} reveals a significant detection of the
     stream's main component as well as the ``spur" component, which represents a
     bifurcation from the main stream.  We also recover density variations and
@@ -2511,6 +2501,8 @@
     DPAC has been provided by national institutions, in particular the
     institutions participating in the \Gaia{} Multilateral Agreement.
 
+    We would also like to thank the anonymous reviewer, whose suggestions regarding the realistic mock datasets helped us better show the efficacy of the model on real(istic) data.
+
     The data availability statement is modified from one provided to
     ShowYourWork by Mathieu Renzo.
 
@@ -2520,13 +2512,18 @@
         \package{astropy} \citep{Astropy2013, Astropy2018, Astropy2022}, %
         \package{astroquery} \citep{Astroquery2019}, %
         \package{brutus} \citep{brutus}, %
+        \package{equinox} \citep{equinox}, %
+        \package{flowjax} \citep{ward2023flowjax}, %
+        \package{gala} \citep{gala}, %
+        \package{galpy} \citep{galpy}, %
+        \package{jax} \citep{jax2018github}, %
         \package{Matplotlib} \citep{Hunter2007}, %
         \package{NumPy} \citep{Harris+2020}, %
         \package{Pytorch} \citep{Pytorch2019}, %
         \package{SciPy} \citep{Scipy2020}, %
+        \package{seaborn} \citep{seaborn}, %
         \package{ShowYourWork} \citep{Luger+2021}, %
         \package{zuko} \citep{zuko}. %
-
 
 \newpage
 \section*{Data Availability} \label{sec:data_availability}
@@ -2538,7 +2535,7 @@
     manuscript. Each figure caption contains two links: one to the dataset used
     in the corresponding figure, and the other to the script used to make the
     figure. The datasets are stored at
-    \href{https://zenodo.org/records/10211410}{zenodo:10211410}. The git
+    \href{https://zenodo.org/doi/10.5281/zenodo.10903751}{DOI 10.5281/zenodo.10211409}. The git
     repository associated with this study is publicly available at
     \href{https://github.com/nstarman/stellar_stream_density_ml_paper}{nstarman/stellar\_stream\_density\_ml\_paper}.
     The open-source code base developed for this project is
@@ -2748,5 +2745,128 @@
     network should be restricted such that $\theta \in (a, b]$, e.g. by
     ending the network's $\theta$ channel with a scaled logistic
     function.
+
+
+\newpage
+\section{Tailored Mock}\label{app:tailored_mock}
+
+    In this example we construct a tailored dataset on which our model should perform excellently. The stream accounts for approximately 10 percent of the total number of stars and is distributed along a $\phi_1$-conditional multivariate Gaussian distribution. The background is composed of simple analytic distributions. Applying out method to this simple mock dataset provides a useful baseline for expectations. As will be shown, the baseline is high.
+
+    \subsection{Data Simulation} \label{app:mock:data}
+
+        We generate synthetic stream observations by sampling from simple
+        algebraic forms.  In $\phi_1$ we sample from a uniform distribution.
+        Non-Poissonian density variations, like gaps, are introduced by adding
+        to the uniform distribution two Gaussian distributions centered at
+        different values of $\phi_1$ with negative amplitudes and random widths.
+        Stream stars are then sampled from this uniform-plus-gaps mixture
+        distribution.  In $\phi_2$ we sample from a quadratic in $\phi_1$ with
+        normally-distributed $0.15^{\degree}$ scatter.  The distances are
+        uniformly sampled from $7$ to $15$ kpc in a linear function in $\phi_1$
+        with normally-distributed $0.25 \ \rm{kpc}$ scatter, then transformed to
+        the parallax $\parallax$. Even though the stream width is constant in
+        the distance the width in parallax is not, which will be used to
+        demonstrate that we can recover $\phi_1$ dependent distributions.  The
+        number of stream stars is $\variable{output/mock/nstream_variable.txt}$.
+        $\variable{output/mock/nbackground_variable.txt}$ background astrometric
+        points are generated by sampling from uniform distributions in each
+        coordinate.
+    
+        The synthetic stream's photometry is also simulated using a
+        \variable{output/mock/isochrone_age_variable.txt}\unskip, [Fe/H] =
+        \variable{output/mock/isochrone_feh_variable.txt} MIST isochrone
+        \citep[using][]{brutus}. The isochrone is truncated just short of the
+        giant branch, and is sampled from assuming a stream mass function
+        similar to \stream{Pal\,5} \citep{GrillmairSmith2001} as well as with an
+        intrinsic uniform 0.2~dex scatter orthogonal to the isochrone track.
+
+        The isochrone is shifted by the stream's distance modulus, which is
+        derived from the astrometric distance track.  The background photometric
+        coordinates are generated as a 2-dimensional Gaussian with non-zero
+        covariance. The background is illustrative, if not realistic, in that it
+        is a distribution about which we care very little beyond our ability to
+        fit with a model.  Thus, the synthetic data scenario described here, and
+        presented in \autoref{fig:other_mock_data_result},
+        generates a mock stream in astrometric coordinates and photometric
+        coordinates, with density variations, a distance gradient which is
+        consistent in parallax and distance modulus (i.e., magnitudes), all
+        superimposed over a $\sim 10$ times larger noisy field of background
+        points in each astrometric and photometric dimension. 
+
+    % sub: data_simulation (end)
+
+    \subsection{Modeling and Results} \label{app:mock:results}
+
+        To model the stream we use a similar model as was applied in \autoref{sec:results_mock}. The primary difference between this and the other model is the exclusion of any proper motion information, making this a simpler model with only $\phi_2, \varpi, g, r$ components. 
+
+        The result of applying our density model to the synthetic data is
+        illustrated in \autoref{fig:mock_data_result}. The top panel shows the
+        weight parameter that controls membership probability as a function of
+        $\phi_1$. The dashed curve represents the output of our data-driven
+        model, while the histogram is the ground truth. The second panel shows
+        the stream and background in the $(\phi_1,\phi_2)$ plane, and the third
+        panel shows the stream and background in the $(\phi_1,\parallax)$ plane.
+        Points are color-coded according to their membership probability
+        \autoref{eq:membership_prob}. The weight parameter clearly shows that
+        the model has captured the two prominent density variations along the
+        stream.  There are additional variations, mostly around the edges of the
+        stream, though re-sampling the neural network weights with dropout
+        reveals that these variations represent regions of higher model
+        uncertainty. 
+
+        We find that the stream is successfully recovered in both astrometric
+        and photometric coordinates, with
+        $\variable{output/mock/ncorrect_variable.txt}\%$ 
+        of stream stars being recovered with membership probability greater than
+        $80\%$.  In the bottom two rows of \autoref{fig:mock_data_result} we
+        illustrate the synthetic data color-coded by stream membership
+        probability (top) and background membership probability (background) for
+        different $\phi_1$ slices. Importantly, the photometric portion of the
+        mixture model successfully identifies the stream in magnitude space,
+        showing a high stream membership probability where the stream is
+        present, and a low probability ($\sim 0$) where the stream is absent.
+        The false positive rate (i.e., stars misidentified as stream members)
+        for this test is found to be $<0.1\%$ (3 stars) when cutting on the 80\%
+        membership probability threshold.
+
+        \begin{figure*}[!ht]
+            \script{mock/plot/results.py}
+            \centering
+            \includegraphics[width=0.9\linewidth]{figures/mock/results.pdf}
+            \caption{%
+                Illustration of the model's performance in recovering a stream
+                from synthetic observations. The \textbf{top panel} shows the
+                stream mixture coefficient $f(\phi_1)$ (dashed red line)
+                predicted by the model, overplotted on the true stream fraction
+                (black-outlined histogram).
+                %
+                In the \textbf{middle two rows} we also show the $\phi_2$ and
+                parallax, $\parallax$, tracks as a function of $\phi_1$ and
+                their associated widths (labeled as $\sigma_{\phi_2}$ and
+                $\sigma_{\parallax}$, respectively). The true values for these
+                quantities are shown in gray, while our model prediction and
+                uncertainty is show by the dashed red curve and red band, and by
+                the color of the data points (color-coded by membership
+                probability). The model does an excellent job at identifying the
+                ground truth stream stars.
+                %
+                In the \textbf{bottom three rows} we demonstrate our ability to
+                separate the stream from the background both astrometrically and
+                photometrically. Histograms are shown for each model component
+                (black for the ground truth, blue for the background, red for
+                the stream), in 4 $\phi_1$ ranges across the data set.  The
+                height of the histogram is the probability-weighted density for
+                the collection of stars in each bin. There is nearly perfect
+                agreement for the number of stars belonging to each model
+                component as a function of $\phi_1$. In the bottom row we show
+                photometric plots for each model component in the same 4
+                $\phi_1$ ranges across the data set. Points are color-coded by
+                stream membership probability. 
+                %
+            }
+            \label{fig:other_mock_data_result}
+        \end{figure*}
+
+    % sub: results (end)
 
 \end{document}

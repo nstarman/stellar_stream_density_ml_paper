@@ -23,7 +23,6 @@ lik_tbl = QTable.read(paths.data / "gd1" / "membership_likelhoods.ecsv")
 liks = lik_tbl["allstream (MLE)"]
 prob_arr = np.linspace(0.01, liks.max(), num=100)
 num_gtr = np.array([np.sum(liks >= p) for p in prob_arr], dtype=int)
-num_gtr = num_gtr[0] - num_gtr
 
 # =============================================================================
 # Plot
